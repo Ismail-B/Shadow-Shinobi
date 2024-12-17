@@ -6,10 +6,10 @@ function init() {
     canvas = document.getElementById('canvas');
     world = new World(canvas, keyboard);
 
-    console.log('My Character is ', world.character);
-    console.log('My Chicken is ', world.enemies);
-    console.log('My Firefly is ', world.background);
-    console.log(keyboard);
+    // console.log('My Character is ', world.character);
+    // console.log('My Chicken is ', world.enemies);
+    // console.log('My Firefly is ', world.background);
+    // console.log(keyboard);
 }
 
 window.addEventListener("keydown", (e) => {
@@ -42,7 +42,6 @@ window.addEventListener("keydown", (e) => {
     if(e.key == " "){
         keyboard.SPACE = true;
     }
-    console.log(keyboard);
 });
 
 window.addEventListener("keyup", (e) => {
@@ -75,6 +74,5 @@ window.addEventListener("keyup", (e) => {
     if(e.key == " "){
         keyboard.SPACE = false;
     }
-    console.log(keyboard);
 });
 

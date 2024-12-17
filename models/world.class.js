@@ -1,69 +1,12 @@
 class World {
     character = new Character();
-    enemies = [
-        new Orc(),
-        new Orc(),
-        new Orc(),
-    ];
-    fireflys = [
-        new Firefly()
-    ]
-    backgroundObjects = [
-        new BackgroundObject('img/5_background/layers/sky.png', -720),
-        new BackgroundObject('img/5_background/layers/3_third_layer/2.png', -720),
-        new BackgroundObject('img/5_background/layers/3_third_layer/1.png', -720),
-        new BackgroundObject('img/5_background/layers/2_second_layer/2.png', -720),
-        new BackgroundObject('img/5_background/layers/2_second_layer/1.png', -720),
-        new BackgroundObject('img/5_background/layers/1_first_layer/2.png', -720),
-        new BackgroundObject('img/5_background/layers/1_first_layer/1.png', -720),
-        new BackgroundObject('img/5_background/layers/sky.png', 0),
-        new BackgroundObject('img/5_background/layers/3_third_layer/2.png', 0),
-        new BackgroundObject('img/5_background/layers/3_third_layer/1.png', 0),
-        new BackgroundObject('img/5_background/layers/2_second_layer/2.png', 0),
-        new BackgroundObject('img/5_background/layers/2_second_layer/1.png', 0),
-        new BackgroundObject('img/5_background/layers/1_first_layer/2.png', 0),
-        new BackgroundObject('img/5_background/layers/1_first_layer/1.png', 0),
-        new BackgroundObject('img/5_background/layers/sky.png', 720),
-        new BackgroundObject('img/5_background/layers/3_third_layer/2.png', 720),
-        new BackgroundObject('img/5_background/layers/3_third_layer/1.png', 720),
-        new BackgroundObject('img/5_background/layers/2_second_layer/2.png', 720),
-        new BackgroundObject('img/5_background/layers/2_second_layer/1.png', 720),
-        new BackgroundObject('img/5_background/layers/1_first_layer/2.png', 720),
-        new BackgroundObject('img/5_background/layers/sky.png', 720*2),
-        new BackgroundObject('img/5_background/layers/3_third_layer/2.png', 720*2),
-        new BackgroundObject('img/5_background/layers/3_third_layer/1.png', 720*2),
-        new BackgroundObject('img/5_background/layers/2_second_layer/2.png', 720*2),
-        new BackgroundObject('img/5_background/layers/2_second_layer/1.png', 720*2),
-        new BackgroundObject('img/5_background/layers/1_first_layer/2.png', 720*2),
-        new BackgroundObject('img/5_background/layers/1_first_layer/1.png', 720*2),
-        new BackgroundObject('img/5_background/layers/sky.png', 720*3),
-        new BackgroundObject('img/5_background/layers/3_third_layer/2.png', 720*3),
-        new BackgroundObject('img/5_background/layers/3_third_layer/1.png', 720*3),
-        new BackgroundObject('img/5_background/layers/2_second_layer/2.png', 720*3),
-        new BackgroundObject('img/5_background/layers/2_second_layer/1.png', 720*3),
-        new BackgroundObject('img/5_background/layers/1_first_layer/2.png', 720*3),
-        new BackgroundObject('img/5_background/layers/sky.png', 720*4),
-        new BackgroundObject('img/5_background/layers/3_third_layer/2.png', 720*4),
-        new BackgroundObject('img/5_background/layers/3_third_layer/1.png', 720*4),
-        new BackgroundObject('img/5_background/layers/2_second_layer/2.png', 720*4),
-        new BackgroundObject('img/5_background/layers/2_second_layer/1.png', 720*4),
-        new BackgroundObject('img/5_background/layers/1_first_layer/2.png', 720*4),
-        new BackgroundObject('img/5_background/layers/1_first_layer/1.png', 720*4),
-        new BackgroundObject('img/5_background/layers/sky.png', 720*5),
-        new BackgroundObject('img/5_background/layers/3_third_layer/2.png', 720*5),
-        new BackgroundObject('img/5_background/layers/3_third_layer/1.png', 720*5),
-        new BackgroundObject('img/5_background/layers/2_second_layer/2.png', 720*5),
-        new BackgroundObject('img/5_background/layers/2_second_layer/1.png', 720*5),
-        new BackgroundObject('img/5_background/layers/1_first_layer/2.png', 720*5),
-
-
-
-
-    ]
+    level = level1;
     canvas;
     ctx;
     keyboard;
     camera_x = 0;
+    background_sound = new Audio('audio/forest-background.mp3');
+    music = new Audio('audio/music.mp3');
 
 
     constructor(canvas, keyboard){
@@ -75,6 +18,8 @@ class World {
     }
 
     setWorld(){
+        this.background_sound.play();
+        this.music.play();
         this.character.world = this;
     }
 
@@ -83,19 +28,19 @@ class World {
 
         this.ctx.translate(this.camera_x, 0);
         
-        this.addObjectsToMap(this.backgroundObjects);
+        this.addObjectsToMap(this.level.backgroundObjects);
         
-        this.backgroundObjects.forEach((bgo) => {
-            this.addToMap(bgo);
-        });
+        // this.backgroundObjects.forEach((bgo) => {
+        //     this.addToMap(bgo);
+        // });
         
         let self = this;
         requestAnimationFrame(function() {
             self.draw();
         });
         
-        this.addObjectsToMap(this.fireflys);
-        this.addObjectsToMap(this.enemies);
+        this.addObjectsToMap(this.level.fireflys);
+        this.addObjectsToMap(this.level.enemies);
         this.addToMap(this.character);
         this.ctx.translate(-this.camera_x, 0);
 
