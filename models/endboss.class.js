@@ -1,9 +1,9 @@
 class Endboss extends MovableObject {
 
-    width = 350;
-    height = 370;
-    x = 3880;
-    y = 0;
+    width = 420;
+    height = 340;
+    x = 3850;
+    y = 40;
 
     IMAGES_WALKING = [
         'img/4_enemie_boss_orc/2_alert/Idle_000.png',

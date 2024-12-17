@@ -2,19 +2,14 @@ class Orc extends MovableObject{
     height = 100;
     width = 70;
     y = 265;
-    IMAGES_WALKING = [
-        'img/3_enemies_orcs/orc_green/1_walk/Walk_1.png',
-        'img/3_enemies_orcs/orc_green/1_walk/Walk_2.png',
-        'img/3_enemies_orcs/orc_green/1_walk/Walk_3.png',
-        'img/3_enemies_orcs/orc_green/1_walk/Walk_4.png',
-        'img/3_enemies_orcs/orc_green/1_walk/Walk_5.png',
-        'img/3_enemies_orcs/orc_green/1_walk/Walk_6.png',
-        'img/3_enemies_orcs/orc_green/1_walk/Walk_7.png',
-    ];
+    IMAGES_WALKING = [];
+    walking_sound = new Audio('audio/running.mp3');
+    orc_sound = new Audio('audio/orc.mp3');
+
     constructor(){
         super().loadImage('img/3_enemies_orcs/orc_green/1_walk/Walk_1.png');
         this.loadImages(this.IMAGES_WALKING);
-        this.x = 200 + Math.random()*500; 
+        this.x = 200 + Math.random()*5000; 
         this.speed = 0.15 + Math.random()* 0.5;
 
         this.animate();
@@ -24,7 +19,15 @@ class Orc extends MovableObject{
     animate(){
         this.moveLeft();
         setInterval(() => {
+            // this.walking_sound.play();
+            // this.walking_sound.volume = 0.05;
+            // this.walking_sound.playbackRate = 2;
             this.playAnimation(this.IMAGES_WALKING);
         },200);
+        // setInterval(() =>{
+        //     this.orc_sound.play();
+        //     this.orc_sound.volume = 0.2;
+        //     this.orc_sound.playbackRate = 0.8;
+        // }, Math.random()*100000);
     }
 }

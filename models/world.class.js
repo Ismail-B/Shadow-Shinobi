@@ -19,7 +19,9 @@ class World {
 
     setWorld(){
         this.background_sound.play();
+        this.background_sound.volume = 0.4;
         this.music.play();
+        this.music.volume = 0.4;
         this.character.world = this;
     }
 
@@ -40,6 +42,7 @@ class World {
         });
         
         this.addObjectsToMap(this.level.fireflys);
+        // this.addObjectsToMap(this.level.coins);
         this.addObjectsToMap(this.level.enemies);
         this.addToMap(this.character);
         this.ctx.translate(-this.camera_x, 0);
