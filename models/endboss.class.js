@@ -4,18 +4,20 @@ class Endboss extends MovableObject {
     height = 340;
     x = 3850;
     y = 40;
+    speed = 2;
 
     IMAGES_WALKING = [
-        'img/4_enemie_boss_orc/2_alert/Idle_000.png',
-        'img/4_enemie_boss_orc/2_alert/Idle_001.png',
-        'img/4_enemie_boss_orc/2_alert/Idle_002.png',
-        'img/4_enemie_boss_orc/2_alert/Idle_003.png',
-        'img/4_enemie_boss_orc/2_alert/Idle_004.png',
-        'img/4_enemie_boss_orc/2_alert/Idle_005.png',
-        'img/4_enemie_boss_orc/2_alert/Idle_006.png',
-        'img/4_enemie_boss_orc/2_alert/Idle_007.png',
-        'img/4_enemie_boss_orc/2_alert/Idle_008.png',
-        'img/4_enemie_boss_orc/2_alert/Idle_009.png'
+        'img/4_enemie_boss_orc/1_walk/Walk_000.png',
+        'img/4_enemie_boss_orc/1_walk/Walk_001.png',
+        'img/4_enemie_boss_orc/1_walk/Walk_002.png',
+        'img/4_enemie_boss_orc/1_walk/Walk_003.png',
+        'img/4_enemie_boss_orc/1_walk/Walk_004.png',
+        'img/4_enemie_boss_orc/1_walk/Walk_005.png',
+        'img/4_enemie_boss_orc/1_walk/Walk_006.png',
+        'img/4_enemie_boss_orc/1_walk/Walk_007.png',
+        'img/4_enemie_boss_orc/1_walk/Walk_008.png',
+        'img/4_enemie_boss_orc/1_walk/Walk_009.png'
+
     ];
 
 
@@ -28,9 +30,14 @@ class Endboss extends MovableObject {
     }
 
     animate(){
-        setInterval(() => {
-            this.playAnimation(this.IMAGES_WALKING);
-        },200);
+            setInterval(() => {
+                this.playAnimation(this.IMAGES_WALKING);
+            },200);
+            setInterval(() => {
+                this.moveLeft();
+                this.otherDirection = false;
+
+            }, 1000/60);
     }
 
 

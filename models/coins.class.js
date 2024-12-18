@@ -1,20 +1,9 @@
-class Coin extends MovableObject {
-    y = 0;
-    x = 0;
-    height = 480;
-    width = 720;
+class Coin extends World {
+    width = 100;
+    world;
+
 
     constructor(){
-        super().loadImage('img/8_coin/coin_1.png');
-
-        // this.x = Math.random()*500; 
-        this.animate();
-        this.x = 0;
-
-
-    }
-
-    animate(){
-        this.moveLeft();
+        super().loadImages('img/8_coin/coin_1.png');
     }
 }

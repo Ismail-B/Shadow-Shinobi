@@ -1,4 +1,5 @@
 class OrcGreen extends Orc {
+    y = 260;
     constructor() {
         super();
         this.height = 100; // Höhe für OrcGreen
