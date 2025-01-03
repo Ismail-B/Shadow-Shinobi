@@ -20,7 +20,7 @@ class DrawableObject {
     drawFrame(ctx){
         if(this instanceof Character || this instanceof Orc || this instanceof Endboss || this instanceof Coin){
         ctx.beginPath();
-        ctx.lineWidth = "5";
+        ctx.lineWidth = "3";
         ctx.strokeStyle = "red";
         ctx.rect(this.x, this.y, this.width, this.height);
         ctx.stroke();

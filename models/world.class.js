@@ -8,6 +8,7 @@ class World {
     statusBarLife = new StatusBarLife();
     statusBarCoin = new StatusBarCoin();
     statusBarKunai = new StatusBarKunai();
+    statusBarEndboss = new StatusBarEndboss();
     throwableObjects = [];
     background_sound = new Audio('audio/forest-background.mp3');
     music = new Audio('audio/music.mp3');
@@ -82,6 +83,7 @@ class World {
         this.addToMap(this.statusBarLife);
         this.addToMap(this.statusBarCoin);
         this.addToMap(this.statusBarKunai);
+        this.addToMap(this.statusBarEndboss);
         this.ctx.translate(this.camera_x, 0);
 
         this.ctx.translate(-this.camera_x, 0);
@@ -100,9 +102,9 @@ class World {
         }
         mo.draw(this.ctx);
 
-        mo.drawFrame(this.ctx);
+        // mo.drawFrame(this.ctx);
 
-        mo.drawOffsetFrame(this.ctx);
+        // mo.drawOffsetFrame(this.ctx);
 
         if(mo.otherDirection) {
             this.flipImageBack(mo);

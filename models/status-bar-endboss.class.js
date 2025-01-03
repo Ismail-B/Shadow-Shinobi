@@ -1,12 +1,12 @@
-class StatusBarKunai extends DrawableObject{
+class StatusBarEndboss extends DrawableObject{
 
     IMAGES =[
-        'img/7_statusbars/1_statusbar/3_statusbar_bottle/green/0.png',
-        'img/7_statusbars/1_statusbar/3_statusbar_bottle/green/20.png',
-        'img/7_statusbars/1_statusbar/3_statusbar_bottle/green/40.png',
-        'img/7_statusbars/1_statusbar/3_statusbar_bottle/green/60.png',
-        'img/7_statusbars/1_statusbar/3_statusbar_bottle/green/80.png',
-        'img/7_statusbars/1_statusbar/3_statusbar_bottle/green/100.png'
+        'img/7_statusbars/1_statusbar/1_statusbar_coin/green/0.png',
+        'img/7_statusbars/1_statusbar/1_statusbar_coin/green/20.png',
+        'img/7_statusbars/1_statusbar/1_statusbar_coin/green/40.png',
+        'img/7_statusbars/1_statusbar/1_statusbar_coin/green/60.png',
+        'img/7_statusbars/1_statusbar/1_statusbar_coin/green/80.png',
+        'img/7_statusbars/1_statusbar/1_statusbar_coin/green/100.png'
     ]
 
     percentage = 100;
@@ -14,10 +14,10 @@ class StatusBarKunai extends DrawableObject{
     constructor(){
         super();
         this.loadImages(this.IMAGES);
-        this.x = 0;
-        this.y = 100;
+        this.x = 520;
+        this.y = 10;
         this.width = 170;
-        this.height = 50;
+        this.height = 38;
         this.setPercentage(100);
     }
 

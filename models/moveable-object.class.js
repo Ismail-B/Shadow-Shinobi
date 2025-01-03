@@ -66,15 +66,15 @@ class MovableObject extends DrawableObject{
             this.y + this.offset.y < mo.y + mo.offset.y + mo.height - mo.offset.height;
     }
 
-    // hit(){
+    hit(){
 
-    //     this.energy -= 5;
-    //     if(this.energy < 0){
-    //         this.energy = 0;
-    //     } else {
-    //         this.lastHit = new Date().getTime();
-    //     }
-    // }
+        this.energy -= 5;
+        if(this.energy < 0){
+            this.energy = 0;
+        } else {
+            this.lastHit = new Date().getTime();
+        }
+    }
 
     isDead() {
         return this.energy == 0;
