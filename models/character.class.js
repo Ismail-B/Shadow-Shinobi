@@ -11,6 +11,21 @@ class Character extends MovableObject{
         'img/2_character_shinobi/2_walk/Run_7.png',
         'img/2_character_shinobi/2_walk/Run_8.png'
     ];
+    IMAGES_IDLE = [
+        'img/2_character_shinobi/1_idle/idle/Idle_1.png',
+        'img/2_character_shinobi/1_idle/idle/Idle_2.png',
+        'img/2_character_shinobi/1_idle/idle/Idle_3.png',
+        'img/2_character_shinobi/1_idle/idle/Idle_4.png',
+        'img/2_character_shinobi/1_idle/idle/Idle_5.png',
+        'img/2_character_shinobi/1_idle/idle/Idle_6.png'
+    ];
+    IMAGES_ATTACK = [
+        'img/2_character_shinobi/6_attack/Attack_1.png',
+        'img/2_character_shinobi/6_attack/Attack_2.png',
+        'img/2_character_shinobi/6_attack/Attack_3.png',
+        'img/2_character_shinobi/6_attack/Attack_4.png',
+        'img/2_character_shinobi/6_attack/Attack_5.png'
+    ];
     IMAGES_JUMPING = [
         'img/2_character_shinobi/3_jump/Jump_1.png',
         'img/2_character_shinobi/3_jump/Jump_2.png',
@@ -47,6 +62,8 @@ class Character extends MovableObject{
         this.loadImages(this.IMAGES_JUMPING);
         this.loadImages(this.IMAGES_DEAD);
         this.loadImages(this.IMAGES_HURT);
+        this.loadImages(this.IMAGES_IDLE);
+        this.loadImages(this.IMAGES_ATTACK);
         this.applyGravity();
         this.animateCharacter();
     }
@@ -55,16 +72,16 @@ class Character extends MovableObject{
 
         setInterval(() => {
             this.walking_sound.pause();
-            if(this.world.keyboard.RIGHT && this.x < this.world.level.level_end_x) {
+            if(this.world.keyboard.RIGHT && this.x < this.world.level.level_end_x && !this.isDead()) {
                 this.moveRight();
                 this.soundEffects(0.3, 2.5);
             }                
-            if(this.world.keyboard.LEFT && this.x > -670) {
+            if(this.world.keyboard.LEFT && this.x > -670 && !this.isDead()) {
                 this.moveLeft();
                 this.soundEffects(0.3, 2.5);
             }   
             
-            if(this.world.keyboard.SPACE && !this.isAboveGround()) {
+            if(this.world.keyboard.SPACE && !this.isAboveGround() && !this.isDead()) {
                 this.jump();
             }
             this.world.camera_x = -this.x + 50;
@@ -78,7 +95,9 @@ class Character extends MovableObject{
             else if(this.isHurt()){
                 this.playAnimation(this.IMAGES_HURT);
             }
-
+            else if(this.isNotMoving()){
+                this.playAnimation(this.IMAGES_IDLE);
+            }
             else if(this.isAboveGround()) {
                 this.playAnimation(this.IMAGES_JUMPING);
             }else{

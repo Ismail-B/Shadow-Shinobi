@@ -5,6 +5,10 @@ class World {
     ctx;
     keyboard;
     camera_x = 0;
+    statusBarLife = new StatusBarLife();
+    statusBarCoin = new StatusBarCoin();
+    statusBarKunai = new StatusBarKunai();
+    throwableObjects = [];
     background_sound = new Audio('audio/forest-background.mp3');
     music = new Audio('audio/music.mp3');
 
@@ -15,7 +19,7 @@ class World {
         this.keyboard = keyboard;
         this.draw();
         this.setWorld();
-        this.checkCollisions();
+        this.run();
     }
 
     setWorld(){
@@ -25,16 +29,28 @@ class World {
         this.music.volume = 0.4;
         this.character.world = this;
     }
+// intervall anpassen und zweites Intervall für checkThrowObjects()
+    run(){
+        setInterval(() => {
+            this.checkCollisions();
+            this.checkThrowObjects();
+        }, 200);
+    }
 
     checkCollisions(){
-        setInterval(() => {
-            this.level.enemies.forEach((enemy) => {
-                if(this.character.isColliding(enemy)) {
-                    this.character.hit();
-                    console.log('Collision with Character, energy:', this.character.energy);
-                };
-            })
-        }, 200);
+        this.level.enemies.forEach((enemy) => {
+            if(this.character.isColliding(enemy)) {
+                this.character.hit();
+                this.statusBarLife.setPercentage(this.character.energy);
+            };
+        })
+    }
+
+    checkThrowObjects(){
+        if(this.keyboard.D){
+            let kunai = new ThrowableObject(this.character.x, this.character.y + 60);
+            this.throwableObjects.push(kunai);
+        }
     }
 
     draw(){
@@ -54,9 +70,20 @@ class World {
         });
         
         this.addObjectsToMap(this.level.fireflys);
-        // this.addObjectsToMap(this.level.coins);
+        this.addObjectsToMap(this.throwableObjects);
+        this.addObjectsToMap(this.level.coins);
+        this.addObjectsToMap(this.level.kunais);
         this.addObjectsToMap(this.level.enemies);
         this.addToMap(this.character);
+
+        this.ctx.translate(-this.camera_x, 0);
+
+        //=========SPACE FOR FIXED OBJECTS===========
+        this.addToMap(this.statusBarLife);
+        this.addToMap(this.statusBarCoin);
+        this.addToMap(this.statusBarKunai);
+        this.ctx.translate(this.camera_x, 0);
+
         this.ctx.translate(-this.camera_x, 0);
 
     }
@@ -74,6 +101,8 @@ class World {
         mo.draw(this.ctx);
 
         mo.drawFrame(this.ctx);
+
+        mo.drawOffsetFrame(this.ctx);
 
         if(mo.otherDirection) {
             this.flipImageBack(mo);

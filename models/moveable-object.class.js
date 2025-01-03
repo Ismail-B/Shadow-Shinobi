@@ -1,31 +1,19 @@
-class MovableObject {
-    x = 10;
-    y = 0;
-    img;
-    height = 150;
-    width = 100;
-    imageCache = {};
-    currentImage = 0;
+class MovableObject extends DrawableObject{
+
     speed = 0.15;
     otherDirection = false;
     speedY = 0;
     acceleration = 1;
     energy = 100;
     lastHit = 0;
-
-    loadImage(path){
-        this.img = new Image();
-        this.img.src = path;
+    lastX = 0;
+    offset = {
+        x: 0,
+        y: 0,
+        width: 0,
+        height: 0,
     }
 
-    loadImages(arr){
-        arr.forEach((path) => {
-            let img = new Image();
-            img.src = path;
-            // img.style = 'transform: scaleX(-1)'; ================> Im video irgendwann nicht mehr drin
-            this.imageCache[path] = img;
-        });
-    }
 
     moveRight() {
         this.x += this.speed;
@@ -50,49 +38,43 @@ class MovableObject {
             if (this.isAboveGround() || this.speedY > 0) {            
             this.y -= this.speedY;
             this.speedY -= this.acceleration;
-    }}, 1000/25);
-    }
-
-    draw(ctx){
-        ctx.drawImage(this.img, this.x, this.y, this.width, this.height);
-    }
-
-    drawFrame(ctx){
-
-
-        if(this instanceof Character || this instanceof Orc || this instanceof Endboss){
-        ctx.beginPath();
-        ctx.lineWidth = "2";
-        ctx.strokeStyle = "red";
-        ctx.rect(this.x, this.y, this.width, this.height);
-        ctx.stroke();
-        }
+    }}, 1000/70);
     }
 
     isAboveGround(){
-        return this.y < 200;
+        if(!this instanceof ThrowableObject) {
+            return true;
+        } else {
+            return this.y < 200;
+        }
+    }
+
+    isNotMoving(){
+        const isStationary = this.x === this.lastX; // Prüfen, ob der x-Wert sich nicht verändert hat
+        this.lastX = this.x; // Den aktuellen x-Wert speichern
+        return isStationary;
     }
 
     jump() {
         this.speedY = 20;
     }
 
-    isColliding (mo) {
-        return this.x + this.width > mo.x &&
-            this.y + this.height > mo.y &&
-            this.x < mo.x &&
-            this.y < mo.y + mo.height;
+    isColliding(mo) {
+        return this.x + this.offset.x + this.width - this.offset.width > mo.x + mo.offset.x &&
+            this.y + this.offset.y + this.height - this.offset.height > mo.y + mo.offset.y &&
+            this.x + this.offset.x < mo.x+ mo.offset.x  + mo.width - mo.offset.width &&
+            this.y + this.offset.y < mo.y + mo.offset.y + mo.height - mo.offset.height;
     }
 
-    hit(){
+    // hit(){
 
-        this.energy -= 5;
-        if(this.energy < 0){
-            this.energy = 0;
-        } else {
-            this.lastHit = new Date().getTime();
-        }
-    }
+    //     this.energy -= 5;
+    //     if(this.energy < 0){
+    //         this.energy = 0;
+    //     } else {
+    //         this.lastHit = new Date().getTime();
+    //     }
+    // }
 
     isDead() {
         return this.energy == 0;

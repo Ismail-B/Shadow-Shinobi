@@ -4,27 +4,59 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="./style.css">
+    <link rel="icon" type="image/x-icon" href="img/7_statusbars/3_icons/fav-icon.png">
     <title>Shadow Shinobi</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Hanalei+Fill&family=Montserrat:ital,wght@0,100..900;1,100..900&family=Pixelify+Sans:wght@400..700&family=Roboto+Mono:ital,wght@0,100..700;1,100..700&display=swap" rel="stylesheet">
     <script src="./models/world.class.js"></script>
+    <script src="./models/drawable-object.class.js"></script>
     <script src="./models/moveable-object.class.js"></script>
     <script src="./models/background-object.class.js"></script>
     <script src="./models/firefly.class.js"></script>
-    <script src="./models/coins.class.js"></script>
+    <script src="./models/coin.class.js"></script>
+    <script src="./models/kunai.class.js"></script>
     <script src="./models/character.class.js"></script>
     <script src="./models/orc.class.js"></script>
     <script src="./models/orc-green.class.js"></script>
     <script src="./models/orc-red.class.js"></script>
     <script src="./models/keyboard.class.js"></script>
     <script src="./models/level.class.js"></script>
+    <script src="./models/throwable-object.class.js"></script>
     <script src="./models/endboss.class.js"></script>
+    <script src="./models/status-bar-life.class.js"></script>
+    <script src="./models/status-bar-coin.class.js"></script>
+    <script src="./models/status-bar-kunai.class.js"></script>
     <script src="./levels/level1.js"></script>
     <script src="./scripts/game.js"></script>
 </head>
-<body onload="init()">
-    <h1>Shadow Shinobi</h1>
-
+<body>
+    <header>
+        <img src="img/8_coin/ninja-logo2.png" alt="">
+        <h2>Shadow Shinobi</h2>
+    </header>
+    <div id="startoverlay">
+        <button onclick="init(),toggle('canvas')">Start</button>
+        <button onclick="toggle('control')">Control</button>
+        <button>Story</button>
+        <button>Info</button>
+    </div>
+    <div id="controls">
+        
+    </div>
+    <div id="canvas-box">
+        <div>
     <canvas id="canvas" width="720" height="480">
-
     </canvas>
+    </div>
+    </div>
+    
+    <footer>
+        <div class="footer">
+        <img src="img/8_coin/ninja-logo2.png" alt="">
+        <p class="signature" >Shadow Shinobi <br>by<br>Ismail</p>
+        </div>
+        <p class="under-signature">© 2025 picture from pixabay / craftpix</p>
+    </footer>
 </body>
 </html>

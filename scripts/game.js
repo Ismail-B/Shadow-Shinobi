@@ -12,6 +12,20 @@ function init() {
     // console.log(keyboard);
 }
 
+function toggle(canvasId) {
+    let canvas = document.getElementById(canvasId); // Holen des Canvas-Elements über den Parameter
+    let startOverlay = document.getElementById('startoverlay'); // Holen des Start-Overlays
+
+    // Überprüfen, ob das Canvas derzeit verborgen ist (display: none)
+    if (canvas.style.display === 'none' || canvas.style.display === '') {
+        canvas.style.display = 'block'; // Setze das Canvas auf sichtbar
+        startOverlay.style.display = 'none'; // Verberge das Start-Overlay
+    } else {
+        canvas.style.display = 'none'; // Setze das Canvas auf unsichtbar
+        startOverlay.style.display = 'block'; // Zeige das Start-Overlay
+    }
+}
+
 window.addEventListener("keydown", (e) => {
 
     if (e.key == "w" || "ArrowUp") {
@@ -41,6 +55,9 @@ window.addEventListener("keydown", (e) => {
     }
     if(e.key == " "){
         keyboard.SPACE = true;
+    }
+    if(e.key == "d"){
+        keyboard.D = true;
     }
 });
 
@@ -73,6 +90,9 @@ window.addEventListener("keyup", (e) => {
     }
     if(e.key == " "){
         keyboard.SPACE = false;
+    }
+    if(e.key == "d"){
+        keyboard.D = false;
     }
 });
 

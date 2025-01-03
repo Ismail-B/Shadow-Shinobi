@@ -1,10 +1,129 @@
 body{
+    font-family: Montserrat;
+    font-size: 32px;
+    background-color:rgb(59, 56, 56);
+    margin: 0;
     display: flex;
     flex-direction: column;
+    min-height: 100vh;
+}
+
+main{
+    flex: 1;
+}
+
+h1 {
+    position: absolute;
+    right: 160px;
+}
+
+header{
+    font-family: "Hanalei Fill", serif;
+    font-style: normal;
+    min-height: 100px;
+    display: flex;
+    justify-content: flex-start;
     align-items: center;
-    background-color: grey;
+    background-color: #B7694D;
+    color: rgb(230, 227, 227);
+    text-shadow: 
+    2px 2px 4px #000,        /* Dunkler, subtiler Schatten */
+    0 0 20px rgba(255, 0, 0, 0.6),  /* Rotes Leuchten */
+    0 0 20px rgba(255, 0, 0, 0.4);  /* Weiterer roter Schein */
+}
+
+header img{
+    width: 100px;
+    margin-left: 24px;
+    margin-right: 16px;
+}
+
+footer{
+    display: flex;
+    background-color:#B7694D;
+    justify-content: flex-start;
+    flex-direction: column;
+    min-height: 30px;
+}
+
+footer img{
+    width: 60px;
+    height: 60px;
+    margin-right: 16px;
+    margin-bottom: 18px;
 }
 
 canvas{
     background-color: black;
+    border: 10px solid #B7694D;
+    border-radius: 8px;
+    display: none;
+}
+
+.footer{
+    display: flex;
+    justify-content: center;
+    align-items: flex-end;
+    min-height: 106.8px;
+    background-color: #B7694D;
+}
+
+.signature{
+    font-family: "Kalam";
+    font-weight: bold;
+    font-size: 14px;
+    text-align: center;
+    color: rgb(221, 221, 221);
+}
+
+.under-signature{
+    display: flex;
+    justify-content: center;
+    font-size: 12px;
+    color: rgb(192, 192, 192);
+    margin-bottom: 16px;
+}
+
+#canvas-box {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 70vh;
+    background-image: url('img/index/background.jpg');
+}
+
+/* Startoverlay Container */
+#startoverlay {
+    position: fixed; /* Überlagert den gesamten Bildschirm */
+    top: 200px;
+    left: 250px;
+    width: 50%;
+    height: 50%;
+    background-color: #b7694dec; /* Dunkler Hintergrund mit Transparenz */
+    border-radius: 10px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center; /* Zentriert vertikal */
+    align-items: center; /* Zentriert horizontal */
+    color: #fff;
+    font-family: 'Noto Sans', sans-serif;
+    z-index: 1000; /* Sicherstellen, dass das Overlay oben bleibt */
+}
+
+/* Buttons */
+button {
+    background-color: #292929c6; /* Dunkler Hintergrund für Buttons */
+    color: #efefef;
+    width: 200px;
+    font-size: 20px;
+    padding: 15px 30px;
+    margin: 10px;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.3s ease; /* Sanfte Übergänge für Hover-Effekte */
+}
+
+button:hover {
+    background-color: #666; /* Hellerer Hintergrund, wenn der Button überfahren wird */
 }
