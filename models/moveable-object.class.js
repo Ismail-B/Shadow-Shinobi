@@ -13,6 +13,7 @@ class MovableObject extends DrawableObject{
         width: 0,
         height: 0,
     }
+    walkingSound;
 
 
     moveRight() {

@@ -33,4 +33,11 @@ class Orc extends MovableObject{
             // this.orc_sound.playbackRate = 0.8;
         }, Math.random()*100000);
     }
+
+    die() {
+        clearInterval(this.moveLeftInterval);
+        clearInterval(this.playAnimationInterval);
+        this.loadImage(this.IMAGE_DEAD);
+        this.speed = 0;      
+    }
 }

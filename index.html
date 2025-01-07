@@ -1,14 +1,18 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="./style.css">
-    <link rel="icon" type="image/x-icon" href="img/7_statusbars/3_icons/fav-icon.png">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="./style.css" />
+    <link
+      rel="icon"
+      type="image/x-icon"
+      href="img/7_statusbars/3_icons/fav-icon.png"
+    />
     <title>Shadow Shinobi</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Hanalei+Fill&family=Montserrat:ital,wght@0,100..900;1,100..900&family=Pixelify+Sans:wght@400..700&family=Roboto+Mono:ital,wght@0,100..700;1,100..700&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Anton&family=Bebas+Neue&family=Hanalei+Fill&family=Montserrat:ital,wght@0,100..900;1,100..900&family=Pixelify+Sans:wght@400..700&family=Roboto+Mono:ital,wght@0,100..700;1,100..700&display=swap" rel="stylesheet">
     <script src="./models/world.class.js"></script>
     <script src="./models/drawable-object.class.js"></script>
     <script src="./models/moveable-object.class.js"></script>
@@ -30,34 +34,114 @@
     <script src="./models/status-bar-endboss.class.js"></script>
     <script src="./levels/level1.js"></script>
     <script src="./scripts/game.js"></script>
-</head>
-<body>
+  </head>
+  <body>
     <header>
-        <img src="img/8_coin/ninja-logo2.png" alt="">
-        <h2>Shadow Shinobi</h2>
+      <img src="img/8_coin/ninja-logo2.png" alt="" />
+      <h2>Shadow Shinobi</h2>
     </header>
-    <div id="startoverlay">
-        <button onclick="init(),toggle('canvas')">Start</button>
-        <button onclick="toggle('control')">Control</button>
-        <button>Story</button>
-        <button>Info</button>
+    <div class="sound-button">
+        <img src="img/index/speaker-loud.png" alt="Music On Button">
     </div>
-    <div id="controls">
-        
+    <div id="startoverlay">
+      <button onclick="init(),toggle('canvas')">Start</button>
+      <button onclick="toggle('control')">Controls</button>
+      <button onclick="toggle('story')">Story</button>
+      <button class="impressum-button" onclick="toggle('impressum')">Impressum</button>
+    </div>
+    <div id="control">
+      <div class="control-headline">
+        </h2>CONTROLS</h2>
+      </div>
+      <div class="control-container">
+        <div class="control-button">
+          <div class="control-button-style">
+            <button>A</button>
+            <span>/</span>
+            <button>
+              <img
+                class="rotate"
+                src="img/index/arrow-right.png"
+                alt="Arrow-Right Button"
+              />
+            </button>
+          </div>
+          <div class="control-button-style">
+            <button>D</button>
+            <span>/</span>
+            <button>
+              <img src="img/index/arrow-right.png" alt="Arrow-Right Button" />
+            </button>
+          </div>
+          <div class="control-button-style">
+            <button>Space</button>
+          </div>
+          <div class="control-button-style">
+            <button>B</button>
+          </div>
+        </div>
+        <div class="controls">
+          <span>MOVE LEFT</span>
+          <span>MOVE RIGHT</span>
+          <span>JUMP</span>
+          <span>THROW KUNAI</span>
+        </div>
+      </div>
+      <div class="menu-button">
+      <button onclick="toggle('control')">Back to Menu</button>
+    </div>
+    </div>
+    <div id="story">
+        <div class="story-headline">
+        <h2>Background Story</h2>
+        </div>
+        <div class="background-story">
+        <p>The Shadow Shinobi
+
+            In a small village hidden deep in the mountains, the nights were haunted by savage orcs that craved chaos. But the villagers slept soundly, knowing their protector lurked in the darkness. He was the Shadow Shinobi, a master of stealth and shadow magic, sworn to defend his people.
+            
+            Silent as the wind, he patrolled the village's borders each night, his blade striking faster than the eye could follow. Cloaked in darkness, he became one with the shadows, appearing only to strike down those who dared to threaten his home.
+            
+            One fateful night, a powerful orc shaman arrived, summoning an army of beasts. The Shinobi faced his greatest challenge yet. Without fear or hesitation, he vanished into the night, his blade ready, his mission clear: protect the village at all costs.
+            
+            And so, the legend of the Shadow Shinobi lived on, whispered in gratitude by those he saved.</p>
+        </div>
+        <div class="menu-button">
+            <button onclick="toggle('story')">Back to Menu</button>
+        </div>
+    </div>
+    <div id="impressum">
+        <div class="story-headline">
+            <h2>Impressum</h2>
+        </div>
+        <p>Ismail Baris</p>
+        <p>Software Developer</p>
+        <p>Finkenstraße 2</p>
+        <p>52531 Übach-Palenberg</p>
+        <p>Deutschland</p>
+        <div class="email-link">
+        <p>Email:</p>
+        <a href="mailto:ismail_baris_93@gmx.de">Ismail_Baris_93@gmx.de</a>
+        </div>
+        <div class="menu-button">
+            <button onclick="toggle('impressum')">Back to Menu</button>
+        </div>
     </div>
     <div id="canvas-box">
-        <div>
-    <canvas id="canvas" width="720" height="480">
-    </canvas>
-    </div>
-    </div>
-    
-    <footer>
-        <div class="footer">
-        <img src="img/8_coin/ninja-logo2.png" alt="">
-        <p class="signature" >Shadow Shinobi <br>by<br>Ismail</p>
+        <div class="sound-button">
+            <img src="img/index/speaker-loud.png" alt="Music On Button">
         </div>
-        <p class="under-signature">© 2025 picture from pixabay / craftpix</p>
+      <div>
+        <canvas id="canvas" width="720" height="480"> </canvas>
+      </div>
+    </div>
+
+    <footer>
+      <div class="footer">
+        <img src="img/8_coin/ninja-logo2.png" alt="" />
+        <p class="signature">Shadow Shinobi <br />by<br />Ismail</p>
+      </div>
+      <p class="under-signature">© 2025 picture from pixabay / craftpix</p>
     </footer>
-</body>
+  </body>
 </html>

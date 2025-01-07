@@ -122,4 +122,10 @@ class World {
         mo.x = mo.x * -1;
         this.ctx.restore();
     }
+
+    loadEndpage(){
+        if (this.energy == 0) {
+            
+        }
+    }
 }
