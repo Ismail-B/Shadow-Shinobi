@@ -157,11 +157,3 @@ window.addEventListener("keyup", (e) => {
   }
 });
 
-function setStopableInterval(fn, time) {
-    let id = setInterval(fn, time);
-    intervalIds.push(id);
-}
-
-function stopIntervalIds() {
-    intervalIds.forEach(clearInterval);
-}

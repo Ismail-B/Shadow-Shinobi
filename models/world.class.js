@@ -47,6 +47,29 @@ class World {
         })
     }
 
+    // checkCollisions() {
+    //     this.level.enemies.forEach((enemy, index) => {
+    //         if (this.character.isColliding(enemy)) {
+    //             if (this.character.isAboveGround() && this.character.speedY <= 0) {
+    //                 if (enemy instanceof Chicken || enemy instanceof ChickenSmall) {
+    //                     if (!isMuted) {
+    //                         this.chickenCrushSound.play();
+    //                     }
+    //                     this.chickenCrushSound.volume = 0.1;
+    //                     this.level.enemies.splice(index, 1);
+    //                 }
+    //             } else if (enemy instanceof Endboss) {
+    //                 this.character.x -= 30;
+    //                 this.character.hit();
+    //                 this.statusBarHealth.setPercentage(this.character.energy);
+    //             } else {
+    //                 this.character.hit();
+    //                 this.statusBarHealth.setPercentage(this.character.energy);
+    //             }
+    //         }
+    //     });
+    // }
+
     checkThrowObjects(){
         if(this.keyboard.D){
             let kunai = new ThrowableObject(this.character.x, this.character.y + 60);

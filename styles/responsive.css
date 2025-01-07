@@ -1,0 +1,103 @@
+/* #orientation-hint {
+    display: none;
+    position: fixed;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: rgba(0, 0, 0, 0.9);
+    color: white;
+    padding: 10px;
+    border: 10px solid red;
+    border-radius: 5px;
+    font-size: 18px;
+    z-index: 110;
+ }
+
+ @media only screen and (max-device-height: 1024px) and (max-device-width: 1370px) and (orientation: landscape) {
+
+    .info-screen {
+       display: none;
+    }
+ } */
+
+ /* Canva responsive*/
+@media only screen and (max-width: 720px) {
+    canvas {
+        width: 100%;
+        border:none;
+    }
+}
+
+/* Canva responsive*/
+@media only screen and (max-height: 480px) {
+    canvas {
+        height: 100dvh;
+        border:none;
+    }
+}
+
+/*Menu responsive*/
+@media (max-width:500px){
+    header h2{
+        font-size: 36px;
+    }
+    header img{
+        width: 60px;
+    }
+    #startoverlay{
+        width: 200px;
+        height: 400px;
+    }
+    #startoverlay button{
+        width: 140px;
+    }
+}
+
+@media (max-width:380px){
+    header h2{
+        font-size: 30px;
+    }
+}
+
+@media (max-width:720px){
+    #control{
+        height: 40%;
+    }
+    .control-headline{
+        font-size: 40px;
+    }
+    .control-button-style img {
+        width: 19px;
+    }
+    button {
+        font-size: 14px;
+        padding: 8px 30px;
+    }
+    .control-container span{
+        font-size: 26px;
+    }
+    .controls span {
+        padding: 10px;
+    } 
+}
+
+/* @media (max-width:600px){
+    #control{
+        height: 30%;
+    }
+    .control-headline{
+        font-size: 30px;
+    }
+    .control-button-style img {
+        width: 15px;
+    }
+    button {
+        font-size: 12px;
+               padding: 2px 21px
+    }
+    .control-container span{
+        font-size: 18px;
+    }
+    .controls span {
+        padding: 6px;
+    } 
+} */

@@ -62,8 +62,9 @@ canvas{
 
 #control{
     position: fixed; /* Überlagert den gesamten Bildschirm */
-    top: 200px;
-    left: 250px;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
     width: 50%;
     height: 50%;
     background-color: #b7694dec; /* Dunkler Hintergrund mit Transparenz */
@@ -189,8 +190,9 @@ canvas{
 /* Startoverlay Container */
 #startoverlay {
     position: fixed; /* Überlagert den gesamten Bildschirm */
-    top: 200px;
-    left: 250px;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
     width: 50%;
     height: 50%;
     background-color: #b7694dec; /* Dunkler Hintergrund mit Transparenz */
@@ -206,8 +208,9 @@ canvas{
 
 #story{
     position: fixed; /* Überlagert den gesamten Bildschirm */
-    top: 200px;
-    left: 250px;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
     width: 50%;
     height: 62%;
     background-color: #b7694dec; /* Dunkler Hintergrund mit Transparenz */
@@ -248,8 +251,9 @@ canvas{
 
 #impressum{
     position: fixed; /* Überlagert den gesamten Bildschirm */
-    top: 200px;
-    left: 250px;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
     width: 50%;
     height: 50%;
     background-color: #b7694dec; /* Dunkler Hintergrund mit Transparenz */
@@ -356,3 +360,14 @@ button {
 button:hover {
     background-color: #666; /* Hellerer Hintergrund, wenn der Button überfahren wird */
 }
+
+/* .info-screen {
+    display: flex;
+    justify-content: space-around;
+    flex-direction: column;
+    width: 95%;
+    background-color: black;
+    height: 100%;
+    border-radius: 10px;
+    padding: 10px;
+ } */
