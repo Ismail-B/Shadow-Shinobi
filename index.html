@@ -40,8 +40,14 @@
       <img src="img/8_coin/ninja-logo2.png" alt="" />
       <h2>Shadow Shinobi</h2>
     </header>
-    <div class="sound-button">
-        <img src="img/index/speaker-loud.png" alt="Music On Button">
+    <div onclick="fullscreen()" class="fullscreen-button">
+        <img src="img/index/fullscreen-icon.png" alt="Fullscreen Button">
+    </div>
+    <div id="sound-btn" class="sound-button">
+        <img onclick="toggleMusic('sound-btn'), triggerMusic()" src="img/index/speaker-loud.png" alt="Music On Button">
+    </div>
+    <div id="mute-btn" class="sound-button">
+        <img onclick="toggleMusic('sound-btn'), triggerMusic()" src="img/index/speaker-mute.png" alt="Music Off Button">
     </div>
     <div id="startoverlay">
       <button onclick="init(),toggle('canvas')">Start</button>
@@ -128,10 +134,7 @@
         </div>
     </div>
     <div id="canvas-box">
-        <div class="sound-button">
-            <img src="img/index/speaker-loud.png" alt="Music On Button">
-        </div>
-      <div>
+      <div id="fullscreen">
         <canvas id="canvas" width="720" height="480"> </canvas>
       </div>
     </div>

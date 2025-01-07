@@ -299,6 +299,7 @@ canvas{
     position: fixed;
     right: 16px;
     top:150px;
+    display: none;
 }
 
 .sound-button img{
@@ -310,6 +311,30 @@ canvas{
 }
 
 .sound-button img:hover{
+    cursor: pointer;
+    background-color: rgba(18, 18, 18, 0.289);
+}
+
+#mute-btn{
+    display: block;
+}
+
+.fullscreen-button{
+    position: fixed;
+    right: 16px;
+    top:210px;
+
+}
+
+.fullscreen-button img{
+    width: 38px;
+    background-color: rgba(18, 18, 18, 0.484);
+    filter: invert();
+    border-radius: 8px;
+    padding: 6px;
+}
+
+.fullscreen-button img:hover{
     cursor: pointer;
     background-color: rgba(18, 18, 18, 0.289);
 }

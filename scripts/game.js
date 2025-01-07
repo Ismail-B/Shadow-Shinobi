@@ -1,6 +1,7 @@
 let canvas;
 let world;
 let keyboard = new Keyboard();
+let intervalIds = [];
 
 function init() {
   canvas = document.getElementById("canvas");
@@ -25,6 +26,68 @@ function toggle(canvasId) {
     startOverlay.style.display = "block"; // Zeige das Start-Overlay
   }
 }
+
+function toggleMusic(id) {
+    let loud = document.getElementById(id);
+    let mute = document.getElementById('mute-btn');
+
+    // Zustand des Elements prüfen
+    if (getComputedStyle(loud).display === "none") {
+        loud.style.display = "block";
+        mute.style.display = "none";
+    } else {
+        loud.style.display = "none";
+        mute.style.display = "block";
+    }
+}
+
+function triggerMusic() {
+    // Sammle alle Audio-Elemente auf der Seite
+    const audioElements = document.querySelectorAll("sound");
+    let allPaused = true;
+
+    // Prüfe, ob alle Audios pausiert sind
+    audioElements.forEach(audio => {
+        if (!audio.paused) {
+            allPaused = false;
+        }
+    });
+
+    // Umschalten: Wenn alle pausiert sind, starte die Wiedergabe, sonst stoppe sie
+    audioElements.forEach(audio => {
+        if (allPaused) {
+            audio.play();
+        } else {
+            audio.pause();
+        }
+    });
+}
+
+function fullscreen() {
+    let fullscreen = document.getElementById('canvas');
+    enterFullscreen(fullscreen);
+}
+
+function enterFullscreen(element) {
+    if(element.requestFullscreen) {
+      element.requestFullscreen();
+    } else if(element.msRequestFullscreen) {      // for IE11 (remove June 15, 2022)
+      element.msRequestFullscreen();
+    } else if(element.webkitRequestFullscreen) {  // iOS Safari
+      element.webkitRequestFullscreen();
+    }
+}
+
+function exitFullscreen() {
+    if(document.exitFullscreen) {
+      document.exitFullscreen();
+    } else if(document.webkitExitFullscreen) {
+      document.webkitExitFullscreen();
+    }
+}
+
+
+
 
 window.addEventListener("keydown", (e) => {
   if (e.key == "w" || "ArrowUp") {
@@ -93,3 +156,12 @@ window.addEventListener("keyup", (e) => {
     keyboard.D = false;
   }
 });
+
+function setStopableInterval(fn, time) {
+    let id = setInterval(fn, time);
+    intervalIds.push(id);
+}
+
+function stopIntervalIds() {
+    intervalIds.forEach(clearInterval);
+}
