@@ -3,6 +3,7 @@ let world;
 let keyboard = new Keyboard();
 let intervalIds = [];
 
+
 function init() {
   canvas = document.getElementById("canvas");
   world = new World(canvas, keyboard);
@@ -41,26 +42,16 @@ function toggleMusic(id) {
     }
 }
 
-function triggerMusic() {
-    // Sammle alle Audio-Elemente auf der Seite
-    const audioElements = document.querySelectorAll("sound");
-    let allPaused = true;
+function muteMusic() {
+    world.music.muted = true;
+    world.background_sound.muted = true;
+    world.character.walking_sound.muted = true;
+}
 
-    // Prüfe, ob alle Audios pausiert sind
-    audioElements.forEach(audio => {
-        if (!audio.paused) {
-            allPaused = false;
-        }
-    });
-
-    // Umschalten: Wenn alle pausiert sind, starte die Wiedergabe, sonst stoppe sie
-    audioElements.forEach(audio => {
-        if (allPaused) {
-            audio.play();
-        } else {
-            audio.pause();
-        }
-    });
+function turnOnMusic() {
+    world.music.muted = false;
+    world.background_sound.muted = false;
+    world.character.walking_sound.muted = false;
 }
 
 function fullscreen() {

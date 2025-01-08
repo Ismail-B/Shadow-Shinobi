@@ -55,7 +55,6 @@ class Character extends MovableObject{
     world;
     walking_sound = new Audio('audio/running.mp3');
 
-
     constructor(){
         super().loadImage('img/2_character_shinobi/1_idle/idle/Idle_1.png');
         this.loadImages(this.IMAGES_WALKING);
@@ -74,7 +73,10 @@ class Character extends MovableObject{
             this.walking_sound.pause();
             if(this.world.keyboard.RIGHT && this.x < this.world.level.level_end_x && !this.isDead()) {
                 this.moveRight();
-                this.soundEffects(0.3, 2.5);
+     
+                    this.soundEffects(0.3, 2.5);
+                    
+     
             }                
             if(this.world.keyboard.LEFT && this.x > -670 && !this.isDead()) {
                 this.moveLeft();
