@@ -247,6 +247,7 @@ canvas{
 
 .background-story p{
     margin-bottom: 0;
+    text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.5);
 }
 
 #impressum{
@@ -301,7 +302,7 @@ canvas{
 
 .sound-button{
     position: fixed;
-    right: 16px;
+    right: 8px;
     top:150px;
     display: none;
 }
@@ -325,7 +326,7 @@ canvas{
 
 .fullscreen-button{
     position: fixed;
-    right: 16px;
+    right: 8px;
     top:210px;
 
 }

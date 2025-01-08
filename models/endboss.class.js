@@ -1,5 +1,4 @@
 class Endboss extends MovableObject {
-
     width = 420;
     height = 340;
     x = 3850;
@@ -31,8 +30,9 @@ class Endboss extends MovableObject {
         
         super().loadImage(this.IMAGES_WALKING[0]);
         this.loadImages(this.IMAGES_WALKING);
+        if(this.x > 1800){
         this.animate();
-
+        }
     }
 
     animate(){
@@ -42,9 +42,6 @@ class Endboss extends MovableObject {
             setInterval(() => {
                 // this.moveLeft();
                 this.otherDirection = false;
-
             }, 1000/60);
     }
-
-
-}
+ }

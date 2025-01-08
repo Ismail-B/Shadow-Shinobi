@@ -8,6 +8,7 @@ class Level {
 
     constructor(enemies, fireflys, backgroundObjects, coins, kunais){
         this.enemies = enemies;
+        this.endbossLoaded = false;
         this.fireflys = fireflys;
         this.backgroundObjects = backgroundObjects;
         this.coins = coins;

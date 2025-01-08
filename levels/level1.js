@@ -17,8 +17,8 @@ const level1 = new Level(
         new OrcRed(),
         new OrcRed(),
         new OrcRed(),
-        new OrcRed(),
-        new Endboss()
+        new OrcRed()
+        // new Endboss()
     ],
     [
         new Firefly(-680),

@@ -77,9 +77,6 @@ function exitFullscreen() {
     }
 }
 
-
-
-
 window.addEventListener("keydown", (e) => {
   if (e.key == "w" || "ArrowUp") {
     keyboard.UP = true;
@@ -147,4 +144,5 @@ window.addEventListener("keyup", (e) => {
     keyboard.D = false;
   }
 });
+
 

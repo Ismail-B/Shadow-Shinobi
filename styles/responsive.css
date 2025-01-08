@@ -80,6 +80,100 @@
     } 
 }
 
+@media (max-width:1024px){
+    #story{
+        height: 45%;
+    }
+    .story-headline{
+        font-size: 24px;
+    }
+    .background-story p{
+        font-size: 14px;
+    }
+    .menu-button button{
+        width: 140px;
+        height: 40px;
+        font-size: 16px;
+        padding: 0;
+    }
+}
+
+@media (max-width:800px){
+    #story{
+        width: 70%;
+        height: 40%;
+    }
+}
+
+@media (max-width:680px){
+    #story{
+        width: 70%;
+        height: 50%;
+    }
+}
+
+@media (max-width:500px){
+    #story{
+        width: 80%;
+        height: 55%;
+    }
+    .story-headline{
+        font-size: 20px;
+    }
+    .fullscreen-button{
+        right: 8px;
+        top:170px;
+    }
+    .sound-button{
+        right: 8px;
+        top:110px;
+    }
+}
+
+@media (max-width:380px){
+    #story{
+        width: 90%;
+        height: 46%;
+    }
+    .menu-button button{
+        width: 120px;
+        height: 40px;
+        font-size: 14px;
+        padding: 0;
+    }
+    .background-story p{
+        font-size: 12px;
+    }
+}
+
+@media (max-width:670px){
+    #impressum p,a{
+        font-size: 16px;
+    }
+    #impressum{
+        height: 42%;
+    }
+}
+
+@media (max-width:520px){
+    #impressum p,a{
+        font-size: 12px;
+    }
+    #impressum{
+        height: 37%;
+    }
+    .story-headline h2{
+        font-size: 24px;
+    }
+}
+
+@media (max-width:380px){
+    #impressum a{
+        font-size: 10px;
+    }
+}
+
+
 /* @media (max-width:600px){
     #control{
         height: 30%;

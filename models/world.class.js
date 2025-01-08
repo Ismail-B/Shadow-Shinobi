@@ -35,6 +35,7 @@ class World {
         setInterval(() => {
             this.checkCollisions();
             this.checkThrowObjects();
+            this.checkForEndboss();
         }, 200);
     }
 
@@ -77,6 +78,19 @@ class World {
         }
     }
 
+    checkForEndboss() {
+        if (this.character.x > 3500 && !this.level.endbossLoaded) {
+            // Füge den Endboss hinzu
+            const endboss = new Endboss();
+            this.level.enemies.push(endboss);
+    
+            // Setze eine Markierung, dass der Endboss geladen wurde
+            this.level.endbossLoaded = true;
+    
+            console.log("Endboss wurde geladen!");
+        }
+    }
+
     draw(){
         this.ctx.clearRect(0,0, this.canvas.width, this.canvas.height);
 
@@ -98,6 +112,7 @@ class World {
         this.addObjectsToMap(this.level.coins);
         this.addObjectsToMap(this.level.kunais);
         this.addObjectsToMap(this.level.enemies);
+
         this.addToMap(this.character);
 
         this.ctx.translate(-this.camera_x, 0);
