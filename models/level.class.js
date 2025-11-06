@@ -11,7 +11,7 @@ class Level {
         this.endbossLoaded = false;
         this.fireflys = fireflys;
         this.backgroundObjects = backgroundObjects;
-        this.coins = coins;
-        this.kunais = kunais;
+        this.coins = coins || [];
+        this.kunais = kunais || [];
     }
 }

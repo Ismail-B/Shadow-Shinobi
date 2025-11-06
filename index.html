@@ -14,27 +14,43 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Anton&family=Bebas+Neue&family=Hanalei+Fill&family=Montserrat:ital,wght@0,100..900;1,100..900&family=Pixelify+Sans:wght@400..700&family=Roboto+Mono:ital,wght@0,100..700;1,100..700&display=swap" rel="stylesheet">
-    <script src="./models/world.class.js"></script>
-    <script src="./models/drawable-object.class.js"></script>
-    <script src="./models/moveable-object.class.js"></script>
-    <script src="./models/background-object.class.js"></script>
-    <script src="./models/firefly.class.js"></script>
-    <script src="./models/coin.class.js"></script>
-    <script src="./models/kunai.class.js"></script>
-    <script src="./models/character.class.js"></script>
-    <script src="./models/orc.class.js"></script>
-    <script src="./models/orc-green.class.js"></script>
-    <script src="./models/orc-red.class.js"></script>
-    <script src="./models/keyboard.class.js"></script>
-    <script src="./models/level.class.js"></script>
-    <script src="./models/throwable-object.class.js"></script>
-    <script src="./models/endboss.class.js"></script>
-    <script src="./models/status-bar-life.class.js"></script>
-    <script src="./models/status-bar-coin.class.js"></script>
-    <script src="./models/status-bar-kunai.class.js"></script>
-    <script src="./models/status-bar-endboss.class.js"></script>
-    <script src="./levels/level1.js"></script>
-    <script src="./scripts/game.js"></script>
+<!-- Basisklassen zuerst -->
+<script src="./models/drawable-object.class.js"></script>
+<script src="./models/moveable-object.class.js"></script>
+
+<!-- statische/sprechende Objekte -->
+<script src="./models/background-object.class.js"></script>
+<script src="./models/firefly.class.js"></script>
+
+<!-- sammelbare Items -->
+<script src="./models/coin.class.js"></script>
+<script src="./models/kunai-coin.class.js"></script>
+
+<!-- Player & Gegner -->
+<script src="./models/character.class.js"></script>
+<script src="./models/orc.class.js"></script>
+<script src="./models/orc-green.class.js"></script>
+<script src="./models/orc-red.class.js"></script>
+<script src="./models/endboss.class.js"></script>
+
+<!-- Statusleisten -->
+<script src="./models/status-bar-life.class.js"></script>
+<script src="./models/status-bar-coin.class.js"></script>
+<script src="./models/status-bar-kunai.class.js"></script>
+<script src="./models/status-bar-endboss.class.js"></script>
+
+<!-- Steuerung / Wurfobjekt -->
+<script src="./models/keyboard.class.js"></script>
+<script src="./models/throwable-object.class.js"></script>
+<script src="./models/kunai.class.js"></script> <!-- (dein Wurf-Kunai) -->
+
+<!-- Level -->
+<script src="./models/level.class.js"></script>
+<script src="./levels/level1.js"></script>
+
+<!-- World & Start -->
+<script src="./models/world.class.js"></script>
+<script src="./scripts/game.js"></script>
   </head>
   <body>
     <header>

@@ -103,11 +103,11 @@ const level1 = new Level(
         new Coin(3050, 50)
     ],
     [
-        new Kunai(-500,120),
-        new Kunai(-550,170),
-        new Kunai(-600,120),
-        new Kunai(500,0),
-        new Kunai(1800,0),
-        new Kunai(3000,0)
+        new KunaiCoin(-500,120),
+        new KunaiCoin(-550,170),
+        new KunaiCoin(-600,120),
+        new KunaiCoin(500,0),
+        new KunaiCoin(1800,0),
+        new KunaiCoin(3000,0)
     ]
 );
