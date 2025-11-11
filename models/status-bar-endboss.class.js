@@ -1,12 +1,12 @@
 class StatusBarEndboss extends DrawableObject{
 
     IMAGES =[
-        'img/7_statusbars/1_statusbar/1_statusbar_coin/green/0.png',
-        'img/7_statusbars/1_statusbar/1_statusbar_coin/green/20.png',
-        'img/7_statusbars/1_statusbar/1_statusbar_coin/green/40.png',
-        'img/7_statusbars/1_statusbar/1_statusbar_coin/green/60.png',
-        'img/7_statusbars/1_statusbar/1_statusbar_coin/green/80.png',
-        'img/7_statusbars/1_statusbar/1_statusbar_coin/green/100.png'
+        'img/7_statusbars/2_statusbar_endboss/orange/orange0.png',
+        'img/7_statusbars/2_statusbar_endboss/orange/orange20.png',
+        'img/7_statusbars/2_statusbar_endboss/orange/orange40.png',
+        'img/7_statusbars/2_statusbar_endboss/orange/orange60.png',
+        'img/7_statusbars/2_statusbar_endboss/orange/orange80.png',
+        'img/7_statusbars/2_statusbar_endboss/orange/orange100.png'
     ]
 
     percentage = 100;
@@ -17,7 +17,7 @@ class StatusBarEndboss extends DrawableObject{
         this.x = 520;
         this.y = 10;
         this.width = 170;
-        this.height = 38;
+        this.height = 50;
         this.setPercentage(100);
     }
 

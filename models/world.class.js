@@ -12,8 +12,8 @@ class World {
     throwableObjects = [];
     background_sound = new Audio('audio/forest-background.mp3');
     music = new Audio('audio/music.mp3');
-    ninjaCoinsCollected = 0; // für 'Coin' (ninja-coin.png)
-    kunaiCoinsCollected = 0; // für 'KunaiCoin' (kunai-coin.png)    
+    ninjaCoinsCollected = 0;
+    kunaiCoinsCollected = 0; 
 
 
     constructor(canvas, keyboard){
@@ -42,14 +42,18 @@ class World {
         }, 200);
     }
 
-    checkCollisions(){
-        this.level.enemies.forEach((enemy) => {
-            if(this.character.isColliding(enemy)) {
-                this.character.hit();
-                this.statusBarLife.setPercentage(this.character.energy);
-            };
-        })
-    }
+checkCollisions() {
+    this.level.enemies.forEach((enemy) => {
+        if (
+            this.character.isColliding(enemy) &&
+            !this.character.isHurt() &&      
+            !this.character.isDead()         
+        ) {
+            this.character.hit();
+            this.statusBarLife.setPercentage(this.character.energy);
+        }
+    });
+}
 
     // checkCollisions() {
     //     this.level.enemies.forEach((enemy, index) => {
