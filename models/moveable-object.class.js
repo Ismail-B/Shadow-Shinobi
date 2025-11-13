@@ -14,7 +14,17 @@ class MovableObject extends DrawableObject{
         height: 0,
     }
     walkingSound;
+    collidable = true;
 
+    getBounds() {
+    return { x: this.x, y: this.y, w: this.width, h: this.height };
+  }
+
+  overlapsRect(rect) {
+    const a = this.getBounds();
+    return a.x < rect.x + rect.w && a.x + a.w > rect.x &&
+           a.y < rect.y + rect.h && a.y + a.h > rect.y;
+  }
 
     moveRight() {
         this.x += this.speed;

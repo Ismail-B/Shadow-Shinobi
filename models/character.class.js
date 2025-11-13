@@ -63,6 +63,14 @@ class Character extends MovableObject {
         'img/2_character_shinobi/4_hurt/Hurt_2.png'
     ];
 
+    // --- NEU: Nahkampf-Status
+    isAttacking = false;
+    attackFrameIndex = 0;
+    attackFrameMs = 60;
+    attackCooldownMs = 250;
+    lastAttackAt = 0;
+    _lastAttackTick = 0;
+
     world;
     walking_sound = new Audio('audio/running.mp3');
 
@@ -78,12 +86,70 @@ class Character extends MovableObject {
         this.animateCharacter();
     }
 
+    /** Von World bei Tastendruck 'J' aufgerufen */
+    tryStartAttack() {
+        const now = performance.now();
+        if (this.isDead() || this.isAttacking) return;
+        if (now - this.lastAttackAt < this.attackCooldownMs) return;
+
+        this.isAttacking = true;
+        this.attackFrameIndex = 0;
+        this._lastAttackTick = now;
+        this.lastAttackAt = now;
+        // erstes Frame sofort zeigen
+        this.img = this.imageCache[this.IMAGES_ATTACK[0]];
+    }
+
+    /** Schlag-Update inkl. Trefffenster */
+    updateAttack() {
+        if (!this.isAttacking) return;
+
+        const now = performance.now();
+        if (now - this._lastAttackTick >= this.attackFrameMs) {
+            this._lastAttackTick = now;
+            this.attackFrameIndex++;
+
+            if (this.attackFrameIndex >= this.IMAGES_ATTACK.length) {
+                // Ende der Schlaganimation
+                this.isAttacking = false;
+                return;
+            }
+
+            const key = this.IMAGES_ATTACK[this.attackFrameIndex];
+            this.img = this.imageCache[key];
+
+            // Trefffenster: Frame 2 & 3
+            if (this.attackFrameIndex === 2 || this.attackFrameIndex === 3) {
+                this.applyMeleeHit();
+            }
+        }
+    }
+
+    /** Rechteck vor dem Charakter; killt normale Orcs */
+    applyMeleeHit() {
+        if (!this.world || !this.world.level?.enemies) return;
+
+        const range = 40;
+        const height = this.height * 0.6;
+        const y = this.y + this.height * 0.2;
+        const facingRight = !this.otherDirection; // deine Blickrichtung
+        const x = facingRight ? (this.x + this.width) : (this.x - range);
+        const hitbox = { x, y, w: range, h: height };
+
+        this.world.level.enemies.forEach(e => {
+            if (!e || !e.collidable || e.isDying || e.isEndboss) return;
+            if (typeof e.overlapsRect === 'function' && e.overlapsRect(hitbox)) {
+                if (typeof e.die === 'function') e.die();
+            }
+        });
+    }
+
     /**
      * Sterbeanimation: langsam, nur einmal, am Ende einfrieren.
      */
     playDeathOnce() {
-        if (this.deathFrozen) return;           // bereits eingefroren
-        if (this.deathTimer) return;            // Timer läuft schon
+        if (this.deathFrozen) return;
+        if (this.deathTimer) return;
 
         const seq = this.IMAGES_DEAD;
 
@@ -114,7 +180,6 @@ class Character extends MovableObject {
             clearInterval(this.deathTimer);
             this.deathTimer = null;
         }
-        // optional: sofort erstes Idle-Bild laden
         this.loadImage('img/2_character_shinobi/1_idle/idle/Idle_1.png');
     }
 
@@ -141,11 +206,17 @@ class Character extends MovableObject {
             this.world.camera_x = -this.x + 50;
         }, 1000 / 60);
 
-        // Animationen
+        // Animationen + Attack-Takt
         setInterval(() => {
+            // Schlag-Frames fortschalten, falls aktiv
+            if (this.isAttacking) {
+                this.updateAttack();
+                return; // während des Schlages nichts anderes animieren
+            }
+
             if (this.isDead()) {
-                this.playDeathOnce(); // eigene, langsamere Death-Anim
-                return;               // nichts anderes mehr animieren
+                this.playDeathOnce();
+                return;
             }
 
             if (this.isHurt()) {

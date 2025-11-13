@@ -36,6 +36,10 @@ class World {
       if (e.code === 'KeyV' && !e.repeat) {
         this.tryThrowKunai();
       }
+      // --- NEU: Nahkampfangriff mit Taste J ---
+      if (e.code === 'KeyB' && !e.repeat) {
+        this.character.tryStartAttack();
+      }
     });
   }
 
@@ -57,6 +61,9 @@ class World {
 
   checkCollisions() {
     this.level.enemies.forEach((enemy) => {
+      // --- WICHTIG: sterbende/„tote“ Gegner ignorieren ---
+      if (!enemy.collidable || enemy.isDying) return;
+
       if (
         this.character.isColliding(enemy) &&
         !this.character.isHurt() &&
@@ -93,20 +100,19 @@ class World {
   }
 
   // Berechnet die Prozentanzeige der Kunai-Bar aus aktueller Munition
-updateKunaiBarFromAmmo() {
-  // Balkensegmente aus verbleibender Munition:
-  // Ceil sorgt dafür, dass der Balken erst NACH dem zweiten Wurf sinkt.
-  const segments = Math.ceil(this.kunaiAmmo / this.kunaiPerSegment); // <-- statt floor
-  const clampedSegments = Math.min(this.maxKunaiSegments, Math.max(0, segments));
-  const percentage = (clampedSegments / this.maxKunaiSegments) * 100;
-  this.statusBarKunai.setPercentage(percentage);
-}
+  updateKunaiBarFromAmmo() {
+    const segments = Math.ceil(this.kunaiAmmo / this.kunaiPerSegment);
+    const clampedSegments = Math.min(this.maxKunaiSegments, Math.max(0, segments));
+    const percentage = (clampedSegments / this.maxKunaiSegments) * 100;
+    this.statusBarKunai.setPercentage(percentage);
+  }
 
   /** ------------------------------------------------------ **/
 
   checkForEndboss() {
     if (this.character.x > 3500 && !this.level.endbossLoaded) {
       const endboss = new Endboss();
+      endboss.isEndboss = true; // <— falls nicht schon in der Klasse gesetzt
       this.level.enemies.push(endboss);
       this.level.endbossLoaded = true;
       console.log("Endboss wurde geladen!");
