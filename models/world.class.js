@@ -15,9 +15,12 @@ class World {
   ninjaCoinsCollected = 0;
   kunaiCoinsCollected = 0;
 
-  // Für Wurf-Cooldown
-  nextThrowAt = 0;
-  throwCooldownMs = 150;
+  // Kunai-Logik
+  kunaiAmmo = 0;             // aktuelle Anzahl verfügbarer Würfe
+  maxKunaiSegments = 5;      // Anzahl Segmente in der Kunai-Bar (100% = 5)
+  kunaiPerSegment = 2;       // 2 Würfe pro Segment
+  nextThrowAt = 0;           // Zeitstempel für Cooldown
+  throwCooldownMs = 150;     // kleiner Wurf-Cooldown
 
   constructor(canvas, keyboard) {
     this.ctx = canvas.getContext('2d');
@@ -28,10 +31,10 @@ class World {
     this.setWorld();
     this.run();
 
-    // ⬇️  Hier wird das Ereignis *innerhalb* des World-Konstruktors registriert:
+    // Kunai-Wurf bei Tastendruck V (ein Wurf pro Druck)
     window.addEventListener('keydown', (e) => {
       if (e.code === 'KeyV' && !e.repeat) {
-        this.tryThrowKunai();  // ← das "this" zeigt korrekt auf DIESE World-Instanz
+        this.tryThrowKunai();
       }
     });
   }
@@ -65,12 +68,22 @@ class World {
     });
   }
 
+  /** ------------------ Kunai-Funktionen ------------------ **/
+
   tryThrowKunai() {
     const now = performance.now();
     if (this.character.isDead()) return;
     if (now < this.nextThrowAt) return; // Cooldown aktiv → kein neuer Wurf
+    if (this.kunaiAmmo <= 0) return;    // Keine Munition → kein Wurf möglich
 
+    // Kunai werfen
     this.throwKunai();
+
+    // 1 Wurf verbraucht 1 Munition
+    this.kunaiAmmo -= 1;
+    this.updateKunaiBarFromAmmo();
+
+    // Cooldown setzen
     this.nextThrowAt = now + this.throwCooldownMs;
   }
 
@@ -78,6 +91,18 @@ class World {
     const kunai = new ThrowableObject(this.character.x, this.character.y + 60);
     this.throwableObjects.push(kunai);
   }
+
+  // Berechnet die Prozentanzeige der Kunai-Bar aus aktueller Munition
+updateKunaiBarFromAmmo() {
+  // Balkensegmente aus verbleibender Munition:
+  // Ceil sorgt dafür, dass der Balken erst NACH dem zweiten Wurf sinkt.
+  const segments = Math.ceil(this.kunaiAmmo / this.kunaiPerSegment); // <-- statt floor
+  const clampedSegments = Math.min(this.maxKunaiSegments, Math.max(0, segments));
+  const percentage = (clampedSegments / this.maxKunaiSegments) * 100;
+  this.statusBarKunai.setPercentage(percentage);
+}
+
+  /** ------------------------------------------------------ **/
 
   checkForEndboss() {
     if (this.character.x > 3500 && !this.level.endbossLoaded) {
@@ -140,6 +165,8 @@ class World {
     this.ctx.restore();
   }
 
+  /** ------------------ Collectibles ------------------ **/
+
   checkCollectibles() {
     // Ninja-Coins
     for (let i = this.level.coins.length - 1; i >= 0; i--) {
@@ -150,13 +177,23 @@ class World {
         this.statusBarCoin.setPercentage(Math.min(100, this.ninjaCoinsCollected * 20));
       }
     }
+
     // Kunai-Coins
     for (let i = this.level.kunais.length - 1; i >= 0; i--) {
       const kc = this.level.kunais[i];
       if (this.character.isColliding(kc)) {
         this.level.kunais.splice(i, 1);
         this.kunaiCoinsCollected++;
-        this.statusBarKunai.setPercentage(Math.min(100, this.kunaiCoinsCollected * 20));
+
+        // +2 Würfe pro Coin
+        this.kunaiAmmo += this.kunaiPerSegment;
+
+        // Maximal 10 Würfe (5 Balken * 2 Würfe)
+        const maxAmmo = this.maxKunaiSegments * this.kunaiPerSegment;
+        if (this.kunaiAmmo > maxAmmo) this.kunaiAmmo = maxAmmo;
+
+        // Kunai-Bar aktualisieren
+        this.updateKunaiBarFromAmmo();
       }
     }
   }
