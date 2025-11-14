@@ -36,7 +36,7 @@ class World {
       if (e.code === 'KeyV' && !e.repeat) {
         this.tryThrowKunai();
       }
-      // --- NEU: Nahkampfangriff mit Taste J ---
+      // Nahkampfangriff mit Taste B
       if (e.code === 'KeyB' && !e.repeat) {
         this.character.tryStartAttack();
       }
@@ -77,21 +77,42 @@ class World {
 
   /** ------------------ Kunai-Funktionen ------------------ **/
 
+  /**
+   * Startet den Kunai-Wurf:
+   * - prüft Cooldown + Munition
+   * - triggert Attack-Animation im Charakter
+   * Das eigentliche Werfen passiert dann erst bei Attack_4.png.
+   */
   tryThrowKunai() {
     const now = performance.now();
     if (this.character.isDead()) return;
     if (now < this.nextThrowAt) return; // Cooldown aktiv → kein neuer Wurf
     if (this.kunaiAmmo <= 0) return;    // Keine Munition → kein Wurf möglich
 
-    // Kunai werfen
+    // Wenn der Charakter gerade schon angreift, keinen neuen Wurf starten
+    if (this.character.isAttacking) return;
+
+    const started = this.character.tryStartKunaiThrow();
+    if (!started) return;
+    // Munition & Cooldown werden erst beim tatsächlichen Wurf (Frame 4) abgezogen
+  }
+
+  /**
+   * Wird vom Charakter bei Attack_4.png (Frame-Index 3) aufgerufen.
+   * Hier passiert der eigentliche Wurf: Kunai spawnen, Munition runter,
+   * Kunai-Bar updaten, Cooldown setzen.
+   */
+  onCharacterKunaiRelease() {
+    if (this.kunaiAmmo <= 0) return; // Safety, falls sich zwischendurch etwas ändert
+
     this.throwKunai();
 
     // 1 Wurf verbraucht 1 Munition
     this.kunaiAmmo -= 1;
     this.updateKunaiBarFromAmmo();
 
-    // Cooldown setzen
-    this.nextThrowAt = now + this.throwCooldownMs;
+    // Cooldown setzen ab dem Moment des Abwurfs
+    this.nextThrowAt = performance.now() + this.throwCooldownMs;
   }
 
   throwKunai() {

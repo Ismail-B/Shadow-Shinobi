@@ -63,13 +63,14 @@ class Character extends MovableObject {
         'img/2_character_shinobi/4_hurt/Hurt_2.png'
     ];
 
-    // --- NEU: Nahkampf-Status
+    // --- Angriff-Status (Nahkampf + Kunai) ---
     isAttacking = false;
     attackFrameIndex = 0;
-    attackFrameMs = 60;
+    attackFrameMs = 60;        // wird je nach Attack-Typ angepasst
     attackCooldownMs = 250;
     lastAttackAt = 0;
     _lastAttackTick = 0;
+    attackType = null;         // 'melee' | 'kunai' | null
 
     world;
     walking_sound = new Audio('audio/running.mp3');
@@ -86,21 +87,46 @@ class Character extends MovableObject {
         this.animateCharacter();
     }
 
-    /** Von World bei Tastendruck 'J' aufgerufen */
+    /** Von World bei Tastendruck 'B' aufgerufen: Nahkampfangriff */
     tryStartAttack() {
         const now = performance.now();
         if (this.isDead() || this.isAttacking) return;
         if (now - this.lastAttackAt < this.attackCooldownMs) return;
 
         this.isAttacking = true;
+        this.attackType = 'melee';
         this.attackFrameIndex = 0;
+
+        // Nahkampf etwas LANGSAMER
+        this.attackFrameMs = 120;
+
         this._lastAttackTick = now;
         this.lastAttackAt = now;
+
         // erstes Frame sofort zeigen
         this.img = this.imageCache[this.IMAGES_ATTACK[0]];
     }
 
-    /** Schlag-Update inkl. Trefffenster */
+    /** Von World bei Tastendruck 'V' aufgerufen: Kunai-Wurf mit Attack-Anim */
+    tryStartKunaiThrow() {
+        const now = performance.now();
+        if (this.isDead() || this.isAttacking) return false;
+
+        this.isAttacking = true;
+        this.attackType = 'kunai';
+        this.attackFrameIndex = 0;
+
+        // Kunai-Animation SCHNELLER als Nahkampf
+        this.attackFrameMs = 60;
+
+        this._lastAttackTick = now;
+        // lastAttackAt benutzen wir nur für Nahkampf-Cooldown
+        this.img = this.imageCache[this.IMAGES_ATTACK[0]];
+
+        return true;
+    }
+
+    /** Schlag-/Wurf-Update inkl. Hit-/Wurf-Fenster */
     updateAttack() {
         if (!this.isAttacking) return;
 
@@ -110,17 +136,29 @@ class Character extends MovableObject {
             this.attackFrameIndex++;
 
             if (this.attackFrameIndex >= this.IMAGES_ATTACK.length) {
-                // Ende der Schlaganimation
+                // Ende der Angriffanimation
                 this.isAttacking = false;
+                this.attackType = null;
                 return;
             }
 
             const key = this.IMAGES_ATTACK[this.attackFrameIndex];
             this.img = this.imageCache[key];
 
-            // Trefffenster: Frame 2 & 3
-            if (this.attackFrameIndex === 2 || this.attackFrameIndex === 3) {
-                this.applyMeleeHit();
+            // --- Nahkampf-Trefffenster: Frame 3 & 4 ---
+            if (this.attackType === 'melee') {
+                if (this.attackFrameIndex === 2 || this.attackFrameIndex === 3) {
+                    this.applyMeleeHit();
+                }
+            }
+
+            // --- Kunai-Wurf: beim Frame Attack_4.png (Index 3) ---
+            if (this.attackType === 'kunai') {
+                if (this.attackFrameIndex === 3) {
+                    if (this.world && typeof this.world.onCharacterKunaiRelease === 'function') {
+                        this.world.onCharacterKunaiRelease();
+                    }
+                }
             }
         }
     }
@@ -208,10 +246,10 @@ class Character extends MovableObject {
 
         // Animationen + Attack-Takt
         setInterval(() => {
-            // Schlag-Frames fortschalten, falls aktiv
+            // Angriff-Frames fortschalten, falls aktiv
             if (this.isAttacking) {
                 this.updateAttack();
-                return; // während des Schlages nichts anderes animieren
+                return; // während des Angriffs nichts anderes animieren
             }
 
             if (this.isDead()) {
