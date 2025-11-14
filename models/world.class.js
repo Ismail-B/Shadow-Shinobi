@@ -59,21 +59,55 @@ class World {
     }, 200);
   }
 
-  checkCollisions() {
-    this.level.enemies.forEach((enemy) => {
-      // --- WICHTIG: sterbende/„tote“ Gegner ignorieren ---
-      if (!enemy.collidable || enemy.isDying) return;
+checkCollisions() {
+  /** --------- 1. Charakter vs. Enemies (wie bisher) --------- */
+  this.level.enemies.forEach((enemy) => {
+    // sterbende/„tote“ Gegner ignorieren
+    if (!enemy.collidable || enemy.isDying) return;
 
-      if (
-        this.character.isColliding(enemy) &&
-        !this.character.isHurt() &&
-        !this.character.isDead()
-      ) {
-        this.character.hit();
-        this.statusBarLife.setPercentage(this.character.energy);
+    if (
+      this.character.isColliding(enemy) &&
+      !this.character.isHurt() &&
+      !this.character.isDead()
+    ) {
+      this.character.hit();
+      this.statusBarLife.setPercentage(this.character.energy);
+    }
+  });
+
+  /** --------- 2. Kunai vs. Enemies (NEU) --------- */
+  // rückwärts iterieren, damit wir splicen können
+  for (let i = this.throwableObjects.length - 1; i >= 0; i--) {
+    const kunai = this.throwableObjects[i];
+
+    // Sicherheitscheck: hat das Objekt überhaupt eine Kollisions-Funktion?
+    if (!kunai || typeof kunai.isColliding !== 'function') continue;
+
+    // jeden Orc prüfen
+    for (let j = this.level.enemies.length - 1; j >= 0; j--) {
+      const enemy = this.level.enemies[j];
+
+      if (!enemy || !enemy.collidable || enemy.isDying) continue;
+
+      // Endboss z. B. nicht per Kunai one-shotten:
+      if (enemy.isEndboss) continue;
+
+      if (kunai.isColliding(enemy)) {
+        // Orc killen, wenn möglich
+        if (typeof enemy.die === 'function') {
+          enemy.die();
+        }
+
+        // Kunai nach Treffer entfernen
+        this.throwableObjects.splice(i, 1);
+
+        // wichtig: inneren Loop abbrechen, weil dieses Kunai weg ist
+        break;
       }
-    });
+    }
   }
+}
+
 
   /** ------------------ Kunai-Funktionen ------------------ **/
 
