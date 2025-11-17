@@ -59,55 +59,76 @@ class World {
     }, 1000 / 60);
   }
 
-checkCollisions() {
-  /** --------- 1. Charakter vs. Enemies (wie bisher) --------- */
-  this.level.enemies.forEach((enemy) => {
-    // sterbende/„tote“ Gegner ignorieren
-    if (!enemy.collidable || enemy.isDying) return;
+  checkCollisions() {
+    const enemies = this.level.enemies;
 
-    if (
-      this.character.isColliding(enemy) &&
-      !this.character.isHurt() &&
-      !this.character.isDead()
-    ) {
-      this.character.hit();
-      this.statusBarLife.setPercentage(this.character.energy);
-    }
-  });
+    /** --------- 1. Character vs. Enemies --------- */
+    enemies.forEach((enemy) => {
+      // sterbende/„tote“ Gegner ignorieren
+      if (!enemy || !enemy.collidable || enemy.isDying) return;
 
-  /** --------- 2. Kunai vs. Enemies (NEU) --------- */
-  // rückwärts iterieren, damit wir splicen können
-  for (let i = this.throwableObjects.length - 1; i >= 0; i--) {
-    const kunai = this.throwableObjects[i];
+      const colliding = this.character.isColliding(enemy);
 
-    // Sicherheitscheck: hat das Objekt überhaupt eine Kollisions-Funktion?
-    if (!kunai || typeof kunai.isColliding !== 'function') continue;
-
-    // jeden Orc prüfen
-    for (let j = this.level.enemies.length - 1; j >= 0; j--) {
-      const enemy = this.level.enemies[j];
-
-      if (!enemy || !enemy.collidable || enemy.isDying) continue;
-
-      // Endboss z. B. nicht per Kunai one-shotten:
-      if (enemy.isEndboss) continue;
-
-      if (kunai.isColliding(enemy)) {
-        // Orc killen, wenn möglich
-        if (typeof enemy.die === 'function') {
+      // a) Charakter greift an und trifft Gegner
+      if (
+        colliding &&
+        this.character.isAttacking &&
+        !this.character.isDead()
+      ) {
+        if (enemy.isEndboss && typeof enemy.hit === 'function') {
+          // Endboss bekommt Schaden, HURT-Anim & Statusbar-Update
+          enemy.hit(10); // Nahkampfschaden in %
+          this.statusBarEndboss.setPercentage(enemy.energy);
+        } else if (typeof enemy.die === 'function') {
+          // normale Orcs sterben sofort
           enemy.die();
         }
+        // In diesem Frame kein Gegenschaden auf den Charakter
+        return;
+      }
 
-        // Kunai nach Treffer entfernen
-        this.throwableObjects.splice(i, 1);
+      // b) Gegner trifft Charakter (nur wenn Charakter NICHT gerade erfolgreich angreift)
+      if (
+        colliding &&
+        !this.character.isHurt() &&
+        !this.character.isDead()
+      ) {
+        this.character.hit();
+        this.statusBarLife.setPercentage(this.character.energy);
+      }
+    });
 
-        // wichtig: inneren Loop abbrechen, weil dieses Kunai weg ist
-        break;
+    /** --------- 2. Kunai vs. Enemies --------- */
+    // rückwärts iterieren, damit wir splicen können
+    for (let i = this.throwableObjects.length - 1; i >= 0; i--) {
+      const kunai = this.throwableObjects[i];
+
+      // Sicherheitscheck: hat das Objekt überhaupt eine Kollisions-Funktion?
+      if (!kunai || typeof kunai.isColliding !== 'function') continue;
+
+      for (let j = enemies.length - 1; j >= 0; j--) {
+        const enemy = enemies[j];
+
+        if (!enemy || !enemy.collidable || enemy.isDying) continue;
+
+        if (kunai.isColliding(enemy)) {
+          if (enemy.isEndboss && typeof enemy.hit === 'function') {
+            // Endboss nimmt Kunai-Schaden, HURT-Anim & Statusbar-Update
+            enemy.hit(15); // Kunai-Schaden in %
+            this.statusBarEndboss.setPercentage(enemy.energy);
+          } else if (typeof enemy.die === 'function') {
+            // normale Orcs sterben beim Kunai
+            enemy.die();
+          }
+
+          // Kunai nach Treffer entfernen
+          this.throwableObjects.splice(i, 1);
+          // inneren Loop abbrechen, weil dieses Kunai weg ist
+          break;
+        }
       }
     }
   }
-}
-
 
   /** ------------------ Kunai-Funktionen ------------------ **/
 
@@ -167,9 +188,16 @@ checkCollisions() {
   checkForEndboss() {
     if (this.character.x > 3500 && !this.level.endbossLoaded) {
       const endboss = new Endboss();
-      endboss.isEndboss = true; // <— falls nicht schon in der Klasse gesetzt
+      // Flag für World-Logik
+      endboss.isEndboss = true;
+
       this.level.enemies.push(endboss);
       this.level.endbossLoaded = true;
+      this.level.endboss = endboss;
+
+      // Statusbar auf aktuelles Boss-Leben setzen
+      this.statusBarEndboss.setPercentage(endboss.energy);
+
       console.log("Endboss wurde geladen!");
     }
   }
