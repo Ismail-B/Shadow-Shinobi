@@ -56,7 +56,7 @@ class World {
       this.checkCollisions();
       this.checkCollectibles();
       this.checkForEndboss();
-    }, 200);
+    }, 1000 / 60);
   }
 
 checkCollisions() {
