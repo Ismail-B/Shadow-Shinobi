@@ -1,6 +1,6 @@
 const level1 = new Level(
     [
-        new OrcGreen(),
+        /*new OrcGreen(),
         new OrcGreen(),
         new OrcGreen(),
         new OrcGreen(),
@@ -17,8 +17,7 @@ const level1 = new Level(
         new OrcRed(),
         new OrcRed(),
         new OrcRed(),
-        new OrcRed()
-        // new Endboss()
+        new OrcRed()*/
     ],
     [
         new Firefly(-680),

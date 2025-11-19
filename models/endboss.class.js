@@ -1,8 +1,8 @@
 class Endboss extends MovableObject {
-    width = 420;
-    height = 340;
+    width = 380;
+    height = 280;
     x = 3850;
-    y = 70;
+    y = 90;
     speed = 2;
     offset = {
         x: 50,
@@ -10,12 +10,55 @@ class Endboss extends MovableObject {
         width: 260,
         height: 50,
     };
+    attackHitbox = { 
+    x: 0, 
+    y: 0, 
+    width: 380,   // Länge der Keule
+    height: 180   // Höhe der Keule
+    };
 
-    // für Kollisionslogik in World
+    // Skalierung
+    scaleIdle = 1.0;
+    scaleHurt = 1.25;
+    scaleDead = 1.25;
+    scaleAttack = 1.5;  // Attack jetzt groß wie Dead
+
+    // Y-Offsets
+    hurtYOffset = 10;
+    deadYOffset = 60;
+
+    // Kollisionslogik
     collidable = true;
     isDying = false;
 
-    // === Animation-Arrays ===
+    // Leben
+    energy = 100;
+    isDeadFlag = false;
+
+    // Hurt / Death
+    hurtPlaying = false;
+    hurtFrameIndex = 0;
+    deathPlaying = false;
+    deathFrameIndex = 0;
+
+    // Treffer-Cooldown von Spieler → Boss
+    minHitInterval = 350;
+    lastHitAt = 0;
+
+    // Attack / Hitbox
+    attacking = false;
+    attackFrameIndex = 0;
+    isMoving = false;
+
+    // Boss → Character Schaden-Cooldown
+    damageInterval = 600; 
+    lastDamageDealtAt = 0;
+
+    // Cooldown zwischen zwei Attack-Starts
+    attackCooldown = 900;
+    lastAttackStartedAt = 0;
+
+    // Animationen
     IMAGES_WALKING = [
         'img/4_enemie_boss_orc/1_walk/Walk_000.png',
         'img/4_enemie_boss_orc/1_walk/Walk_001.png',
@@ -81,22 +124,12 @@ class Endboss extends MovableObject {
         'img/4_enemie_boss_orc/3_attack/Attack_009.png'
     ];
 
-    // === Lebens- und Animations-Status ===
-    energy = 100;            // 0–100, wird für die Statusbar genutzt
-    isDeadFlag = false;
-
-    hurtPlaying = false;
-    hurtFrameIndex = 0;
-
-    deathPlaying = false;
-    deathFrameIndex = 0;
-
     constructor() {
         super().loadImage(this.IMAGES_ALERT[0]);
+        this.baseY = this.y;
 
         this.isEndboss = true;
 
-        // alle Sprites in Cache laden
         this.loadImages(this.IMAGES_WALKING);
         this.loadImages(this.IMAGES_ALERT);
         this.loadImages(this.IMAGES_HURT);
@@ -106,29 +139,29 @@ class Endboss extends MovableObject {
         this.animate();
     }
 
-    /**
-     * wird von außen aufgerufen, z.B. bei Schlag oder Kunai-Treffer
-     * damage = wie viel Prozent Leben abgezogen werden sollen
-     */
+    /** Boss bekommt Schaden vom Spieler */
     hit(damage = 10) {
         if (this.isDeadFlag) return;
+
+        const now = performance.now();
+        if (now - this.lastHitAt < this.minHitInterval) return;
+        this.lastHitAt = now;
 
         this.energy -= damage;
         if (this.energy < 0) this.energy = 0;
 
-        // Hurt-Animation EINMAL anspielen
-        if (!this.deathPlaying) {
-            this.hurtPlaying = true;
-            this.hurtFrameIndex = 0;
-        }
+        this.isMoving = false;
+        this.hurtPlaying = true;
+        this.hurtFrameIndex = 0;
 
-        // Tod checken
         if (this.energy === 0) {
             this.isDeadFlag = true;
             this.collidable = false;
             this.isDying = true;
             this.deathPlaying = true;
             this.deathFrameIndex = 0;
+            this.attacking = false;
+            this.isMoving = false;
         }
     }
 
@@ -136,54 +169,133 @@ class Endboss extends MovableObject {
         return this.isDeadFlag;
     }
 
-    animate() {
-        // Animationssteuerung
-        setInterval(() => {
-            if (this.deathPlaying) {
-                this.playDeathOnce();
-            } else if (this.hurtPlaying) {
-                this.playHurtOnce();
-            } else {
-                // solange nichts Besonderes ist, bleibt er in ALERT/Idle
-                this.playAnimation(this.IMAGES_ALERT);
-            }
-        }, 120);
+    /** Boss → Player Damage Check */
+    canDamagePlayer() {
+        if (!this.attacking || this.isDeadFlag || this.hurtPlaying || this.deathPlaying) return false;
 
-        // Bewegung (falls du später was machen willst)
+        const now = performance.now();
+        if (now - this.lastDamageDealtAt < this.damageInterval) return false;
+        this.lastDamageDealtAt = now;
+
+        return true;
+    }
+
+    /** Angriff starten (mit Cooldown) */
+    startAttack() {
+        const now = performance.now();
+
+        if (now - this.lastAttackStartedAt < this.attackCooldown) {
+            return false;
+        }
+
+        this.lastAttackStartedAt = now;
+        this.attacking = true;
+        this.attackFrameIndex = 0;
+        this.isMoving = false;
+        return true;
+    }
+
+    /** Skalierte Darstellung */
+    draw(ctx) {
+        let scale = this.scaleIdle;
+
+        if (this.hurtPlaying) scale = this.scaleHurt;
+        else if (this.deathPlaying) scale = this.scaleDead;
+        else if (this.attacking) scale = this.scaleAttack;
+
+        const w = this.width * scale;
+        const h = this.height * scale;
+
+        const dx = this.x - (w - this.width) / 2;
+        const dy = this.y - (h - this.height);
+
+        ctx.drawImage(this.img, dx, dy, w, h);
+    }
+
+    animate() {
+        // --- Animationslogik ---
         setInterval(() => {
-            if (!this.isDeadFlag) {
-                // Beispiel: Blickrichtung nach rechts
-                this.otherDirection = true;
-                // this.moveLeft(); // falls er laufen soll
+            if (this.deathPlaying) return this.playDeathOnce();
+            if (this.hurtPlaying) return this.playHurtOnce();
+            if (this.attacking) return this.playAttackOnce();
+            if (this.isMoving) return this.playAnimation(this.IMAGES_WALKING);
+            this.playAnimation(this.IMAGES_ALERT);
+        }, 100);
+
+        // --- AI / Bewegung ---
+        setInterval(() => {
+            if (this.hurtPlaying || this.deathPlaying || this.attacking) {
+                this.isMoving = false;
+                return;
             }
+
+            if (!this.world || !this.world.character) {
+                this.moveLeft();
+                this.isMoving = true;
+                return;
+            }
+
+            const char = this.world.character;
+            const distanceX = Math.abs(this.x - char.x);
+            const attackRange = 40; // nah ranlaufen
+
+            this.otherDirection = (this.x > char.x);
+
+            if (distanceX <= attackRange) {
+                this.isMoving = false;
+                this.startAttack();
+            } else {
+                this.attacking = false;
+                this.isMoving = true;
+
+                if (this.x > char.x) this.moveLeft();
+                else this.moveRight();
+            }
+
         }, 1000 / 60);
     }
 
-    /** Hurt-Animation EINMAL komplett durchspielen */
     playHurtOnce() {
+        this.y = this.baseY + this.hurtYOffset;
+
         if (this.hurtFrameIndex >= this.IMAGES_HURT.length) {
             this.hurtPlaying = false;
             this.hurtFrameIndex = 0;
+            this.y = this.baseY;
             return;
         }
-        let path = this.IMAGES_HURT[this.hurtFrameIndex];
-        this.img = this.imageCache[path];
-        this.hurtFrameIndex++;
+        this.img = this.imageCache[this.IMAGES_HURT[this.hurtFrameIndex++]];
     }
 
-    /**
-     * Death-Animation EINMAL durchspielen und im letzten Bild einfrieren
-     */
     playDeathOnce() {
+        this.y = this.baseY + this.deadYOffset;
+
         if (this.deathFrameIndex >= this.IMAGES_DEAD.length) {
-            let lastIndex = this.IMAGES_DEAD.length - 1;
-            let path = this.IMAGES_DEAD[lastIndex];
-            this.img = this.imageCache[path];
-            // bleibt im letzten Frame eingefroren
+            this.img = this.imageCache[this.IMAGES_DEAD[this.IMAGES_DEAD.length - 1]];
             return;
         }
-        let path = this.IMAGES_DEAD[this.deathFrameIndex];
-        this.img = this.imageCache[path];
-        this.deathFrameIndex++;
+        this.img = this.imageCache[this.IMAGES_DEAD[this.deathFrameIndex++]];
     }
+
+playAttackOnce() {
+    if (this.attackFrameIndex >= this.IMAGES_ATTACK.length) {
+        this.attackFrameIndex = 0;
+        this.attacking = false;
+        return;
+    }
+
+    const path = this.IMAGES_ATTACK[this.attackFrameIndex];
+    this.img = this.imageCache[path];
+    this.attackFrameIndex++;
+
+    // --- HITBOX POSITIONIEREN ---  
+    // Boss schaut nach links (otherDirection = true)
+    if (this.otherDirection) {
+        this.attackHitbox.x = this.x - 60; 
+        this.attackHitbox.y = this.y + 40;
+    } else {
+        this.attackHitbox.x = this.x + this.width - 20; 
+        this.attackHitbox.y = this.y + 40;
+    }
+}
 }

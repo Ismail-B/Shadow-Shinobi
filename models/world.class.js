@@ -88,14 +88,23 @@ class World {
       }
 
       // b) Gegner trifft Charakter (nur wenn Charakter NICHT gerade erfolgreich angreift)
-      if (
-        colliding &&
-        !this.character.isHurt() &&
-        !this.character.isDead()
-      ) {
-        this.character.hit();
-        this.statusBarLife.setPercentage(this.character.energy);
-      }
+// b) Gegner trifft Charakter
+if (colliding && !this.character.isDead()) {
+
+  if (enemy.isEndboss && typeof enemy.canDamagePlayer === 'function') {
+    // Endboss darf nur Schaden machen, wenn er gerade angreift
+    if (!this.character.isHurt() && enemy.canDamagePlayer()) {
+      this.character.hit();
+      this.statusBarLife.setPercentage(this.character.energy);
+    }
+  } else {
+    // Normale Orcs: Kontakt reicht
+    if (!this.character.isHurt()) {
+      this.character.hit();
+      this.statusBarLife.setPercentage(this.character.energy);
+    }
+  }
+}
     });
 
     /** --------- 2. Kunai vs. Enemies --------- */
@@ -185,22 +194,25 @@ class World {
 
   /** ------------------------------------------------------ **/
 
-  checkForEndboss() {
-    if (this.character.x > 3500 && !this.level.endbossLoaded) {
-      const endboss = new Endboss();
-      // Flag für World-Logik
-      endboss.isEndboss = true;
+checkForEndboss() {
+  if (this.character.x > 3500 && !this.level.endbossLoaded) {
+    const endboss = new Endboss();
 
-      this.level.enemies.push(endboss);
-      this.level.endbossLoaded = true;
-      this.level.endboss = endboss;
+    // NEU: Referenz zur World, damit er auf den Character zugreifen kann
+    endboss.world = this;
 
-      // Statusbar auf aktuelles Boss-Leben setzen
-      this.statusBarEndboss.setPercentage(endboss.energy);
+    endboss.isEndboss = true;
 
-      console.log("Endboss wurde geladen!");
-    }
+    this.level.enemies.push(endboss);
+    this.level.endbossLoaded = true;
+    this.level.endboss = endboss;
+
+    this.statusBarEndboss.setPercentage(endboss.energy);
+
+    console.log("Endboss wurde geladen!");
   }
+}
+
 
   draw() {
     this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
