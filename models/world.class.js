@@ -89,7 +89,6 @@ class World {
 onGameOver(playerWon) {
   // Hintergrund-Sounds stoppen
   this.background_sound.pause();
-  this.music.pause();
   if (this.character && this.character.walking_sound) {
     this.character.walking_sound.pause();
   }

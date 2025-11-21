@@ -72,8 +72,15 @@ class Character extends MovableObject {
     _lastAttackTick = 0;
     attackType = null;         // 'melee' | 'kunai' | null
 
+    // Sound-Flags
+    _hitSoundPlayed = false;
+    _jumpSoundPlayed = false;
+
     world;
     walking_sound = new Audio('audio/running.mp3');
+    kunai_throw_sound = new Audio('audio/throw_kunai.mp3'); // Kunai-Wurf-Sound
+    hit_sound = new Audio('audio/ninja-hit.wav');           // Nahkampf-Sound
+    jump_sound = new Audio('audio/jump.mp3');               // Jump-Sound
 
     constructor() {
         super().loadImage('img/2_character_shinobi/1_idle/idle/Idle_1.png');
@@ -145,7 +152,7 @@ class Character extends MovableObject {
     tryStartAttack() {
         const now = performance.now();
 
-        // NEU: nach GameOver/Win keine Angriffe mehr
+        // nach GameOver/Win keine Angriffe mehr
         if (this.world && this.world.gameEnded) return;
 
         if (this.isDead() || this.isAttacking) return;
@@ -169,7 +176,7 @@ class Character extends MovableObject {
     tryStartKunaiThrow() {
         const now = performance.now();
 
-        // NEU: nach GameOver/Win keine Kunai-Würfe mehr
+        // nach GameOver/Win keine Kunai-Würfe mehr
         if (this.world && this.world.gameEnded) return false;
 
         if (this.isDead() || this.isAttacking) return false;
@@ -195,26 +202,37 @@ class Character extends MovableObject {
             this._lastAttackTick = now;
             this.attackFrameIndex++;
 
+            // Ende der Attack-Animation
             if (this.attackFrameIndex >= this.IMAGES_ATTACK.length) {
                 this.isAttacking = false;
                 this.attackType = null;
+                this._hitSoundPlayed = false; // Reset für nächsten Schlag
                 return;
             }
 
             const key = this.IMAGES_ATTACK[this.attackFrameIndex];
             this.img = this.imageCache[key];
 
+            // Nahkampf-Trefffenster
             if (this.attackType === 'melee') {
                 if (this.attackFrameIndex === 2 || this.attackFrameIndex === 3) {
                     this.applyMeleeHit();
+
+                    // Schlag-Sound genau 1x pro Angriff
+                    if (!this._hitSoundPlayed) {
+                        this.playHitSound();
+                        this._hitSoundPlayed = true;
+                    }
                 }
             }
 
+            // Kunai-Wurf: beim Frame Attack_4.png (Index 3)
             if (this.attackType === 'kunai') {
                 if (this.attackFrameIndex === 3) {
                     if (this.world && typeof this.world.onCharacterKunaiRelease === 'function') {
-                        this.world.onCharacterKunaiRelease();
+                        this.world.onCharacterKunaiRelease();   // Kunai spawnen
                     }
+                    this.playKunaiThrowSound();                  // Sound genau 1x
                 }
             }
         }
@@ -273,13 +291,15 @@ class Character extends MovableObject {
         // Bewegung / Physik
         setInterval(() => {
 
-            // NEU: wenn Spiel beendet (Win/Loose) → komplette Bewegung sperren
+            // wenn Spiel beendet (Win/Loose) → komplette Bewegung sperren
             if (this.world && this.world.gameEnded) {
                 this.walking_sound.pause();
                 return;
             }
 
             this.walking_sound.pause();
+
+            const onGround = !this.isAboveGround();
 
             if (this.world.keyboard.RIGHT && this.x < this.world.level.level_end_x && !this.isDead()) {
                 this.moveRight();   // jetzt mit Boss-Block
@@ -291,8 +311,20 @@ class Character extends MovableObject {
                 this.soundEffects(0.3, 2.5);
             }
 
-            if (this.world.keyboard.SPACE && !this.isAboveGround() && !this.isDead()) {
+            // SPRUNG + Jump-Sound (genau 1x pro Sprung)
+            if (this.world.keyboard.SPACE && onGround && !this.isDead()) {
+
+                if (!this._jumpSoundPlayed) {
+                    this.playJumpSound();
+                    this._jumpSoundPlayed = true;
+                }
+
                 this.jump();
+            }
+
+            // Flag zurücksetzen, wenn wieder auf dem Boden und SPACE nicht gedrückt
+            if (onGround && !this.world.keyboard.SPACE) {
+                this._jumpSoundPlayed = false;
             }
 
             this.world.camera_x = -this.x + 50;
@@ -327,5 +359,29 @@ class Character extends MovableObject {
         this.walking_sound.play();
         this.walking_sound.playbackRate = playbackRate;
         this.walking_sound.volume = volume;
+    }
+
+    // Kunai-Wurf-Sound: immer von vorne, genau 1x pro Wurf
+    playKunaiThrowSound() {
+        if (!this.kunai_throw_sound) return;
+        this.kunai_throw_sound.currentTime = 0;
+        this.kunai_throw_sound.volume = 0.3; // Lautstärke nach Geschmack
+        this.kunai_throw_sound.play();
+    }
+
+    // Nahkampf-Hit-Sound: genau 1x pro Nahkampfangriff
+    playHitSound() {
+        if (!this.hit_sound) return;
+        this.hit_sound.currentTime = 0;
+        this.hit_sound.volume = 0.3; // Lautstärke nach Geschmack
+        this.hit_sound.play();
+    }
+
+    // Jump-Sound: genau 1x pro Sprung
+    playJumpSound() {
+        if (!this.jump_sound) return;
+        this.jump_sound.currentTime = 0;
+        this.jump_sound.volume = 0.35; // Lautstärke nach Geschmack
+        this.jump_sound.play();
     }
 }
