@@ -362,6 +362,40 @@ button:hover {
     background-color: #666; /* Hellerer Hintergrund, wenn der Button überfahren wird */
 }
 
+/* === GAME OVER & WIN OVERLAY === */
+#game-over-overlay,
+#win-overlay {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 50%;
+    height: 40%;
+    background-color: #b7694dec;
+    border-radius: 10px;
+    display: none;                 /* wird per JS auf flex gesetzt */
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    color: #fff;
+    font-family: 'Noto Sans', sans-serif;
+    z-index: 1100;
+}
+
+#game-over-overlay h2,
+#win-overlay h2 {
+    margin-bottom: 20px;
+    font-family: "Anton", serif;
+    font-weight: 400;
+    font-size: 48px;
+    text-shadow: 2px 2px 5px rgba(0,0,0,0.5);
+}
+
+.overlay-buttons{
+    gap: 20px;
+}
+
+
 /* .info-screen {
     display: flex;
     justify-content: space-around;

@@ -1,6 +1,6 @@
 class World {
   character = new Character();
-  level = level1;
+  level = createLevel1();   // <-- NEU: jedes Mal frisches Level
   canvas;
   ctx;
   keyboard;
@@ -12,15 +12,22 @@ class World {
   throwableObjects = [];
   background_sound = new Audio('audio/forest-background.mp3');
   music = new Audio('audio/music.mp3');
+  win_sound = new Audio('audio/win.mp3');
   ninjaCoinsCollected = 0;
   kunaiCoinsCollected = 0;
 
   // Kunai-Logik
-  kunaiAmmo = 0;             // aktuelle Anzahl verfügbarer Würfe
-  maxKunaiSegments = 5;      // Anzahl Segmente in der Kunai-Bar (100% = 5)
-  kunaiPerSegment = 2;       // 2 Würfe pro Segment
-  nextThrowAt = 0;           // Zeitstempel für Cooldown
-  throwCooldownMs = 150;     // kleiner Wurf-Cooldown
+  kunaiAmmo = 0;
+  maxKunaiSegments = 5;
+  kunaiPerSegment = 2;
+  nextThrowAt = 0;
+  throwCooldownMs = 150;
+
+  // Render-Loop
+  animationFrameId = null;
+
+  // Game-Status
+  gameEnded = false;
 
   constructor(canvas, keyboard) {
     this.ctx = canvas.getContext('2d');
@@ -31,12 +38,10 @@ class World {
     this.setWorld();
     this.run();
 
-    // Kunai-Wurf bei Tastendruck V (ein Wurf pro Druck)
     window.addEventListener('keydown', (e) => {
       if (e.code === 'KeyV' && !e.repeat) {
         this.tryThrowKunai();
       }
-      // Nahkampfangriff mit Taste B
       if (e.code === 'KeyB' && !e.repeat) {
         this.character.tryStartAttack();
       }
@@ -53,129 +58,154 @@ class World {
 
   run() {
     setInterval(() => {
+      if (this.gameEnded) return;
+
       this.checkCollisions();
       this.checkCollectibles();
       this.checkForEndboss();
+
+      // Charakter tot?
+      if (this.character && typeof this.character.isDead === 'function' && this.character.isDead()) {
+        this.gameEnded = true;
+        this.onGameOver(false);
+        return;
+      }
+
+      // Endboss tot?
+      if (
+        this.level &&
+        this.level.endboss &&
+        typeof this.level.endboss.isDead === 'function' &&
+        this.level.endboss.isDead()
+      ) {
+        this.gameEnded = true;
+        this.onGameOver(true);
+        return;
+      }
+
     }, 1000 / 60);
+  }
+
+onGameOver(playerWon) {
+  // Hintergrund-Sounds stoppen
+  this.background_sound.pause();
+  this.music.pause();
+  if (this.character && this.character.walking_sound) {
+    this.character.walking_sound.pause();
+  }
+
+  // WIN-Sound nur bei Sieg
+  if (playerWon) {
+    this.win_sound.currentTime = 0; // sicherheitshalber zurückspulen
+    this.win_sound.volume = 0.8;
+    this.win_sound.play();
+  }
+
+  // Nach 3 Sekunden Overlay einblenden
+  setTimeout(() => {
+    const id = playerWon ? 'win-overlay' : 'game-over-overlay';
+    const overlay = document.getElementById(id);
+    if (overlay) {
+      overlay.style.display = 'flex';
+    }
+  }, 1000);
+}
+
+
+  stop() {
+    this.gameEnded = true;
+
+    if (this.animationFrameId) {
+      cancelAnimationFrame(this.animationFrameId);
+      this.animationFrameId = null;
+    }
+
+    this.background_sound.pause();
+    this.music.pause();
+    if (this.character && this.character.walking_sound) {
+      this.character.walking_sound.pause();
+    }
   }
 
   checkCollisions() {
     const enemies = this.level.enemies;
 
-    /** --------- 1. Character vs. Enemies --------- */
     enemies.forEach((enemy) => {
-      // sterbende/„tote“ Gegner ignorieren
       if (!enemy || !enemy.collidable || enemy.isDying) return;
 
       const colliding = this.character.isColliding(enemy);
 
-      // a) Charakter greift an und trifft Gegner
       if (
         colliding &&
         this.character.isAttacking &&
         !this.character.isDead()
       ) {
         if (enemy.isEndboss && typeof enemy.hit === 'function') {
-          // Endboss bekommt Schaden, HURT-Anim & Statusbar-Update
-          enemy.hit(10); // Nahkampfschaden in %
+          enemy.hit(10);
           this.statusBarEndboss.setPercentage(enemy.energy);
         } else if (typeof enemy.die === 'function') {
-          // normale Orcs sterben sofort
           enemy.die();
         }
-        // In diesem Frame kein Gegenschaden auf den Charakter
         return;
       }
 
-      // b) Gegner trifft Charakter (nur wenn Charakter NICHT gerade erfolgreich angreift)
-// b) Gegner trifft Charakter
-if (colliding && !this.character.isDead()) {
-
-  if (enemy.isEndboss && typeof enemy.canDamagePlayer === 'function') {
-    // Endboss darf nur Schaden machen, wenn er gerade angreift
-    if (!this.character.isHurt() && enemy.canDamagePlayer()) {
-      this.character.hit();
-      this.statusBarLife.setPercentage(this.character.energy);
-    }
-  } else {
-    // Normale Orcs: Kontakt reicht
-    if (!this.character.isHurt()) {
-      this.character.hit();
-      this.statusBarLife.setPercentage(this.character.energy);
-    }
-  }
-}
+      if (colliding && !this.character.isDead()) {
+        if (enemy.isEndboss && typeof enemy.canDamagePlayer === 'function') {
+          if (!this.character.isHurt() && enemy.canDamagePlayer()) {
+            this.character.hit();
+            this.statusBarLife.setPercentage(this.character.energy);
+          }
+        } else {
+          if (!this.character.isHurt()) {
+            this.character.hit();
+            this.statusBarLife.setPercentage(this.character.energy);
+          }
+        }
+      }
     });
 
-    /** --------- 2. Kunai vs. Enemies --------- */
-    // rückwärts iterieren, damit wir splicen können
+    // Kunai vs Enemies
     for (let i = this.throwableObjects.length - 1; i >= 0; i--) {
       const kunai = this.throwableObjects[i];
-
-      // Sicherheitscheck: hat das Objekt überhaupt eine Kollisions-Funktion?
       if (!kunai || typeof kunai.isColliding !== 'function') continue;
 
-      for (let j = enemies.length - 1; j >= 0; j--) {
-        const enemy = enemies[j];
-
+      for (let j = this.level.enemies.length - 1; j >= 0; j--) {
+        const enemy = this.level.enemies[j];
         if (!enemy || !enemy.collidable || enemy.isDying) continue;
 
         if (kunai.isColliding(enemy)) {
           if (enemy.isEndboss && typeof enemy.hit === 'function') {
-            // Endboss nimmt Kunai-Schaden, HURT-Anim & Statusbar-Update
-            enemy.hit(15); // Kunai-Schaden in %
+            enemy.hit(15);
             this.statusBarEndboss.setPercentage(enemy.energy);
           } else if (typeof enemy.die === 'function') {
-            // normale Orcs sterben beim Kunai
             enemy.die();
           }
-
-          // Kunai nach Treffer entfernen
           this.throwableObjects.splice(i, 1);
-          // inneren Loop abbrechen, weil dieses Kunai weg ist
           break;
         }
       }
     }
   }
 
-  /** ------------------ Kunai-Funktionen ------------------ **/
-
-  /**
-   * Startet den Kunai-Wurf:
-   * - prüft Cooldown + Munition
-   * - triggert Attack-Animation im Charakter
-   * Das eigentliche Werfen passiert dann erst bei Attack_4.png.
-   */
+  // Kunai-Logik
   tryThrowKunai() {
     const now = performance.now();
     if (this.character.isDead()) return;
-    if (now < this.nextThrowAt) return; // Cooldown aktiv → kein neuer Wurf
-    if (this.kunaiAmmo <= 0) return;    // Keine Munition → kein Wurf möglich
-
-    // Wenn der Charakter gerade schon angreift, keinen neuen Wurf starten
+    if (now < this.nextThrowAt) return;
+    if (this.kunaiAmmo <= 0) return;
     if (this.character.isAttacking) return;
 
     const started = this.character.tryStartKunaiThrow();
     if (!started) return;
-    // Munition & Cooldown werden erst beim tatsächlichen Wurf (Frame 4) abgezogen
   }
 
-  /**
-   * Wird vom Charakter bei Attack_4.png (Frame-Index 3) aufgerufen.
-   * Hier passiert der eigentliche Wurf: Kunai spawnen, Munition runter,
-   * Kunai-Bar updaten, Cooldown setzen.
-   */
   onCharacterKunaiRelease() {
-    if (this.kunaiAmmo <= 0) return; // Safety, falls sich zwischendurch etwas ändert
+    if (this.kunaiAmmo <= 0) return;
 
     this.throwKunai();
 
-    // 1 Wurf verbraucht 1 Munition
     this.kunaiAmmo -= 1;
     this.updateKunaiBarFromAmmo();
-
-    // Cooldown setzen ab dem Moment des Abwurfs
     this.nextThrowAt = performance.now() + this.throwCooldownMs;
   }
 
@@ -184,7 +214,6 @@ if (colliding && !this.character.isDead()) {
     this.throwableObjects.push(kunai);
   }
 
-  // Berechnet die Prozentanzeige der Kunai-Bar aus aktueller Munition
   updateKunaiBarFromAmmo() {
     const segments = Math.ceil(this.kunaiAmmo / this.kunaiPerSegment);
     const clampedSegments = Math.min(this.maxKunaiSegments, Math.max(0, segments));
@@ -192,27 +221,21 @@ if (colliding && !this.character.isDead()) {
     this.statusBarKunai.setPercentage(percentage);
   }
 
-  /** ------------------------------------------------------ **/
+  checkForEndboss() {
+    if (this.character.x > 3500 && !this.level.endbossLoaded) {
+      const endboss = new Endboss();
+      endboss.world = this;
+      endboss.isEndboss = true;
 
-checkForEndboss() {
-  if (this.character.x > 3500 && !this.level.endbossLoaded) {
-    const endboss = new Endboss();
+      this.level.enemies.push(endboss);
+      this.level.endbossLoaded = true;
+      this.level.endboss = endboss;
 
-    // NEU: Referenz zur World, damit er auf den Character zugreifen kann
-    endboss.world = this;
+      this.statusBarEndboss.setPercentage(endboss.energy);
 
-    endboss.isEndboss = true;
-
-    this.level.enemies.push(endboss);
-    this.level.endbossLoaded = true;
-    this.level.endboss = endboss;
-
-    this.statusBarEndboss.setPercentage(endboss.energy);
-
-    console.log("Endboss wurde geladen!");
+      console.log("Endboss wurde geladen!");
+    }
   }
-}
-
 
   draw() {
     this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
@@ -221,7 +244,7 @@ checkForEndboss() {
     this.addObjectsToMap(this.level.backgroundObjects);
 
     let self = this;
-    requestAnimationFrame(function () {
+    this.animationFrameId = requestAnimationFrame(function () {
       self.draw();
     });
 
@@ -234,7 +257,6 @@ checkForEndboss() {
     this.addToMap(this.character);
     this.ctx.translate(-this.camera_x, 0);
 
-    // Fixed UI
     this.addToMap(this.statusBarLife);
     this.addToMap(this.statusBarCoin);
     this.addToMap(this.statusBarKunai);
@@ -266,10 +288,7 @@ checkForEndboss() {
     this.ctx.restore();
   }
 
-  /** ------------------ Collectibles ------------------ **/
-
   checkCollectibles() {
-    // Ninja-Coins
     for (let i = this.level.coins.length - 1; i >= 0; i--) {
       const c = this.level.coins[i];
       if (this.character.isColliding(c)) {
@@ -279,21 +298,17 @@ checkForEndboss() {
       }
     }
 
-    // Kunai-Coins
     for (let i = this.level.kunais.length - 1; i >= 0; i--) {
       const kc = this.level.kunais[i];
       if (this.character.isColliding(kc)) {
         this.level.kunais.splice(i, 1);
         this.kunaiCoinsCollected++;
 
-        // +2 Würfe pro Coin
         this.kunaiAmmo += this.kunaiPerSegment;
 
-        // Maximal 10 Würfe (5 Balken * 2 Würfe)
         const maxAmmo = this.maxKunaiSegments * this.kunaiPerSegment;
         if (this.kunaiAmmo > maxAmmo) this.kunaiAmmo = maxAmmo;
 
-        // Kunai-Bar aktualisieren
         this.updateKunaiBarFromAmmo();
       }
     }

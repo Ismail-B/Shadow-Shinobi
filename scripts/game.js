@@ -3,36 +3,84 @@ let world;
 let keyboard = new Keyboard();
 let intervalIds = [];
 
+/** Alle setInterval-Aufrufe einsammeln */
+const _originalSetInterval = window.setInterval;
+window.setInterval = function (fn, delay) {
+  const id = _originalSetInterval(fn, delay);
+  intervalIds.push(id);
+  return id;
+};
+
+function clearAllIntervals() {
+  intervalIds.forEach(id => clearInterval(id));
+  intervalIds = [];
+}
 
 function init() {
   canvas = document.getElementById("canvas");
   world = new World(canvas, keyboard);
-
-  // console.log('My Character is ', world.character);
-  // console.log('My Chicken is ', world.enemies);
-  // console.log('My Firefly is ', world.background);
-  // console.log(keyboard);
 }
 
 function toggle(canvasId) {
-  let canvas = document.getElementById(canvasId); // Holen des Canvas-Elements über den Parameter
-  let startOverlay = document.getElementById("startoverlay"); // Holen des Start-Overlays
+  let canvas = document.getElementById(canvasId);
+  let startOverlay = document.getElementById("startoverlay");
 
-  // Überprüfen, ob das Canvas derzeit verborgen ist (display: none)
   if (canvas.style.display === "none" || canvas.style.display === "") {
-    canvas.style.display = "block"; // Setze das Canvas auf sichtbar
-    startOverlay.style.display = "none"; // Verberge das Start-Overlay
+    canvas.style.display = "block";
+    startOverlay.style.display = "none";
   } else {
-    canvas.style.display = "none"; // Setze das Canvas auf unsichtbar
-    startOverlay.style.display = "block"; // Zeige das Start-Overlay
+    canvas.style.display = "none";
+    startOverlay.style.display = "block";
   }
 }
+
+/** Richtiger Restart ohne Reload */
+function restartGame() {
+  clearAllIntervals();
+
+  if (world && typeof world.stop === 'function') {
+    world.stop();
+  }
+
+  const go = document.getElementById('game-over-overlay');
+  const win = document.getElementById('win-overlay');
+  if (go) go.style.display = 'none';
+  if (win) win.style.display = 'none';
+
+  const canvasEl = document.getElementById('canvas');
+  canvasEl.style.display = 'block';
+
+  world = new World(canvasEl, keyboard);
+}
+
+/** Zurück ins Menü, auch ohne Reload */
+function backToMenu() {
+  clearAllIntervals();
+
+  if (world && typeof world.stop === 'function') {
+    world.stop();
+  }
+
+  const go = document.getElementById('game-over-overlay');
+  const win = document.getElementById('win-overlay');
+  if (go) go.style.display = 'none';
+  if (win) win.style.display = 'none';
+
+  const canvasEl = document.getElementById('canvas');
+  canvasEl.style.display = 'none';
+
+  const startOverlay = document.getElementById('startoverlay');
+  startOverlay.style.display = 'flex';
+
+  world = null;
+}
+
+/* Sound + Fullscreen */
 
 function toggleMusic(id) {
     let loud = document.getElementById(id);
     let mute = document.getElementById('mute-btn');
 
-    // Zustand des Elements prüfen
     if (getComputedStyle(loud).display === "none") {
         loud.style.display = "block";
         mute.style.display = "none";
@@ -43,12 +91,14 @@ function toggleMusic(id) {
 }
 
 function muteMusic() {
+    if (!world) return;
     world.music.muted = true;
     world.background_sound.muted = true;
     world.character.walking_sound.muted = true;
 }
 
 function turnOnMusic() {
+    if (!world) return;
     world.music.muted = false;
     world.background_sound.muted = false;
     world.character.walking_sound.muted = false;
@@ -62,9 +112,9 @@ function fullscreen() {
 function enterFullscreen(element) {
     if(element.requestFullscreen) {
       element.requestFullscreen();
-    } else if(element.msRequestFullscreen) {      // for IE11 (remove June 15, 2022)
+    } else if(element.msRequestFullscreen) {
       element.msRequestFullscreen();
-    } else if(element.webkitRequestFullscreen) {  // iOS Safari
+    } else if(element.webkitRequestFullscreen) {
       element.webkitRequestFullscreen();
     }
 }
@@ -76,6 +126,8 @@ function exitFullscreen() {
       document.webkitExitFullscreen();
     }
 }
+
+/* Keyboard */
 
 window.addEventListener("keydown", (e) => {
   if (e.key == "w" || "ArrowUp") {
@@ -144,5 +196,3 @@ window.addEventListener("keyup", (e) => {
     keyboard.D = false;
   }
 });
-
-

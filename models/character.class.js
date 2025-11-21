@@ -91,10 +91,6 @@ class Character extends MovableObject {
        >>> HORIZONTALBEWEGUNG MIT BOSS-BLOCK <<<
        ========================================================= */
 
-    /**
-     * Prüft, ob der Character bei einem gegebenen x-Wert
-     * mit einem Endboss kollidieren würde.
-     */
     collidesWithEndbossAtX(testX) {
         if (!this.world || !this.world.level || !this.world.level.enemies) return false;
 
@@ -117,24 +113,15 @@ class Character extends MovableObject {
         return hit;
     }
 
-    /**
-     * Nach rechts laufen:
-     * - in 1px-Schritten bis max. this.speed
-     * - beim ersten Pixel, der zu einer Boss-Kollision führen würde,
-     *   bleiben wir am letzten freien Pixel stehen.
-     * - So kannst du NICHT durch den Boss durchlaufen, aber sauber "ankleben".
-     */
     moveRight() {
         const oldX = this.x;
         const maxStep = this.speed;
         let lastFreeX = oldX;
 
-        // Schrittweise prüfen
         for (let s = 1; s <= maxStep; s++) {
             const testX = oldX + s;
 
             if (this.collidesWithEndbossAtX(testX)) {
-                // Beim ersten Kollisionspixel stoppen wir: auf letzter freie Position
                 this.x = lastFreeX;
                 this.otherDirection = false;
                 return;
@@ -143,15 +130,10 @@ class Character extends MovableObject {
             }
         }
 
-        // Kein Boss im Weg → normal volle Geschwindigkeit
         this.x = lastFreeX;
         this.otherDirection = false;
     }
 
-    /**
-     * Nach links laufen:
-     * - hier KEIN Boss-Block, damit du dich immer vom Boss lösen kannst.
-     */
     moveLeft() {
         this.otherDirection = true;
         this.x -= this.speed;
@@ -162,6 +144,10 @@ class Character extends MovableObject {
     /** Von World bei Tastendruck 'B' aufgerufen: Nahkampfangriff */
     tryStartAttack() {
         const now = performance.now();
+
+        // NEU: nach GameOver/Win keine Angriffe mehr
+        if (this.world && this.world.gameEnded) return;
+
         if (this.isDead() || this.isAttacking) return;
         if (now - this.lastAttackAt < this.attackCooldownMs) return;
 
@@ -182,6 +168,10 @@ class Character extends MovableObject {
     /** Von World bei Tastendruck 'V' aufgerufen: Kunai-Wurf mit Attack-Anim */
     tryStartKunaiThrow() {
         const now = performance.now();
+
+        // NEU: nach GameOver/Win keine Kunai-Würfe mehr
+        if (this.world && this.world.gameEnded) return false;
+
         if (this.isDead() || this.isAttacking) return false;
 
         this.isAttacking = true;
@@ -192,13 +182,11 @@ class Character extends MovableObject {
         this.attackFrameMs = 60;
 
         this._lastAttackTick = now;
-        // lastAttackAt benutzen wir nur für Nahkampf-Cooldown
         this.img = this.imageCache[this.IMAGES_ATTACK[0]];
 
         return true;
     }
 
-    /** Schlag-/Wurf-Update inkl. Hit-/Wurf-Fenster */
     updateAttack() {
         if (!this.isAttacking) return;
 
@@ -208,7 +196,6 @@ class Character extends MovableObject {
             this.attackFrameIndex++;
 
             if (this.attackFrameIndex >= this.IMAGES_ATTACK.length) {
-                // Ende der Angriffanimation
                 this.isAttacking = false;
                 this.attackType = null;
                 return;
@@ -217,14 +204,12 @@ class Character extends MovableObject {
             const key = this.IMAGES_ATTACK[this.attackFrameIndex];
             this.img = this.imageCache[key];
 
-            // --- Nahkampf-Trefffenster: Frame 3 & 4 ---
             if (this.attackType === 'melee') {
                 if (this.attackFrameIndex === 2 || this.attackFrameIndex === 3) {
                     this.applyMeleeHit();
                 }
             }
 
-            // --- Kunai-Wurf: beim Frame Attack_4.png (Index 3) ---
             if (this.attackType === 'kunai') {
                 if (this.attackFrameIndex === 3) {
                     if (this.world && typeof this.world.onCharacterKunaiRelease === 'function') {
@@ -235,14 +220,13 @@ class Character extends MovableObject {
         }
     }
 
-    /** Rechteck vor dem Charakter; killt normale Orcs */
     applyMeleeHit() {
         if (!this.world || !this.world.level?.enemies) return;
 
         const range = 40;
         const height = this.height * 0.6;
         const y = this.y + this.height * 0.2;
-        const facingRight = !this.otherDirection; // deine Blickrichtung
+        const facingRight = !this.otherDirection;
         const x = facingRight ? (this.x + this.width) : (this.x - range);
         const hitbox = { x, y, w: range, h: height };
 
@@ -254,24 +238,18 @@ class Character extends MovableObject {
         });
     }
 
-    /**
-     * Sterbeanimation: langsam, nur einmal, am Ende einfrieren.
-     */
     playDeathOnce() {
         if (this.deathFrozen) return;
         if (this.deathTimer) return;
 
         const seq = this.IMAGES_DEAD;
 
-        // Sofort erstes Frame setzen
         this.img = this.imageCache[seq[this.deathIndex]];
 
         this.deathTimer = setInterval(() => {
-            // nächstes Bild setzen
             this.deathIndex = Math.min(this.deathIndex + 1, seq.length - 1);
             this.img = this.imageCache[seq[this.deathIndex]];
 
-            // am Ende: einfrieren & Timer stoppen
             if (this.deathIndex >= seq.length - 1) {
                 clearInterval(this.deathTimer);
                 this.deathTimer = null;
@@ -280,9 +258,6 @@ class Character extends MovableObject {
         }, this.deathFrameDuration);
     }
 
-    /**
-     * Reset für Respawn/Neustart.
-     */
     resetDeathAnim() {
         this.deathIndex = 0;
         this.deathFrozen = false;
@@ -297,6 +272,13 @@ class Character extends MovableObject {
 
         // Bewegung / Physik
         setInterval(() => {
+
+            // NEU: wenn Spiel beendet (Win/Loose) → komplette Bewegung sperren
+            if (this.world && this.world.gameEnded) {
+                this.walking_sound.pause();
+                return;
+            }
+
             this.walking_sound.pause();
 
             if (this.world.keyboard.RIGHT && this.x < this.world.level.level_end_x && !this.isDead()) {
@@ -321,7 +303,7 @@ class Character extends MovableObject {
             // Angriff-Frames fortschalten, falls aktiv
             if (this.isAttacking) {
                 this.updateAttack();
-                return; // während des Angriffs nichts anderes animieren
+                return;
             }
 
             if (this.isDead()) {
