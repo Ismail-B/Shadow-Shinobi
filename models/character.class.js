@@ -87,6 +87,78 @@ class Character extends MovableObject {
         this.animateCharacter();
     }
 
+    /* =========================================================
+       >>> HORIZONTALBEWEGUNG MIT BOSS-BLOCK <<<
+       ========================================================= */
+
+    /**
+     * Prüft, ob der Character bei einem gegebenen x-Wert
+     * mit einem Endboss kollidieren würde.
+     */
+    collidesWithEndbossAtX(testX) {
+        if (!this.world || !this.world.level || !this.world.level.enemies) return false;
+
+        const enemies = this.world.level.enemies;
+        const oldX = this.x;
+        this.x = testX; // temporär verschieben
+
+        let hit = false;
+        for (let i = 0; i < enemies.length; i++) {
+            const enemy = enemies[i];
+            if (!enemy || !enemy.isEndboss || !enemy.collidable) continue;
+
+            if (this.isColliding(enemy)) {
+                hit = true;
+                break;
+            }
+        }
+
+        this.x = oldX; // Position zurücksetzen
+        return hit;
+    }
+
+    /**
+     * Nach rechts laufen:
+     * - in 1px-Schritten bis max. this.speed
+     * - beim ersten Pixel, der zu einer Boss-Kollision führen würde,
+     *   bleiben wir am letzten freien Pixel stehen.
+     * - So kannst du NICHT durch den Boss durchlaufen, aber sauber "ankleben".
+     */
+    moveRight() {
+        const oldX = this.x;
+        const maxStep = this.speed;
+        let lastFreeX = oldX;
+
+        // Schrittweise prüfen
+        for (let s = 1; s <= maxStep; s++) {
+            const testX = oldX + s;
+
+            if (this.collidesWithEndbossAtX(testX)) {
+                // Beim ersten Kollisionspixel stoppen wir: auf letzter freie Position
+                this.x = lastFreeX;
+                this.otherDirection = false;
+                return;
+            } else {
+                lastFreeX = testX;
+            }
+        }
+
+        // Kein Boss im Weg → normal volle Geschwindigkeit
+        this.x = lastFreeX;
+        this.otherDirection = false;
+    }
+
+    /**
+     * Nach links laufen:
+     * - hier KEIN Boss-Block, damit du dich immer vom Boss lösen kannst.
+     */
+    moveLeft() {
+        this.otherDirection = true;
+        this.x -= this.speed;
+    }
+
+    /* ===================== ANGRIFFS-LOGIK ===================== */
+
     /** Von World bei Tastendruck 'B' aufgerufen: Nahkampfangriff */
     tryStartAttack() {
         const now = performance.now();
@@ -228,12 +300,12 @@ class Character extends MovableObject {
             this.walking_sound.pause();
 
             if (this.world.keyboard.RIGHT && this.x < this.world.level.level_end_x && !this.isDead()) {
-                this.moveRight();
+                this.moveRight();   // jetzt mit Boss-Block
                 this.soundEffects(0.3, 2.5);
             }
 
             if (this.world.keyboard.LEFT && this.x > -670 && !this.isDead()) {
-                this.moveLeft();
+                this.moveLeft();    // immer frei nach links
                 this.soundEffects(0.3, 2.5);
             }
 

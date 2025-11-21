@@ -2,7 +2,7 @@ class Endboss extends MovableObject {
     width = 380;
     height = 280;
     x = 3850;
-    y = 90;
+    y = 110;
     speed = 2;
     offset = {
         x: 50,
@@ -11,20 +11,20 @@ class Endboss extends MovableObject {
         height: 50,
     };
     attackHitbox = { 
-    x: 0, 
-    y: 0, 
-    width: 380,   // Länge der Keule
-    height: 180   // Höhe der Keule
+        x: 0, 
+        y: 0, 
+        width: 380,   // Länge der Keule
+        height: 180   // Höhe der Keule
     };
 
     // Skalierung
-    scaleIdle = 1.0;
-    scaleHurt = 1.25;
-    scaleDead = 1.25;
+    scaleIdle   = 1.0;
+    scaleHurt   = 1.15;
+    scaleDead   = 1.15;
     scaleAttack = 1.5;  // Attack jetzt groß wie Dead
 
     // Y-Offsets
-    hurtYOffset = 10;
+    hurtYOffset = -10;
     deadYOffset = 60;
 
     // Kollisionslogik
@@ -136,6 +136,9 @@ class Endboss extends MovableObject {
         this.loadImages(this.IMAGES_DEAD);
         this.loadImages(this.IMAGES_ATTACK);
 
+        // Boss soll IMMER nach links schauen
+        this.otherDirection = true;
+
         this.animate();
     }
 
@@ -154,6 +157,9 @@ class Endboss extends MovableObject {
         this.hurtPlaying = true;
         this.hurtFrameIndex = 0;
 
+        // direkt erstes HURT-Bild setzen, damit Scale+Pose zusammen wechseln
+        this.img = this.imageCache[this.IMAGES_HURT[0]];
+
         if (this.energy === 0) {
             this.isDeadFlag = true;
             this.collidable = false;
@@ -162,6 +168,10 @@ class Endboss extends MovableObject {
             this.deathFrameIndex = 0;
             this.attacking = false;
             this.isMoving = false;
+
+            // direkt erstes DEAD-Bild + Y-Offset setzen
+            this.y = this.baseY + this.deadYOffset;
+            this.img = this.imageCache[this.IMAGES_DEAD[0]];
         }
     }
 
@@ -192,6 +202,13 @@ class Endboss extends MovableObject {
         this.attacking = true;
         this.attackFrameIndex = 0;
         this.isMoving = false;
+
+        // Boss bleibt nach links gerichtet
+        this.otherDirection = true;
+
+        // direkt erstes ATTACK-Bild setzen
+        this.img = this.imageCache[this.IMAGES_ATTACK[0]];
+
         return true;
     }
 
@@ -199,9 +216,9 @@ class Endboss extends MovableObject {
     draw(ctx) {
         let scale = this.scaleIdle;
 
-        if (this.hurtPlaying) scale = this.scaleHurt;
+        if (this.hurtPlaying)      scale = this.scaleHurt;
         else if (this.deathPlaying) scale = this.scaleDead;
-        else if (this.attacking) scale = this.scaleAttack;
+        else if (this.attacking)    scale = this.scaleAttack;
 
         const w = this.width * scale;
         const h = this.height * scale;
@@ -215,10 +232,10 @@ class Endboss extends MovableObject {
     animate() {
         // --- Animationslogik ---
         setInterval(() => {
-            if (this.deathPlaying) return this.playDeathOnce();
-            if (this.hurtPlaying) return this.playHurtOnce();
-            if (this.attacking) return this.playAttackOnce();
-            if (this.isMoving) return this.playAnimation(this.IMAGES_WALKING);
+            if (this.deathPlaying)  return this.playDeathOnce();
+            if (this.hurtPlaying)   return this.playHurtOnce();
+            if (this.attacking)     return this.playAttackOnce();
+            if (this.isMoving)      return this.playAnimation(this.IMAGES_WALKING);
             this.playAnimation(this.IMAGES_ALERT);
         }, 100);
 
@@ -229,27 +246,31 @@ class Endboss extends MovableObject {
                 return;
             }
 
+            // Boss schaut IMMER nach links
+            this.otherDirection = true;
+
             if (!this.world || !this.world.character) {
+                // Fallback: einfach nach links laufen
                 this.moveLeft();
                 this.isMoving = true;
                 return;
             }
 
             const char = this.world.character;
-            const distanceX = Math.abs(this.x - char.x);
-            const attackRange = 40; // nah ranlaufen
+            const attackRange = 40;
 
-            this.otherDirection = (this.x > char.x);
+            // Abstand in x-Richtung (Boss ist immer rechts vom Character)
+            const dx = this.x - char.x;
 
-            if (distanceX <= attackRange) {
+            if (dx <= attackRange) {
+                // Nah genug: stehen bleiben und angreifen
                 this.isMoving = false;
                 this.startAttack();
             } else {
+                // Egal wo der Character ist → Boss läuft einfach nach links
                 this.attacking = false;
                 this.isMoving = true;
-
-                if (this.x > char.x) this.moveLeft();
-                else this.moveRight();
+                this.moveLeft();
             }
 
         }, 1000 / 60);
@@ -277,25 +298,20 @@ class Endboss extends MovableObject {
         this.img = this.imageCache[this.IMAGES_DEAD[this.deathFrameIndex++]];
     }
 
-playAttackOnce() {
-    if (this.attackFrameIndex >= this.IMAGES_ATTACK.length) {
-        this.attackFrameIndex = 0;
-        this.attacking = false;
-        return;
-    }
+    playAttackOnce() {
+        if (this.attackFrameIndex >= this.IMAGES_ATTACK.length) {
+            this.attackFrameIndex = 0;
+            this.attacking = false;
+            return;
+        }
 
-    const path = this.IMAGES_ATTACK[this.attackFrameIndex];
-    this.img = this.imageCache[path];
-    this.attackFrameIndex++;
+        const path = this.IMAGES_ATTACK[this.attackFrameIndex];
+        this.img = this.imageCache[path];
+        this.attackFrameIndex++;
 
-    // --- HITBOX POSITIONIEREN ---  
-    // Boss schaut nach links (otherDirection = true)
-    if (this.otherDirection) {
+        // --- HITBOX POSITIONIEREN ---  
+        // Boss schaut immer nach links (otherDirection = true)
         this.attackHitbox.x = this.x - 60; 
         this.attackHitbox.y = this.y + 40;
-    } else {
-        this.attackHitbox.x = this.x + this.width - 20; 
-        this.attackHitbox.y = this.y + 40;
     }
-}
 }

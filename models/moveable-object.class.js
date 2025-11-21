@@ -16,23 +16,39 @@ class MovableObject extends DrawableObject{
     walkingSound;
     collidable = true;
 
-    getBounds() {
-    return { x: this.x, y: this.y, w: this.width, h: this.height };
-  }
+    /** Hitbox passend zu isColliding (das sind die blauen Kästen) */
+    getHitbox() {
+        const left   = this.x + this.offset.x;
+        const top    = this.y + this.offset.y;
+        const right  = this.x + this.width  - this.offset.width;
+        const bottom = this.y + this.height - this.offset.height;
 
-  overlapsRect(rect) {
-    const a = this.getBounds();
-    return a.x < rect.x + rect.w && a.x + a.w > rect.x &&
-           a.y < rect.y + rect.h && a.y + a.h > rect.y;
-  }
+        return {
+            left,
+            top,
+            right,
+            bottom,
+            width:  right - left,
+            height: bottom - top
+        };
+    }
+
+    getBounds() {
+        return { x: this.x, y: this.y, w: this.width, h: this.height };
+    }
+
+    overlapsRect(rect) {
+        const a = this.getBounds();
+        return a.x < rect.x + rect.w && a.x + a.w > rect.x &&
+               a.y < rect.y + rect.h && a.y + a.h > rect.y;
+    }
 
     moveRight() {
         this.x += this.speed;
         this.otherDirection = false;
-
     }
 
-    moveLeft(){
+    moveLeft() {
         this.x -= this.speed;
         this.otherDirection = true;
     }
@@ -47,9 +63,10 @@ class MovableObject extends DrawableObject{
     applyGravity(){
         setInterval(() => {
             if (this.isAboveGround() || this.speedY > 0) {            
-            this.y -= this.speedY;
-            this.speedY -= this.acceleration;
-    }}, 1000/70);
+                this.y -= this.speedY;
+                this.speedY -= this.acceleration;
+            }
+        }, 1000/70);
     }
 
     isAboveGround(){
@@ -61,8 +78,8 @@ class MovableObject extends DrawableObject{
     }
 
     isNotMoving(){
-        const isStationary = this.x === this.lastX; // Prüfen, ob der x-Wert sich nicht verändert hat
-        this.lastX = this.x; // Den aktuellen x-Wert speichern
+        const isStationary = this.x === this.lastX;
+        this.lastX = this.x;
         return isStationary;
     }
 
