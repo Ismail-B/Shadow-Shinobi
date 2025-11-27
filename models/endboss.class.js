@@ -48,6 +48,7 @@ class Endboss extends MovableObject {
     // Attack / Hitbox
     attacking = false;
     attackFrameIndex = 0;
+    currentAttackFrame = 0; // aktuell angezeigtes Attack-Frame
     isMoving = false;
 
     // Boss → Character Schaden-Cooldown
@@ -57,6 +58,11 @@ class Endboss extends MovableObject {
     // Cooldown zwischen zwei Attack-Starts
     attackCooldown = 900;
     lastAttackStartedAt = 0;
+
+    // Spawn / Aktivierung
+    activated = false;        // wird erst „aktiv“, wenn der Spieler ihn sehen kann
+    activationTime = 0;       // Zeitpunkt der Aktivierung (für 1s Alert)
+    viewDistance = 720;       // Entfernung, ab der der Spieler ihn „sehen“ würde
 
     // Animationen
     IMAGES_WALKING = [
@@ -150,7 +156,7 @@ class Endboss extends MovableObject {
         if (now - this.lastHitAt < this.minHitInterval) return;
         this.lastHitAt = now;
 
-        // === HIER: immer genau EINE "Lebenseinheit" abziehen ===
+        // immer genau EINE "Lebenseinheit" (20) abziehen
         this.energy -= 20;               // 100 → 80 → 60 → 40 → 20 → 0
         if (this.energy < 0) this.energy = 0;
 
@@ -187,7 +193,14 @@ class Endboss extends MovableObject {
 
     /** Boss → Player Damage Check */
     canDamagePlayer() {
-        if (!this.attacking || this.isDeadFlag || this.hurtPlaying || this.deathPlaying) return false;
+        if (!this.attacking || this.isDeadFlag || this.hurtPlaying || this.deathPlaying) {
+            return false;
+        }
+
+        // NUR in Attack-Frames 4 & 5 (→ Bilder 5 & 6) Schaden machen
+        if (this.currentAttackFrame !== 4 && this.currentAttackFrame !== 5) {
+            return false;
+        }
 
         const now = performance.now();
         if (now - this.lastDamageDealtAt < this.damageInterval) return false;
@@ -207,6 +220,7 @@ class Endboss extends MovableObject {
         this.lastAttackStartedAt = now;
         this.attacking = true;
         this.attackFrameIndex = 0;
+        this.currentAttackFrame = 0;
         this.isMoving = false;
 
         // Boss bleibt nach links gerichtet
@@ -222,7 +236,7 @@ class Endboss extends MovableObject {
     draw(ctx) {
         let scale = this.scaleIdle;
 
-        if (this.hurtPlaying)      scale = this.scaleHurt;
+        if (this.hurtPlaying)       scale = this.scaleHurt;
         else if (this.deathPlaying) scale = this.scaleDead;
         else if (this.attacking)    scale = this.scaleAttack;
 
@@ -247,6 +261,33 @@ class Endboss extends MovableObject {
 
         // --- AI / Bewegung ---
         setInterval(() => {
+
+            // 1) Noch NICHT aktiviert → prüfen, ob Spieler nah genug ist
+            if (!this.activated) {
+                if (this.world && this.world.character) {
+                    const char = this.world.character;
+
+                    // Spieler würde Boss sehen, wenn seine x-Pos + „Sichtweite“
+                    // die x-Pos des Bosses erreicht
+                    if (char.x + this.viewDistance >= this.x) {
+                        this.activated = true;
+                        this.activationTime = performance.now();
+                        this.isMoving = false;
+                        this.attacking = false;
+                    }
+                }
+                // solange nicht aktiviert: keine Bewegung / kein Angriff
+                return;
+            }
+
+            // 2) Aktiviert, aber erste Sekunde nur ALERT-Animation (stehen bleiben)
+            const now = performance.now();
+            if (now - this.activationTime < 2000) {
+                this.isMoving = false;
+                return;
+            }
+
+            // 3) Normale AI
             if (this.hurtPlaying || this.deathPlaying || this.attacking) {
                 this.isMoving = false;
                 return;
@@ -305,14 +346,20 @@ class Endboss extends MovableObject {
     }
 
     playAttackOnce() {
-        if (this.attackFrameIndex >= this.IMAGES_ATTACK.length) {
+        const frame = this.attackFrameIndex;
+
+        if (frame >= this.IMAGES_ATTACK.length) {
             this.attackFrameIndex = 0;
+            this.currentAttackFrame = 0;
             this.attacking = false;
             return;
         }
 
-        const path = this.IMAGES_ATTACK[this.attackFrameIndex];
+        const path = this.IMAGES_ATTACK[frame];
         this.img = this.imageCache[path];
+
+        // Merken, welches Frame gerade angezeigt wird
+        this.currentAttackFrame = frame;
         this.attackFrameIndex++;
 
         // --- HITBOX POSITIONIEREN ---  
