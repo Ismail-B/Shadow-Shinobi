@@ -64,6 +64,16 @@ class Endboss extends MovableObject {
     activationTime = 0;       // lassen wir drin, aber brauchen es nicht mehr direkt
     viewDistance = 720;       // wie weit der Spieler „sehen“ kann
 
+    // --- Audio ---
+    attack_sound = new Audio('audio/endboss-attack.mp3');
+    dying_sound  = new Audio('audio/endboss-dying.mp3');
+    hurt_sounds  = [
+        new Audio('audio/endboss-hurt.mp3'),
+        new Audio('audio/endboss-hurt2.mp3')
+    ];
+    nextHurtIndex = 0;       // 0 / 1 → wechselt zwischen hurt und hurt2
+    _deathSoundPlayed = false;
+
     // Animationen
     IMAGES_WALKING = [
         'img/4_enemie_boss_orc/1_walk/Walk_000.png',
@@ -145,6 +155,11 @@ class Endboss extends MovableObject {
         // Boss soll IMMER nach links schauen
         this.otherDirection = true;
 
+        // Grundlautstärke der Boss-Sounds
+        if (this.attack_sound) this.attack_sound.volume = 0.5;
+        if (this.dying_sound)  this.dying_sound.volume  = 0.6;
+        this.hurt_sounds.forEach(s => s.volume = 0.55);
+
         this.animate();
     }
 
@@ -169,6 +184,9 @@ class Endboss extends MovableObject {
         this.hurtFrameIndex = 0;
         this.img = this.imageCache[this.IMAGES_HURT[0]];
 
+        // Hurt-Sound (abwechselnd)
+        this.playHurtSound();
+
         if (this.energy === 0) {
             this.isDeadFlag = true;
             this.collidable = false;
@@ -180,6 +198,9 @@ class Endboss extends MovableObject {
 
             this.y = this.baseY + this.deadYOffset;
             this.img = this.imageCache[this.IMAGES_DEAD[0]];
+
+            // Todes-Sound nur einmal
+            this.playDeathSound();
         }
     }
 
@@ -221,6 +242,9 @@ class Endboss extends MovableObject {
 
         this.otherDirection = true;
         this.img = this.imageCache[this.IMAGES_ATTACK[0]];
+
+        // Angriff-Sound pro Schlag
+        this.playAttackSound();
 
         return true;
     }
@@ -355,5 +379,40 @@ class Endboss extends MovableObject {
         // Hitbox ausrichten
         this.attackHitbox.x = this.x - 60; 
         this.attackHitbox.y = this.y + 40;
+    }
+
+    /* =====================
+       SOUND-HILFSMETHODEN
+       ===================== */
+
+    /** zentraler Sound-Handler, berücksichtigt Mute */
+    playBossSound(audio) {
+        if (!audio) return;
+
+        // Wenn die Welt gemuted ist → gar nicht abspielen
+        if (this.world && this.world.isMuted) {
+            audio.pause();
+            audio.currentTime = 0;
+            return;
+        }
+
+        audio.currentTime = 0;
+        audio.play();
+    }
+
+    playAttackSound() {
+        this.playBossSound(this.attack_sound);
+    }
+
+    playHurtSound() {
+        const sound = this.hurt_sounds[this.nextHurtIndex];
+        this.nextHurtIndex = (this.nextHurtIndex + 1) % this.hurt_sounds.length;
+        this.playBossSound(sound);
+    }
+
+    playDeathSound() {
+        if (this._deathSoundPlayed) return;
+        this._deathSoundPlayed = true;
+        this.playBossSound(this.dying_sound);
     }
 }

@@ -14,9 +14,12 @@ class World {
   music = new Audio('audio/music.mp3');
   win_sound = new Audio('audio/win.mp3');
 
-  // NEU: Boss-Intro / Alert-Sound
-  endbossAlertSound = new Audio('audio/endboss-alert.mp3');
+  // Boss-Intro / Alert-Sound
+  bossIntroSound = new Audio('audio/endboss-alert.mp3');
   bossIntroActive = false;
+
+  // wird von game.js gesetzt, u.a. für Endboss-Sounds
+  isMuted = false;
 
   ninjaCoinsCollected = 0;
   kunaiCoinsCollected = 0;
@@ -40,7 +43,7 @@ class World {
     this.keyboard = keyboard;
 
     // wenn der Alert-Sound fertig ist → Intro beenden
-    this.endbossAlertSound.addEventListener('ended', () => {
+    this.bossIntroSound.addEventListener('ended', () => {
       this.stopBossIntro();
     });
 
@@ -113,12 +116,20 @@ class World {
 
     this.bossIntroActive = true;
 
+    // Wenn gemutet → kein Sound, aber kurzes „stummes“ Intro
+    if (this.isMuted) {
+      this.bossIntroSound.pause();
+      this.bossIntroSound.currentTime = 0;
+      setTimeout(() => this.stopBossIntro(), 2000);
+      return;
+    }
+
     // Sound einmalig abspielen
     try {
-      this.endbossAlertSound.currentTime = 0;
-      this.endbossAlertSound.play();
+      this.bossIntroSound.currentTime = 0;
+      this.bossIntroSound.play();
     } catch (e) {
-      console.warn('endbossAlertSound konnte nicht abgespielt werden:', e);
+      console.warn('bossIntroSound konnte nicht abgespielt werden:', e);
       // Falls der Sound nicht spielt, Intro trotzdem nach 2s beenden
       setTimeout(() => this.stopBossIntro(), 2000);
     }
@@ -134,7 +145,7 @@ class World {
     if (this.character && this.character.walking_sound) {
       this.character.walking_sound.pause();
     }
-    this.endbossAlertSound.pause();
+    this.bossIntroSound.pause();
 
     if (playerWon) {
       this.win_sound.currentTime = 0;
@@ -161,7 +172,7 @@ class World {
 
     this.background_sound.pause();
     this.music.pause();
-    this.endbossAlertSound.pause();
+    this.bossIntroSound.pause();
     if (this.character && this.character.walking_sound) {
       this.character.walking_sound.pause();
     }

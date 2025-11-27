@@ -111,9 +111,13 @@ function toggleMusic(id) {
  * - Musik, Hintergrund, Win-Sound
  * - alle Character-Sounds
  * - alle Orc-Sounds (voiceClips + Footsteps)
+ * - alle Endboss-Sounds + Boss-Intro
  */
 function muteMusic() {
   if (!world) return;
+
+  // Flag, das vom Endboss benutzt wird
+  world.isMuted = true;
 
   // zentrale Liste der bekannten Sounds im World/Character
   const gameAudios = [
@@ -126,7 +130,19 @@ function muteMusic() {
     world.character && world.character.jump_sound,
     world.character && world.character.hurt_sound,
     world.character && world.character.death_sound,
+    // Boss-Intro (falls vorhanden)
+    world.bossIntroSound
   ];
+
+  // Endboss-Sounds einsammeln (falls es einen gibt)
+  if (world.endboss) {
+    const boss = world.endboss;
+    if (boss.attack_sound) gameAudios.push(boss.attack_sound);
+    if (boss.dying_sound) gameAudios.push(boss.dying_sound);
+    if (Array.isArray(boss.hurt_sounds)) {
+      boss.hurt_sounds.forEach(s => gameAudios.push(s));
+    }
+  }
 
   gameAudios.forEach(a => {
     if (a instanceof Audio) {
@@ -159,6 +175,9 @@ function muteMusic() {
 function turnOnMusic() {
   if (!world) return;
 
+  // Flag für Endboss-Sound-Logik
+  world.isMuted = false;
+
   const gameAudios = [
     world.music,
     world.background_sound,
@@ -169,7 +188,18 @@ function turnOnMusic() {
     world.character && world.character.jump_sound,
     world.character && world.character.hurt_sound,
     world.character && world.character.death_sound,
+    // Boss-Intro
+    world.bossIntroSound
   ];
+
+  if (world.endboss) {
+    const boss = world.endboss;
+    if (boss.attack_sound) gameAudios.push(boss.attack_sound);
+    if (boss.dying_sound) gameAudios.push(boss.dying_sound);
+    if (Array.isArray(boss.hurt_sounds)) {
+      boss.hurt_sounds.forEach(s => gameAudios.push(s));
+    }
+  }
 
   gameAudios.forEach(a => {
     if (a instanceof Audio) {
