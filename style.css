@@ -25,11 +25,11 @@ header{
     justify-content: flex-start;
     align-items: center;
     background-color: #B7694D;
-    color: rgb(230, 227, 227);
+    color: rgb(106, 104, 104);
     text-shadow: 
     2px 2px 4px #000,        /* Dunkler, subtiler Schatten */
-    0 0 20px rgba(255, 0, 0, 0.6),  /* Rotes Leuchten */
-    0 0 20px rgba(255, 0, 0, 0.4);  /* Weiterer roter Schein */
+    0 0 20px rgba(237, 234, 234, 0.6),  /* Rotes Leuchten */
+    0 0 20px rgba(239, 237, 237, 0.4);  /* Weiterer roter Schein */
 }
 
 header img{
