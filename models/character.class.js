@@ -75,12 +75,15 @@ class Character extends MovableObject {
     // Sound-Flags
     _hitSoundPlayed = false;
     _jumpSoundPlayed = false;
+    _deathSoundPlayed = false;
 
     world;
-    walking_sound = new Audio('audio/running.mp3');
-    kunai_throw_sound = new Audio('audio/throw_kunai.mp3'); // Kunai-Wurf-Sound
-    hit_sound = new Audio('audio/ninja-hit.wav');           // Nahkampf-Sound
-    jump_sound = new Audio('audio/jump.mp3');               // Jump-Sound
+    walking_sound     = new Audio('audio/running.mp3');
+    kunai_throw_sound = new Audio('audio/throw_kunai.mp3');   // Kunai-Wurf-Sound
+    hit_sound         = new Audio('audio/ninja-hit.wav');     // Nahkampf-Sound
+    jump_sound        = new Audio('audio/jump.mp3');          // Jump-Sound
+    hurt_sound        = new Audio('audio/ninja-hurt.mp3');    // Hurt-Sound
+    death_sound       = new Audio('audio/ninja-dying.mp3');   // Death-Sound
 
     constructor() {
         super().loadImage('img/2_character_shinobi/1_idle/idle/Idle_1.png');
@@ -256,6 +259,43 @@ class Character extends MovableObject {
         });
     }
 
+    /* ===================== SCHADEN / TOD ===================== */
+
+    /**
+     * Überschreibt MovableObject.hit():
+     * - ruft super.hit() auf (damit Leben reduziert wird)
+     * - wenn der Treffer nicht tödlich ist → Hurt-Sound
+     * - wenn der Treffer tödlich ist → Death-Sound
+     */
+    hit(dmg) {
+        const wasDeadBefore = this.isDead();
+
+        // Original-Logik aus MovableObject ausführen
+        if (typeof super.hit === 'function') {
+            if (dmg !== undefined) {
+                super.hit(dmg);
+            } else {
+                super.hit();
+            }
+        }
+
+        const deadNow = this.isDead();
+
+        // Wenn er vor dem Treffer schon tot war → nichts mehr abspielen
+        if (wasDeadBefore) {
+            return;
+        }
+
+        // gerade durch diesen Treffer gestorben → nur Death-Sound
+        if (!wasDeadBefore && deadNow) {
+            this.playDeathSound();
+        }
+        // lebt noch → Hurt-Sound für *jeden* Lebensverlust
+        else if (!deadNow) {
+            this.playHurtSound();
+        }
+    }
+
     playDeathOnce() {
         if (this.deathFrozen) return;
         if (this.deathTimer) return;
@@ -283,8 +323,11 @@ class Character extends MovableObject {
             clearInterval(this.deathTimer);
             this.deathTimer = null;
         }
+        this._deathSoundPlayed = false; // für Neustart/Respawn
         this.loadImage('img/2_character_shinobi/1_idle/idle/Idle_1.png');
     }
+
+    /* ===================== ANIMATION / BEWEGUNG ===================== */
 
     animateCharacter() {
 
@@ -344,6 +387,7 @@ class Character extends MovableObject {
             }
 
             if (this.isHurt()) {
+                // NUR Animation, Sound kommt in hit()
                 this.playAnimation(this.IMAGES_HURT);
             } else if (this.isNotMoving()) {
                 this.playAnimation(this.IMAGES_IDLE);
@@ -383,5 +427,24 @@ class Character extends MovableObject {
         this.jump_sound.currentTime = 0;
         this.jump_sound.volume = 0.35; // Lautstärke nach Geschmack
         this.jump_sound.play();
+    }
+
+    // Hurt-Sound: für jeden nicht-tödlichen Treffer (getriggert in hit())
+    playHurtSound() {
+        if (!this.hurt_sound) return;
+        this.hurt_sound.currentTime = 0;
+        this.hurt_sound.volume = 0.35; // Lautstärke nach Geschmack
+        this.hurt_sound.play();
+    }
+
+    // Death-Sound: genau 1x beim Sterben
+    playDeathSound() {
+        if (this._deathSoundPlayed) return;
+        this._deathSoundPlayed = true;
+
+        if (!this.death_sound) return;
+        this.death_sound.currentTime = 0;
+        this.death_sound.volume = 0.4; // Lautstärke nach Geschmack
+        this.death_sound.play();
     }
 }
