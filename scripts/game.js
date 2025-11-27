@@ -3,6 +3,29 @@ let world;
 let keyboard = new Keyboard();
 let intervalIds = [];
 
+/* ========= GLOBALER MUTE-STATUS NUR FÜR DIE AKTUELLE SESSION ========= */
+
+// Wird NICHT mehr in localStorage gespeichert.
+// Geht also beim Neuladen der Seite verloren (zurück auf false).
+let isMutedGlobal = false;
+
+/**
+ * Falls ein neuer World erstellt wird (init / restart),
+ * den aktuellen Mute-Status auf die Sounds anwenden.
+ * → wirkt bei Restart / Menü-Neustart, aber NICHT nach Seiten-Reload.
+ */
+function applyMuteStateToWorld() {
+  if (!world) return;
+  if (isMutedGlobal) {
+    // sorgt dafür, dass world.isMuted = true ist und alle Sounds gemutet werden
+    muteMusic();
+  } else {
+    world.isMuted = false;
+  }
+}
+
+/* ========= setInterval-Sammlung ========= */
+
 /** Alle setInterval-Aufrufe einsammeln */
 const _originalSetInterval = window.setInterval;
 window.setInterval = function (fn, delay) {
@@ -16,6 +39,8 @@ function clearAllIntervals() {
   intervalIds = [];
 }
 
+/* ========= SPIELSTEUERUNG ========= */
+
 function init() {
   canvas = document.getElementById("canvas");
 
@@ -25,6 +50,9 @@ function init() {
   }
 
   world = new World(canvas, keyboard);
+
+  // aktuellen Mute-Status auf den neuen World anwenden
+  applyMuteStateToWorld();
 }
 
 function toggle(canvasId) {
@@ -36,7 +64,7 @@ function toggle(canvasId) {
     startOverlay.style.display = "none";
   } else {
     canvas.style.display = "none";
-    startOverlay.style.display = "block";
+    startOverlay.style.display = "flex";
   }
 }
 
@@ -62,6 +90,9 @@ function restartGame() {
   canvasEl.style.display = 'block';
 
   world = new World(canvasEl, keyboard);
+
+  // Mute-Status auf neuen World anwenden
+  applyMuteStateToWorld();
 }
 
 /** Zurück ins Menü, auch ohne Reload */
@@ -91,7 +122,7 @@ function backToMenu() {
   world = null;
 }
 
-/* Sound + Fullscreen */
+/* ========= Sound + Fullscreen ========= */
 
 function toggleMusic(id) {
   let loud = document.getElementById(id);
@@ -114,6 +145,9 @@ function toggleMusic(id) {
  * - alle Endboss-Sounds + Boss-Intro
  */
 function muteMusic() {
+  // globalen Status setzen (Session-weit, aber nicht über Reload hinaus)
+  isMutedGlobal = true;
+
   if (!world) return;
 
   // Flag, das vom Endboss benutzt wird
@@ -130,8 +164,8 @@ function muteMusic() {
     world.character && world.character.jump_sound,
     world.character && world.character.hurt_sound,
     world.character && world.character.death_sound,
-    // Boss-Intro (falls vorhanden)
-    world.bossIntroSound
+    // Boss-Intro / Alert-Sound (falls vorhanden)
+    world.endbossAlertSound
   ];
 
   // Endboss-Sounds einsammeln (falls es einen gibt)
@@ -173,6 +207,9 @@ function muteMusic() {
  * ALLE Sounds wieder aktivieren
  */
 function turnOnMusic() {
+  // globalen Status setzen (Session-weit, aber nicht über Reload hinaus)
+  isMutedGlobal = false;
+
   if (!world) return;
 
   // Flag für Endboss-Sound-Logik
@@ -188,8 +225,8 @@ function turnOnMusic() {
     world.character && world.character.jump_sound,
     world.character && world.character.hurt_sound,
     world.character && world.character.death_sound,
-    // Boss-Intro
-    world.bossIntroSound
+    // Boss-Intro / Alert-Sound
+    world.endbossAlertSound
   ];
 
   if (world.endboss) {
@@ -247,7 +284,7 @@ function exitFullscreen() {
   }
 }
 
-/* Keyboard */
+/* ========= Keyboard ========= */
 
 window.addEventListener("keydown", (e) => {
   if (e.key == "w" || "ArrowUp") {

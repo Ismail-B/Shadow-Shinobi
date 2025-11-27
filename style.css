@@ -65,8 +65,8 @@ canvas{
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    width: 50%;
-    height: 50%;
+    width: 70%;
+    height: 60%;
     background-color: #b7694dec; /* Dunkler Hintergrund mit Transparenz */
     border-radius: 10px;
     color: #fff;
@@ -88,6 +88,8 @@ canvas{
     height: 64px;
     border-top-left-radius: 10px;
     border-top-right-radius: 10px;
+    padding-top: 16px;
+    padding-bottom: 16px;
 }
 .controls{
     display: flex;
@@ -211,8 +213,8 @@ canvas{
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    width: 50%;
-    height: 62%;
+    width: 70%;
+    height: 60%;
     background-color: #b7694dec; /* Dunkler Hintergrund mit Transparenz */
     border-radius: 10px;
     color: #fff;
@@ -241,8 +243,10 @@ canvas{
 }
 
 .background-story{
-    padding-right: 16px;
-    padding-left: 16px;
+    padding-right: 64px;
+    padding-left: 64px;
+    padding-bottom: 24px;
+    padding-top: 24px;
 }
 
 .background-story p{
@@ -255,7 +259,7 @@ canvas{
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    width: 50%;
+    width: 70%;
     height: 50%;
     background-color: #b7694dec; /* Dunkler Hintergrund mit Transparenz */
     border-radius: 10px;
