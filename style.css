@@ -86,7 +86,7 @@ canvas{
     display: flex;
     justify-content: center;
     align-items: center;
-    font-family: "Anton", serif;
+    font-family: 'NinjaNaruto', sans-serif;
     font-weight: 400;
     font-style: normal;
     text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.5);
@@ -144,8 +144,7 @@ canvas{
 
 .control-container{
     padding-top: 16px;
-    font-family: "Bebas Neue", serif;
-    font-weight: 400;
+    font-family: 'NinjaNaruto', sans-serif;
     font-style: normal;
     font-size: 36px;
     display: flex;
@@ -210,7 +209,7 @@ canvas{
     justify-content: center; /* Zentriert vertikal */
     align-items: center; /* Zentriert horizontal */
     color: #fff;
-    font-family: 'Noto Sans', sans-serif;
+    font-family: 'NinjaNaruto', sans-serif;
     z-index: 1000; /* Sicherstellen, dass das Overlay oben bleibt */
 }
 
@@ -236,8 +235,7 @@ canvas{
     display: flex;
     justify-content: center;
     align-items: center;
-    font-family: "Anton", serif;
-    font-weight: 400;
+    font-family: 'NinjaNaruto', sans-serif;
     font-style: normal;
     text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.5);
     font-size: 36px;
@@ -395,7 +393,7 @@ button:hover {
 #game-over-overlay h2,
 #win-overlay h2 {
     margin-bottom: 20px;
-    font-family: "Anton", serif;
+    font-family: 'NinjaNaruto', sans-serif;
     font-weight: 400;
     font-size: 48px;
     text-shadow: 2px 2px 5px rgba(0,0,0,0.5);
