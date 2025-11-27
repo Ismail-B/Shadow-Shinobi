@@ -2,6 +2,9 @@ class Character extends MovableObject {
     width = 100;
     speed = 10;
 
+    // Wieviel Schaden pro Treffer durch Gegner
+    DAMAGE_PER_HIT = 20;
+
     // Death-Anim Steuerung
     deathIndex = 0;         // aktuelles Frame der Sterbeanimation
     deathFrozen = false;    // am letzten Frame eingefroren
@@ -262,38 +265,51 @@ class Character extends MovableObject {
     /* ===================== SCHADEN / TOD ===================== */
 
     /**
-     * Überschreibt MovableObject.hit():
-     * - ruft super.hit() auf (damit Leben reduziert wird)
-     * - wenn der Treffer nicht tödlich ist → Hurt-Sound
-     * - wenn der Treffer tödlich ist → Death-Sound
+     * Eigene Hit-Logik:
+     * - immer fester Schaden (DAMAGE_PER_HIT)
+     * - für jeden Treffer Hurt-Sound
+     * - wenn dadurch Leben auf 0 fällt → nur Death-Sound
      */
-    hit(dmg) {
-        const wasDeadBefore = this.isDead();
+    hit(dmg = this.DAMAGE_PER_HIT) {
+        if (this.isDead()) return;
 
-        // Original-Logik aus MovableObject ausführen
-        if (typeof super.hit === 'function') {
-            if (dmg !== undefined) {
-                super.hit(dmg);
-            } else {
-                super.hit();
-            }
+        const wasDeadBefore = this.isDead();
+        const oldEnergy = this.energy;
+
+        // festen Schaden anwenden
+        this.energy -= dmg;
+        if (this.energy < 0) this.energy = 0;
+
+        // Hurt-Invincibility: Zeitstempel nur setzen, wenn wirklich Schaden passiert ist
+        if (this.energy < oldEnergy && this.energy > 0) {
+            this.lastHit = new Date().getTime();
         }
 
         const deadNow = this.isDead();
 
         // Wenn er vor dem Treffer schon tot war → nichts mehr abspielen
-        if (wasDeadBefore) {
-            return;
-        }
+        if (wasDeadBefore) return;
 
         // gerade durch diesen Treffer gestorben → nur Death-Sound
         if (!wasDeadBefore && deadNow) {
             this.playDeathSound();
         }
         // lebt noch → Hurt-Sound für *jeden* Lebensverlust
-        else if (!deadNow) {
+        else if (!deadNow && this.energy < oldEnergy) {
             this.playHurtSound();
         }
+    }
+
+    // WICHTIG: Character stirbt erst bei 0, nicht bei 20
+    isDead() {
+        return this.energy <= 0;
+    }
+
+    // Hurt-Status (Invincibility-Window), aber nur solange er noch lebt
+    isHurt() {
+        let timepassed = new Date().getTime() - this.lastHit;
+        timepassed = timepassed / 1000;
+        return this.energy > 0 && timepassed < 1;
     }
 
     playDeathOnce() {
