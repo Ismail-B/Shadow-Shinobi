@@ -75,6 +75,9 @@ class Character extends MovableObject {
     _lastAttackTick = 0;
     attackType = null;         // 'melee' | 'kunai' | null
 
+    // pro Attacke nur ein Treffer
+    _hasDealtDamageThisAttack = false;
+
     // Sound-Flags
     _hitSoundPlayed = false;
     _jumpSoundPlayed = false;
@@ -174,6 +177,9 @@ class Character extends MovableObject {
         this._lastAttackTick = now;
         this.lastAttackAt = now;
 
+        // pro Attacke bisher noch keinen Schaden gemacht
+        this._hasDealtDamageThisAttack = false;
+
         // erstes Frame sofort zeigen
         this.img = this.imageCache[this.IMAGES_ATTACK[0]];
     }
@@ -195,6 +201,10 @@ class Character extends MovableObject {
         this.attackFrameMs = 60;
 
         this._lastAttackTick = now;
+
+        // pro Attacke bisher noch keinen Schaden gemacht
+        this._hasDealtDamageThisAttack = false;
+
         this.img = this.imageCache[this.IMAGES_ATTACK[0]];
 
         return true;
@@ -212,7 +222,8 @@ class Character extends MovableObject {
             if (this.attackFrameIndex >= this.IMAGES_ATTACK.length) {
                 this.isAttacking = false;
                 this.attackType = null;
-                this._hitSoundPlayed = false; // Reset für nächsten Schlag
+                this._hitSoundPlayed = false;          // Reset für nächsten Schlag
+                this._hasDealtDamageThisAttack = false; // Sicherheitshalber reset
                 return;
             }
 
@@ -244,8 +255,16 @@ class Character extends MovableObject {
         }
     }
 
+    /**
+     * Nahkampftreffer:
+     * - nur EIN Gegner / Boss pro Attacke
+     * - Endboss-Schaden und Lebensleiste hier updaten
+     */
     applyMeleeHit() {
         if (!this.world || !this.world.level?.enemies) return;
+
+        // wenn in dieser Attacke schon jemand getroffen wurde → nichts mehr
+        if (this._hasDealtDamageThisAttack) return;
 
         const range = 40;
         const height = this.height * 0.6;
@@ -254,58 +273,66 @@ class Character extends MovableObject {
         const x = facingRight ? (this.x + this.width) : (this.x - range);
         const hitbox = { x, y, w: range, h: height };
 
-        this.world.level.enemies.forEach(e => {
-            if (!e || !e.collidable || e.isDying || e.isEndboss) return;
+        const enemies = this.world.level.enemies;
+
+        for (let i = 0; i < enemies.length; i++) {
+            const e = enemies[i];
+            if (!e || !e.collidable || e.isDying) continue;
+
             if (typeof e.overlapsRect === 'function' && e.overlapsRect(hitbox)) {
-                if (typeof e.die === 'function') e.die();
+
+                if (e.isEndboss) {
+                    // Endboss bekommt 10 Schaden wie vorher in World.checkCollisions()
+                    if (typeof e.hit === 'function') {
+                        e.hit(10);
+                        if (this.world.statusBarEndboss) {
+                            this.world.statusBarEndboss.setPercentage(e.energy);
+                        }
+                    }
+                } else {
+                    // normaler Orc stirbt
+                    if (typeof e.die === 'function') {
+                        e.die();
+                    }
+                }
+
+                // ab hier für diese Attacke nichts mehr treffen
+                this._hasDealtDamageThisAttack = true;
+                break;
             }
-        });
+        }
     }
 
     /* ===================== SCHADEN / TOD ===================== */
 
-    /**
-     * Eigene Hit-Logik:
-     * - immer fester Schaden (DAMAGE_PER_HIT)
-     * - für jeden Treffer Hurt-Sound
-     * - wenn dadurch Leben auf 0 fällt → nur Death-Sound
-     */
     hit(dmg = this.DAMAGE_PER_HIT) {
         if (this.isDead()) return;
 
         const wasDeadBefore = this.isDead();
         const oldEnergy = this.energy;
 
-        // festen Schaden anwenden
         this.energy -= dmg;
         if (this.energy < 0) this.energy = 0;
 
-        // Hurt-Invincibility: Zeitstempel nur setzen, wenn wirklich Schaden passiert ist
         if (this.energy < oldEnergy && this.energy > 0) {
             this.lastHit = new Date().getTime();
         }
 
         const deadNow = this.isDead();
 
-        // Wenn er vor dem Treffer schon tot war → nichts mehr abspielen
         if (wasDeadBefore) return;
 
-        // gerade durch diesen Treffer gestorben → nur Death-Sound
         if (!wasDeadBefore && deadNow) {
             this.playDeathSound();
-        }
-        // lebt noch → Hurt-Sound für *jeden* Lebensverlust
-        else if (!deadNow && this.energy < oldEnergy) {
+        } else if (!deadNow && this.energy < oldEnergy) {
             this.playHurtSound();
         }
     }
 
-    // WICHTIG: Character stirbt erst bei 0, nicht bei 20
     isDead() {
         return this.energy <= 0;
     }
 
-    // Hurt-Status (Invincibility-Window), aber nur solange er noch lebt
     isHurt() {
         let timepassed = new Date().getTime() - this.lastHit;
         timepassed = timepassed / 1000;
@@ -339,7 +366,7 @@ class Character extends MovableObject {
             clearInterval(this.deathTimer);
             this.deathTimer = null;
         }
-        this._deathSoundPlayed = false; // für Neustart/Respawn
+        this._deathSoundPlayed = false;
         this.loadImage('img/2_character_shinobi/1_idle/idle/Idle_1.png');
     }
 
@@ -350,7 +377,6 @@ class Character extends MovableObject {
         // Bewegung / Physik
         setInterval(() => {
 
-            // wenn Spiel beendet (Win/Loose) → komplette Bewegung sperren
             if (this.world && this.world.gameEnded) {
                 this.walking_sound.pause();
                 return;
@@ -360,18 +386,30 @@ class Character extends MovableObject {
 
             const onGround = !this.isAboveGround();
 
-            if (this.world.keyboard.RIGHT && this.x < this.world.level.level_end_x && !this.isDead()) {
-                this.moveRight();   // jetzt mit Boss-Block
+            // WÄHREND ATTACKE KEINE HORIZONTALE BEWEGUNG
+            if (this.world.keyboard.RIGHT &&
+                this.x < this.world.level.level_end_x &&
+                !this.isDead() &&
+                !this.isAttacking) {
+
+                this.moveRight();
                 this.soundEffects(0.3, 2.5);
             }
 
-            if (this.world.keyboard.LEFT && this.x > -670 && !this.isDead()) {
-                this.moveLeft();    // immer frei nach links
+            if (this.world.keyboard.LEFT &&
+                this.x > -670 &&
+                !this.isDead() &&
+                !this.isAttacking) {
+
+                this.moveLeft();
                 this.soundEffects(0.3, 2.5);
             }
 
-            // SPRUNG + Jump-Sound (genau 1x pro Sprung)
-            if (this.world.keyboard.SPACE && onGround && !this.isDead()) {
+            // SPRUNG nur wenn NICHT attacking
+            if (this.world.keyboard.SPACE &&
+                onGround &&
+                !this.isDead() &&
+                !this.isAttacking) {
 
                 if (!this._jumpSoundPlayed) {
                     this.playJumpSound();
@@ -381,7 +419,6 @@ class Character extends MovableObject {
                 this.jump();
             }
 
-            // Flag zurücksetzen, wenn wieder auf dem Boden und SPACE nicht gedrückt
             if (onGround && !this.world.keyboard.SPACE) {
                 this._jumpSoundPlayed = false;
             }
@@ -391,7 +428,6 @@ class Character extends MovableObject {
 
         // Animationen + Attack-Takt
         setInterval(() => {
-            // Angriff-Frames fortschalten, falls aktiv
             if (this.isAttacking) {
                 this.updateAttack();
                 return;
@@ -403,7 +439,6 @@ class Character extends MovableObject {
             }
 
             if (this.isHurt()) {
-                // NUR Animation, Sound kommt in hit()
                 this.playAnimation(this.IMAGES_HURT);
             } else if (this.isNotMoving()) {
                 this.playAnimation(this.IMAGES_IDLE);
@@ -421,46 +456,41 @@ class Character extends MovableObject {
         this.walking_sound.volume = volume;
     }
 
-    // Kunai-Wurf-Sound: immer von vorne, genau 1x pro Wurf
     playKunaiThrowSound() {
         if (!this.kunai_throw_sound) return;
         this.kunai_throw_sound.currentTime = 0;
-        this.kunai_throw_sound.volume = 0.3; // Lautstärke nach Geschmack
+        this.kunai_throw_sound.volume = 0.3;
         this.kunai_throw_sound.play();
     }
 
-    // Nahkampf-Hit-Sound: genau 1x pro Nahkampfangriff
     playHitSound() {
         if (!this.hit_sound) return;
         this.hit_sound.currentTime = 0;
-        this.hit_sound.volume = 0.3; // Lautstärke nach Geschmack
+        this.hit_sound.volume = 0.3;
         this.hit_sound.play();
     }
 
-    // Jump-Sound: genau 1x pro Sprung
     playJumpSound() {
         if (!this.jump_sound) return;
         this.jump_sound.currentTime = 0;
-        this.jump_sound.volume = 0.35; // Lautstärke nach Geschmack
+        this.jump_sound.volume = 0.35;
         this.jump_sound.play();
     }
 
-    // Hurt-Sound: für jeden nicht-tödlichen Treffer (getriggert in hit())
     playHurtSound() {
         if (!this.hurt_sound) return;
         this.hurt_sound.currentTime = 0;
-        this.hurt_sound.volume = 0.35; // Lautstärke nach Geschmack
+        this.hurt_sound.volume = 0.35;
         this.hurt_sound.play();
     }
 
-    // Death-Sound: genau 1x beim Sterben
     playDeathSound() {
         if (this._deathSoundPlayed) return;
         this._deathSoundPlayed = true;
 
         if (!this.death_sound) return;
         this.death_sound.currentTime = 0;
-        this.death_sound.volume = 0.4; // Lautstärke nach Geschmack
+        this.death_sound.volume = 0.4;
         this.death_sound.play();
     }
 }

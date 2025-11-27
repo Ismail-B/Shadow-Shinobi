@@ -1,6 +1,6 @@
 class World {
   character = new Character();
-  level = createLevel1();   // <-- NEU: jedes Mal frisches Level
+  level = createLevel1();   // <-- jedes Mal frisches Level
   canvas;
   ctx;
   keyboard;
@@ -86,30 +86,26 @@ class World {
     }, 1000 / 60);
   }
 
-onGameOver(playerWon) {
-  // Hintergrund-Sounds stoppen
-  this.background_sound.pause();
-  if (this.character && this.character.walking_sound) {
-    this.character.walking_sound.pause();
-  }
-
-  // WIN-Sound nur bei Sieg
-  if (playerWon) {
-    this.win_sound.currentTime = 0; // sicherheitshalber zurückspulen
-    this.win_sound.volume = 0.8;
-    this.win_sound.play();
-  }
-
-  // Nach 3 Sekunden Overlay einblenden
-  setTimeout(() => {
-    const id = playerWon ? 'win-overlay' : 'game-over-overlay';
-    const overlay = document.getElementById(id);
-    if (overlay) {
-      overlay.style.display = 'flex';
+  onGameOver(playerWon) {
+    this.background_sound.pause();
+    if (this.character && this.character.walking_sound) {
+      this.character.walking_sound.pause();
     }
-  }, 1000);
-}
 
+    if (playerWon) {
+      this.win_sound.currentTime = 0;
+      this.win_sound.volume = 0.8;
+      this.win_sound.play();
+    }
+
+    setTimeout(() => {
+      const id = playerWon ? 'win-overlay' : 'game-over-overlay';
+      const overlay = document.getElementById(id);
+      if (overlay) {
+        overlay.style.display = 'flex';
+      }
+    }, 1000);
+  }
 
   stop() {
     this.gameEnded = true;
@@ -134,20 +130,12 @@ onGameOver(playerWon) {
 
       const colliding = this.character.isColliding(enemy);
 
-      if (
-        colliding &&
-        this.character.isAttacking &&
-        !this.character.isDead()
-      ) {
-        if (enemy.isEndboss && typeof enemy.hit === 'function') {
-          enemy.hit(10);
-          this.statusBarEndboss.setPercentage(enemy.energy);
-        } else if (typeof enemy.die === 'function') {
-          enemy.die();
-        }
-        return;
-      }
+      // *** WICHTIG ***
+      // KEIN Nahkampfschaden mehr hier!
+      // Nahkampfschaden wird ausschließlich in Character.applyMeleeHit()
+      // über die Attack-Animation geregelt.
 
+      // Schaden vom Gegner auf den Charakter
       if (colliding && !this.character.isDead()) {
         if (enemy.isEndboss && typeof enemy.canDamagePlayer === 'function') {
           if (!this.character.isHurt() && enemy.canDamagePlayer()) {
