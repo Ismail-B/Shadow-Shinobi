@@ -13,6 +13,11 @@ class World {
   background_sound = new Audio('audio/forest-background.mp3');
   music = new Audio('audio/music.mp3');
   win_sound = new Audio('audio/win.mp3');
+
+  // NEU: Boss-Intro / Alert-Sound
+  endbossAlertSound = new Audio('audio/endboss-alert.mp3');
+  bossIntroActive = false;
+
   ninjaCoinsCollected = 0;
   kunaiCoinsCollected = 0;
 
@@ -34,6 +39,11 @@ class World {
     this.canvas = canvas;
     this.keyboard = keyboard;
 
+    // wenn der Alert-Sound fertig ist → Intro beenden
+    this.endbossAlertSound.addEventListener('ended', () => {
+      this.stopBossIntro();
+    });
+
     this.draw();
     this.setWorld();
     this.run();
@@ -53,12 +63,23 @@ class World {
     this.background_sound.volume = 0.4;
     this.music.play();
     this.music.volume = 0.4;
+
     this.character.world = this;
+
+    // Enemies (Orcs / Endboss) bekommen ebenfalls die World-Referenz
+    if (this.level && this.level.enemies) {
+      this.level.enemies.forEach((e) => {
+        if (e) e.world = this;
+      });
+    }
   }
 
   run() {
     setInterval(() => {
       if (this.gameEnded) return;
+
+      // Während Boss-Intro KEINE Kollisions-/Spiel-Logik
+      if (this.bossIntroActive) return;
 
       this.checkCollisions();
       this.checkCollectibles();
@@ -86,11 +107,34 @@ class World {
     }, 1000 / 60);
   }
 
+  /** Wird vom Endboss aufgerufen, wenn der Spieler ihn erstmals „sieht“ */
+  startBossIntro() {
+    if (this.bossIntroActive || this.gameEnded) return;
+
+    this.bossIntroActive = true;
+
+    // Sound einmalig abspielen
+    try {
+      this.endbossAlertSound.currentTime = 0;
+      this.endbossAlertSound.play();
+    } catch (e) {
+      console.warn('endbossAlertSound konnte nicht abgespielt werden:', e);
+      // Falls der Sound nicht spielt, Intro trotzdem nach 2s beenden
+      setTimeout(() => this.stopBossIntro(), 2000);
+    }
+  }
+
+  /** Wird automatisch nach Sound-Ende aufgerufen (oder von Fallback oben) */
+  stopBossIntro() {
+    this.bossIntroActive = false;
+  }
+
   onGameOver(playerWon) {
     this.background_sound.pause();
     if (this.character && this.character.walking_sound) {
       this.character.walking_sound.pause();
     }
+    this.endbossAlertSound.pause();
 
     if (playerWon) {
       this.win_sound.currentTime = 0;
@@ -117,6 +161,7 @@ class World {
 
     this.background_sound.pause();
     this.music.pause();
+    this.endbossAlertSound.pause();
     if (this.character && this.character.walking_sound) {
       this.character.walking_sound.pause();
     }
@@ -129,11 +174,6 @@ class World {
       if (!enemy || !enemy.collidable || enemy.isDying) return;
 
       const colliding = this.character.isColliding(enemy);
-
-      // *** WICHTIG ***
-      // KEIN Nahkampfschaden mehr hier!
-      // Nahkampfschaden wird ausschließlich in Character.applyMeleeHit()
-      // über die Attack-Animation geregelt.
 
       // Schaden vom Gegner auf den Charakter
       if (colliding && !this.character.isDead()) {
@@ -177,6 +217,8 @@ class World {
   // Kunai-Logik
   tryThrowKunai() {
     const now = performance.now();
+
+    if (this.bossIntroActive) return;       // während Intro nicht werfen
     if (this.character.isDead()) return;
     if (now < this.nextThrowAt) return;
     if (this.kunaiAmmo <= 0) return;
@@ -209,6 +251,7 @@ class World {
   }
 
   checkForEndboss() {
+    // Endboss wird geladen, wenn der Character weit genug ist
     if (this.character.x > 3500 && !this.level.endbossLoaded) {
       const endboss = new Endboss();
       endboss.world = this;

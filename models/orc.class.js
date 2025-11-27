@@ -154,6 +154,11 @@ class Orc extends MovableObject {
   // --------- Animation ---------
   animate() {
     this.moveLeftInterval = setInterval(() => {
+      // Während Boss-Intro stehen bleiben
+      if (this.world && this.world.bossIntroActive) {
+        return;
+      }
+
       if (!this.isDying) {
         this.moveLeft();
         this.otherDirection = false;
@@ -161,6 +166,11 @@ class Orc extends MovableObject {
     }, 1000 / 60);
 
     this.playAnimationInterval = setInterval(() => {
+      // Während Boss-Intro keine Lauf-Animation (Orc „friert ein“)
+      if (this.world && this.world.bossIntroActive) {
+        return;
+      }
+
       if (!this.isDying) {
         this.playAnimation(this.IMAGES_WALKING);
       }
@@ -173,12 +183,12 @@ class Orc extends MovableObject {
     this.isDying = true;
     this.speed = 0;
 
-    // 👉 EINMALIGER TODESSOUND, MUTE-STATUS übernehmen
+    // 👉 EINMALIGER TODESSOUND
     const dyingSound = new Audio('audio/orc-dying.mp3');
     dyingSound.volume = 0.35;
     dyingSound.currentTime = 0;
     if (typeof world !== 'undefined' && world && world.music instanceof Audio) {
-      dyingSound.muted = world.music.muted; // wenn Spiel gemutet, auch diesen Sound muten
+      dyingSound.muted = world.music.muted;
     }
     dyingSound.play();
 

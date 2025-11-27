@@ -13,15 +13,15 @@ class Endboss extends MovableObject {
     attackHitbox = { 
         x: 0, 
         y: 0, 
-        width: 380,   // Länge der Keule
-        height: 180   // Höhe der Keule
+        width: 380,
+        height: 180
     };
 
     // Skalierung
     scaleIdle   = 1.0;
     scaleHurt   = 1.15;
     scaleDead   = 1.15;
-    scaleAttack = 1.5;  // Attack jetzt groß wie Dead
+    scaleAttack = 1.5;
 
     // Y-Offsets
     hurtYOffset = -10;
@@ -32,7 +32,7 @@ class Endboss extends MovableObject {
     isDying = false;
 
     // Leben
-    energy = 100;        // 100% = volle Lebensleiste
+    energy = 100;
     isDeadFlag = false;
 
     // Hurt / Death
@@ -60,9 +60,9 @@ class Endboss extends MovableObject {
     lastAttackStartedAt = 0;
 
     // Spawn / Aktivierung
-    activated = false;        // wird erst „aktiv“, wenn der Spieler ihn sehen kann
-    activationTime = 0;       // Zeitpunkt der Aktivierung (für 1s Alert)
-    viewDistance = 720;       // Entfernung, ab der der Spieler ihn „sehen“ würde
+    activated = false;        // wird erst aktiv, wenn der Spieler ihn „sieht“
+    activationTime = 0;       // lassen wir drin, aber brauchen es nicht mehr direkt
+    viewDistance = 720;       // wie weit der Spieler „sehen“ kann
 
     // Animationen
     IMAGES_WALKING = [
@@ -157,10 +157,9 @@ class Endboss extends MovableObject {
         this.lastHitAt = now;
 
         // immer genau EINE "Lebenseinheit" (20) abziehen
-        this.energy -= 20;               // 100 → 80 → 60 → 40 → 20 → 0
+        this.energy -= 20;
         if (this.energy < 0) this.energy = 0;
 
-        // Statusbar sofort aktualisieren
         if (this.world && this.world.statusBarEndboss) {
             this.world.statusBarEndboss.setPercentage(this.energy);
         }
@@ -168,8 +167,6 @@ class Endboss extends MovableObject {
         this.isMoving = false;
         this.hurtPlaying = true;
         this.hurtFrameIndex = 0;
-
-        // direkt erstes HURT-Bild setzen, damit Scale+Pose zusammen wechseln
         this.img = this.imageCache[this.IMAGES_HURT[0]];
 
         if (this.energy === 0) {
@@ -181,7 +178,6 @@ class Endboss extends MovableObject {
             this.attacking = false;
             this.isMoving = false;
 
-            // direkt erstes DEAD-Bild + Y-Offset setzen
             this.y = this.baseY + this.deadYOffset;
             this.img = this.imageCache[this.IMAGES_DEAD[0]];
         }
@@ -223,10 +219,7 @@ class Endboss extends MovableObject {
         this.currentAttackFrame = 0;
         this.isMoving = false;
 
-        // Boss bleibt nach links gerichtet
         this.otherDirection = true;
-
-        // direkt erstes ATTACK-Bild setzen
         this.img = this.imageCache[this.IMAGES_ATTACK[0]];
 
         return true;
@@ -267,23 +260,26 @@ class Endboss extends MovableObject {
                 if (this.world && this.world.character) {
                     const char = this.world.character;
 
-                    // Spieler würde Boss sehen, wenn seine x-Pos + „Sichtweite“
-                    // die x-Pos des Bosses erreicht
                     if (char.x + this.viewDistance >= this.x) {
                         this.activated = true;
                         this.activationTime = performance.now();
                         this.isMoving = false;
                         this.attacking = false;
+
+                        // → Boss-Intro in der World starten
+                        if (this.world && typeof this.world.startBossIntro === 'function') {
+                            this.world.startBossIntro();
+                        }
                     }
                 }
                 // solange nicht aktiviert: keine Bewegung / kein Angriff
                 return;
             }
 
-            // 2) Aktiviert, aber erste Sekunde nur ALERT-Animation (stehen bleiben)
-            const now = performance.now();
-            if (now - this.activationTime < 2000) {
+            // 2) Während Boss-Intro: nichts machen (nur Alert-Anim läuft oben)
+            if (this.world && this.world.bossIntroActive) {
                 this.isMoving = false;
+                this.attacking = false;
                 return;
             }
 
@@ -297,7 +293,6 @@ class Endboss extends MovableObject {
             this.otherDirection = true;
 
             if (!this.world || !this.world.character) {
-                // Fallback: einfach nach links laufen
                 this.moveLeft();
                 this.isMoving = true;
                 return;
@@ -305,16 +300,12 @@ class Endboss extends MovableObject {
 
             const char = this.world.character;
             const attackRange = 40;
-
-            // Abstand in x-Richtung (Boss ist immer rechts vom Character)
             const dx = this.x - char.x;
 
             if (dx <= attackRange) {
-                // Nah genug: stehen bleiben und angreifen
                 this.isMoving = false;
                 this.startAttack();
             } else {
-                // Egal wo der Character ist → Boss läuft einfach nach links
                 this.attacking = false;
                 this.isMoving = true;
                 this.moveLeft();
@@ -358,12 +349,10 @@ class Endboss extends MovableObject {
         const path = this.IMAGES_ATTACK[frame];
         this.img = this.imageCache[path];
 
-        // Merken, welches Frame gerade angezeigt wird
         this.currentAttackFrame = frame;
         this.attackFrameIndex++;
 
-        // --- HITBOX POSITIONIEREN ---  
-        // Boss schaut immer nach links (otherDirection = true)
+        // Hitbox ausrichten
         this.attackHitbox.x = this.x - 60; 
         this.attackHitbox.y = this.y + 40;
     }

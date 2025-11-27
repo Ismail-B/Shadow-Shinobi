@@ -161,8 +161,8 @@ class Character extends MovableObject {
     tryStartAttack() {
         const now = performance.now();
 
-        // nach GameOver/Win keine Angriffe mehr
-        if (this.world && this.world.gameEnded) return;
+        // nach GameOver/Win oder während Boss-Intro keine Angriffe
+        if (this.world && (this.world.gameEnded || this.world.bossIntroActive)) return;
 
         if (this.isDead() || this.isAttacking) return;
         if (now - this.lastAttackAt < this.attackCooldownMs) return;
@@ -188,8 +188,8 @@ class Character extends MovableObject {
     tryStartKunaiThrow() {
         const now = performance.now();
 
-        // nach GameOver/Win keine Kunai-Würfe mehr
-        if (this.world && this.world.gameEnded) return false;
+        // nach GameOver/Win oder während Boss-Intro keine Kunai-Würfe
+        if (this.world && (this.world.gameEnded || this.world.bossIntroActive)) return false;
 
         if (this.isDead() || this.isAttacking) return false;
 
@@ -374,6 +374,12 @@ class Character extends MovableObject {
         // Bewegung / Physik
         setInterval(() => {
 
+            // während Boss-Intro: Character komplett einfrieren
+            if (this.world && this.world.bossIntroActive) {
+                this.walking_sound.pause();
+                return;
+            }
+
             if (this.world && this.world.gameEnded) {
                 this.walking_sound.pause();
                 return;
@@ -425,6 +431,8 @@ class Character extends MovableObject {
 
         // Animationen + Attack-Takt
         setInterval(() => {
+
+            // Attack-Frames immer erlauben (auch nach Intro)
             if (this.isAttacking) {
                 this.updateAttack();
                 return;
