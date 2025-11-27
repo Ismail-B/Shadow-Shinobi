@@ -8,6 +8,13 @@ body{
     min-height: 100vh;
 }
 
+@font-face {
+    font-family: 'NinjaNaruto';
+    src: url('styles/fonts/njnaruto.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+}
+
 main{
     flex: 1;
 }
@@ -18,18 +25,17 @@ h1 {
 }
 
 header{
-    font-family: "Hanalei Fill", serif;
+    font-family: 'NinjaNaruto', sans-serif;
     font-style: normal;
     min-height: 100px;
     display: flex;
     justify-content: flex-start;
     align-items: center;
     background-color: #B7694D;
-    color: rgb(106, 104, 104);
-    text-shadow: 
-    2px 2px 4px #000,        /* Dunkler, subtiler Schatten */
-    0 0 20px rgba(237, 234, 234, 0.6),  /* Rotes Leuchten */
-    0 0 20px rgba(239, 237, 237, 0.4);  /* Weiterer roter Schein */
+    color: #493731;
+text-shadow:
+    2px 2px 4px rgba(205, 203, 203, 0.6);
+
 }
 
 header img{
