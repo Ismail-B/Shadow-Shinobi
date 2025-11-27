@@ -106,18 +106,92 @@ function toggleMusic(id) {
   }
 }
 
+/**
+ * ALLES stummschalten:
+ * - Musik, Hintergrund, Win-Sound
+ * - alle Character-Sounds
+ * - alle Orc-Sounds (voiceClips + Footsteps)
+ */
 function muteMusic() {
   if (!world) return;
-  world.music.muted = true;
-  world.background_sound.muted = true;
-  world.character.walking_sound.muted = true;
+
+  // zentrale Liste der bekannten Sounds im World/Character
+  const gameAudios = [
+    world.music,
+    world.background_sound,
+    world.win_sound,
+    world.character && world.character.walking_sound,
+    world.character && world.character.kunai_throw_sound,
+    world.character && world.character.hit_sound,
+    world.character && world.character.jump_sound,
+    world.character && world.character.hurt_sound,
+    world.character && world.character.death_sound,
+  ];
+
+  gameAudios.forEach(a => {
+    if (a instanceof Audio) {
+      a.muted = true;
+    }
+  });
+
+  // Orc-Voiceclips global muten
+  if (typeof Orc !== 'undefined' && Array.isArray(Orc.voiceClips)) {
+    Orc.voiceClips.forEach(clip => {
+      if (clip instanceof Audio) {
+        clip.muted = true;
+      }
+    });
+  }
+
+  // Lauf-Sound je Orc (falls verwendet) ebenfalls muten
+  if (typeof Orc !== 'undefined' && Array.isArray(Orc.instances)) {
+    Orc.instances.forEach(o => {
+      if (o && o.walking_sound instanceof Audio) {
+        o.walking_sound.muted = true;
+      }
+    });
+  }
 }
 
+/**
+ * ALLE Sounds wieder aktivieren
+ */
 function turnOnMusic() {
   if (!world) return;
-  world.music.muted = false;
-  world.background_sound.muted = false;
-  world.character.walking_sound.muted = false;
+
+  const gameAudios = [
+    world.music,
+    world.background_sound,
+    world.win_sound,
+    world.character && world.character.walking_sound,
+    world.character && world.character.kunai_throw_sound,
+    world.character && world.character.hit_sound,
+    world.character && world.character.jump_sound,
+    world.character && world.character.hurt_sound,
+    world.character && world.character.death_sound,
+  ];
+
+  gameAudios.forEach(a => {
+    if (a instanceof Audio) {
+      a.muted = false;
+    }
+  });
+
+  if (typeof Orc !== 'undefined' && Array.isArray(Orc.voiceClips)) {
+    Orc.voiceClips.forEach(clip => {
+      if (clip instanceof Audio) {
+        clip.muted = false;
+      }
+    });
+  }
+
+  if (typeof Orc !== 'undefined' && Array.isArray(Orc.instances)) {
+    Orc.instances.forEach(o => {
+      if (o && o.walking_sound instanceof Audio) {
+        o.walking_sound.muted = false;
+      }
+    });
+  }
 }
 
 function fullscreen() {

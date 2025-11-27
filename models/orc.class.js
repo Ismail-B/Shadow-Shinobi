@@ -76,7 +76,6 @@ class Orc extends MovableObject {
       if (ok) return candidate;
     }
 
-    // Wenn der Bereich voll ist → zufällig setzen
     return minX + Math.random() * (maxX - minX);
   }
 
@@ -174,17 +173,18 @@ class Orc extends MovableObject {
     this.isDying = true;
     this.speed = 0;
 
-    // 👉 EINMALIGER TODESSOUND
+    // 👉 EINMALIGER TODESSOUND, MUTE-STATUS übernehmen
     const dyingSound = new Audio('audio/orc-dying.mp3');
     dyingSound.volume = 0.35;
     dyingSound.currentTime = 0;
+    if (typeof world !== 'undefined' && world && world.music instanceof Audio) {
+      dyingSound.muted = world.music.muted; // wenn Spiel gemutet, auch diesen Sound muten
+    }
     dyingSound.play();
 
-    // Bewegung stoppen
     clearInterval(this.moveLeftInterval);
     clearInterval(this.playAnimationInterval);
 
-    // "Hinfallen"
     const ow = this.width;
     const oh = this.height;
     this.width = ow * 1.4;
@@ -196,7 +196,6 @@ class Orc extends MovableObject {
       this.img = this.imageCache[this.DEAD_IMAGES[0]];
     }
 
-    // Death-Anim abspielen
     this._deadTimer = setInterval(() => {
       if (this._deadIndex < this.DEAD_IMAGES.length - 1) {
         this._deadIndex++;
