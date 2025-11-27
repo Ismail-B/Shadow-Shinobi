@@ -18,6 +18,12 @@ function clearAllIntervals() {
 
 function init() {
   canvas = document.getElementById("canvas");
+
+  // Orc-Sound-Statics sauber resetten (auch beim allerersten Start unkritisch)
+  if (typeof Orc !== 'undefined' && typeof Orc.resetAudioState === 'function') {
+    Orc.resetAudioState();
+  }
+
   world = new World(canvas, keyboard);
 }
 
@@ -42,6 +48,11 @@ function restartGame() {
     world.stop();
   }
 
+  // Orc-Statics zurücksetzen, damit der globale Sound-Loop neu sauber startet
+  if (typeof Orc !== 'undefined' && typeof Orc.resetAudioState === 'function') {
+    Orc.resetAudioState();
+  }
+
   const go = document.getElementById('game-over-overlay');
   const win = document.getElementById('win-overlay');
   if (go) go.style.display = 'none';
@@ -61,6 +72,11 @@ function backToMenu() {
     world.stop();
   }
 
+  // Auch beim Zurück ins Menü aufräumen
+  if (typeof Orc !== 'undefined' && typeof Orc.resetAudioState === 'function') {
+    Orc.resetAudioState();
+  }
+
   const go = document.getElementById('game-over-overlay');
   const win = document.getElementById('win-overlay');
   if (go) go.style.display = 'none';
@@ -78,53 +94,53 @@ function backToMenu() {
 /* Sound + Fullscreen */
 
 function toggleMusic(id) {
-    let loud = document.getElementById(id);
-    let mute = document.getElementById('mute-btn');
+  let loud = document.getElementById(id);
+  let mute = document.getElementById('mute-btn');
 
-    if (getComputedStyle(loud).display === "none") {
-        loud.style.display = "block";
-        mute.style.display = "none";
-    } else {
-        loud.style.display = "none";
-        mute.style.display = "block";
-    }
+  if (getComputedStyle(loud).display === "none") {
+    loud.style.display = "block";
+    mute.style.display = "none";
+  } else {
+    loud.style.display = "none";
+    mute.style.display = "block";
+  }
 }
 
 function muteMusic() {
-    if (!world) return;
-    world.music.muted = true;
-    world.background_sound.muted = true;
-    world.character.walking_sound.muted = true;
+  if (!world) return;
+  world.music.muted = true;
+  world.background_sound.muted = true;
+  world.character.walking_sound.muted = true;
 }
 
 function turnOnMusic() {
-    if (!world) return;
-    world.music.muted = false;
-    world.background_sound.muted = false;
-    world.character.walking_sound.muted = false;
+  if (!world) return;
+  world.music.muted = false;
+  world.background_sound.muted = false;
+  world.character.walking_sound.muted = false;
 }
 
 function fullscreen() {
-    let fullscreen = document.getElementById('canvas');
-    enterFullscreen(fullscreen);
+  let fullscreen = document.getElementById('canvas');
+  enterFullscreen(fullscreen);
 }
 
 function enterFullscreen(element) {
-    if(element.requestFullscreen) {
-      element.requestFullscreen();
-    } else if(element.msRequestFullscreen) {
-      element.msRequestFullscreen();
-    } else if(element.webkitRequestFullscreen) {
-      element.webkitRequestFullscreen();
-    }
+  if (element.requestFullscreen) {
+    element.requestFullscreen();
+  } else if (element.msRequestFullscreen) {
+    element.msRequestFullscreen();
+  } else if (element.webkitRequestFullscreen) {
+    element.webkitRequestFullscreen();
+  }
 }
 
 function exitFullscreen() {
-    if(document.exitFullscreen) {
-      document.exitFullscreen();
-    } else if(document.webkitExitFullscreen) {
-      document.webkitExitFullscreen();
-    }
+  if (document.exitFullscreen) {
+    document.exitFullscreen();
+  } else if (document.webkitExitFullscreen) {
+    document.webkitExitFullscreen();
+  }
 }
 
 /* Keyboard */
