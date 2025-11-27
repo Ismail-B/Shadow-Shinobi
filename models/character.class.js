@@ -69,7 +69,7 @@ class Character extends MovableObject {
     // --- Angriff-Status (Nahkampf + Kunai) ---
     isAttacking = false;
     attackFrameIndex = 0;
-    attackFrameMs = 60;        // wird je nach Attack-Typ angepasst
+    attackFrameMs = 10;        // wird je nach Attack-Typ angepasst
     attackCooldownMs = 250;
     lastAttackAt = 0;
     _lastAttackTick = 0;
@@ -172,7 +172,7 @@ class Character extends MovableObject {
         this.attackFrameIndex = 0;
 
         // Nahkampf etwas LANGSAMER
-        this.attackFrameMs = 120;
+        this.attackFrameMs = 60;
 
         this._lastAttackTick = now;
         this.lastAttackAt = now;

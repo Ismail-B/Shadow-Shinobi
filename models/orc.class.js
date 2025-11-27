@@ -11,19 +11,24 @@ class Orc extends MovableObject {
 
   walking_sound = new Audio('audio/running.mp3');
 
-  // ---------------- Gemeinsame Orc-Sounds (für alle Orcs) ----------------
+  // ---------------- Gemeinsame Orc-Sounds ----------------
   static voiceClips = [
     new Audio('audio/orc.mp3'),
     new Audio('audio/orc1.mp3'),
     new Audio('audio/orc2.mp3'),
   ];
 
-  static instances = [];          // alle existierenden Orcs
-  static lastVoiceTime = 0;       // letzter Schrei-Zeitpunkt
-  static lastVoiceIndex = -1;     // welcher Clip zuletzt lief
-  static voiceLoopId = null;      // ID des globalen Sound-Loops
+  static instances = [];
+  static lastVoiceTime = 0;
+  static lastVoiceIndex = -1;
+  static voiceLoopId = null;
 
-  // Intervalle pro Instanz (Bewegung / Animation)
+  // ---- Spawn-Parameter ----
+  static MIN_SPAWN_X = 2000;
+  static MAX_SPAWN_X = 7000;
+  static MIN_SPAWN_DISTANCE = 220;
+
+  // Intervalle pro Instanz
   moveLeftInterval = null;
   playAnimationInterval = null;
 
@@ -37,21 +42,46 @@ class Orc extends MovableObject {
     this.loadImages(this.IMAGES_WALKING);
     if (this.DEAD_IMAGES?.length) this.loadImages(this.DEAD_IMAGES);
 
-    this.x = 2000 + Math.random() * 5000;
+    // Spawn-Position mit Abstand
+    this.x = this.getSpawnXWithMinDistance();
+
+    // Orc-Variationen
     this.speed = 0.15 + Math.random() * 3.5;
 
-    // Orc in globale Liste eintragen
     Orc.instances.push(this);
-
-    // globalen Sound-Loop sicherstellen
     Orc.startVoiceLoop();
 
     this.animate();
   }
 
-  // --------- globaler Loop, der entscheidet, ob gerade ein Orc schreit ---------
+  /** Spawn mit Mindestabstand zu anderen Orcs */
+  getSpawnXWithMinDistance() {
+    const minX = Orc.MIN_SPAWN_X;
+    const maxX = Orc.MAX_SPAWN_X;
+    const minDist = Orc.MIN_SPAWN_DISTANCE;
+
+    for (let tries = 0; tries < 50; tries++) {
+      const candidate = minX + Math.random() * (maxX - minX);
+      let ok = true;
+
+      for (const o of Orc.instances) {
+        if (!o) continue;
+
+        if (Math.abs(candidate - o.x) < minDist) {
+          ok = false;
+          break;
+        }
+      }
+
+      if (ok) return candidate;
+    }
+
+    // Wenn der Bereich voll ist → zufällig setzen
+    return minX + Math.random() * (maxX - minX);
+  }
+
+  // -------- ORC GLOBALER SOUND LOOP --------
   static startVoiceLoop() {
-    // Sicherheitsmaßnahme: alten Loop (falls vorhanden) beenden
     if (Orc.voiceLoopId) {
       clearInterval(Orc.voiceLoopId);
       Orc.voiceLoopId = null;
@@ -59,42 +89,38 @@ class Orc extends MovableObject {
 
     Orc.voiceLoopId = setInterval(() => {
       Orc.checkAndPlayVoice();
-    }, 400); // alle 0,4s prüfen
+    }, 400);
   }
 
   static checkAndPlayVoice() {
     const now = Date.now();
 
-    // a) relevante Orcs zählen (sichtbar + laufen auf den Charakter zu)
     let visibleOrcs = 0;
     for (const orc of Orc.instances) {
       if (orc && !orc.isDying && orc.isVisibleAndChasing()) {
         visibleOrcs++;
       }
     }
+
     if (!visibleOrcs) return;
 
-    // b) Delay abhängig von der Anzahl Orcs
-    const baseDelay = 4500; // ~4,5s bei 1 Orc
-    const minDelay = 1200;  // nie öfter als ca. alle 1,2s
+    const baseDelay = 4500;
+    const minDelay = 1200;
     const neededDelay = Math.max(minDelay, baseDelay / visibleOrcs);
 
     if (now - Orc.lastVoiceTime < neededDelay) return;
 
-    // c) nächsten Clip auswählen (abwechselnd)
     Orc.lastVoiceIndex = (Orc.lastVoiceIndex + 1) % Orc.voiceClips.length;
     const clip = Orc.voiceClips[Orc.lastVoiceIndex];
 
     clip.volume = 0.25;
-    clip.playbackRate = 0.9 + Math.random() * 0.2; // leicht variieren
+    clip.playbackRate = 0.9 + Math.random() * 0.2;
     clip.currentTime = 0;
 
-    clip.play().catch(() => { /* Audio-Fehler ignorieren */ });
-
+    clip.play().catch(() => {});
     Orc.lastVoiceTime = now;
   }
 
-  // beim Neustart aufrufen, damit alles sauber ist
   static resetAudioState() {
     if (Orc.voiceLoopId) {
       clearInterval(Orc.voiceLoopId);
@@ -105,35 +131,28 @@ class Orc extends MovableObject {
     Orc.lastVoiceIndex = -1;
   }
 
-  // prüft, ob dieser Orc für Sounds relevant ist
   isVisibleAndChasing() {
-    // Sichtbarkeit im Kamerabereich
     let onScreen = true;
 
     if (typeof this.isInCamera === 'function') {
-      // falls du schon eine isInCamera()-Funktion hast, nutze die
       onScreen = this.isInCamera();
     } else if (typeof world !== 'undefined' && world && world.canvas) {
       const camX = world.camera_x || 0;
       const canvasWidth = world.canvas.width || 720;
-      const screenX = this.x + camX;
-
-      // kleiner Puffer links/rechts
-      onScreen = screenX + this.width > -100 && screenX < canvasWidth + 100;
+      const sx = this.x + camX;
+      onScreen = sx + this.width > -100 && sx < canvasWidth + 100;
     }
 
     if (!onScreen) return false;
 
-    // "zulaufen": grob Orc rechts vom Character und schaut nach links
     if (typeof world !== 'undefined' && world && world.character) {
       return this.x > world.character.x - 50 && !this.otherDirection;
     }
 
-    // Fallback, falls es keinen world gibt
     return true;
   }
 
-  // ---------------- normale Orc-Animation ----------------
+  // --------- Animation ---------
   animate() {
     this.moveLeftInterval = setInterval(() => {
       if (!this.isDying) {
@@ -149,36 +168,40 @@ class Orc extends MovableObject {
     }, 200);
   }
 
-  // ---------------- Death-Logik ----------------
+  // --------- TOD ---------
   die() {
     if (this.isDying) return;
     this.isDying = true;
     this.speed = 0;
 
-    // Bewegungs-/Anim-Intervalle stoppen
+    // 👉 EINMALIGER TODESSOUND
+    const dyingSound = new Audio('audio/orc-dying.mp3');
+    dyingSound.volume = 0.35;
+    dyingSound.currentTime = 0;
+    dyingSound.play();
+
+    // Bewegung stoppen
     clearInterval(this.moveLeftInterval);
     clearInterval(this.playAnimationInterval);
 
-    // --- Orc legt sich hin → breiter, etwas flacher ---
-    const originalWidth = this.width;
-    const originalHeight = this.height;
-    this.width = originalWidth * 1.4;   // etwa 40 % breiter
-    this.height = originalHeight * 0.8; // etwas flacher
-    this.y += originalHeight * 0.2;     // leicht nach unten verschieben, damit er "liegt"
+    // "Hinfallen"
+    const ow = this.width;
+    const oh = this.height;
+    this.width = ow * 1.4;
+    this.height = oh * 0.8;
+    this.y += oh * 0.2;
 
-    // sofort erstes Dead-Bild zeigen
     this._deadIndex = 0;
     if (this.DEAD_IMAGES?.length) {
       this.img = this.imageCache[this.DEAD_IMAGES[0]];
     }
 
-    // Death-Frames abspielen und am letzten Bild stehen bleiben
+    // Death-Anim abspielen
     this._deadTimer = setInterval(() => {
       if (this._deadIndex < this.DEAD_IMAGES.length - 1) {
         this._deadIndex++;
         this.img = this.imageCache[this.DEAD_IMAGES[this._deadIndex]];
 
-        // sobald letztes Bild erreicht → keine Hitbox mehr
         if (this._deadIndex === this.DEAD_IMAGES.length - 1) {
           this.collidable = false;
         }
