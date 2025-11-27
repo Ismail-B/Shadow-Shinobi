@@ -282,12 +282,9 @@ class Character extends MovableObject {
             if (typeof e.overlapsRect === 'function' && e.overlapsRect(hitbox)) {
 
                 if (e.isEndboss) {
-                    // Endboss bekommt 10 Schaden wie vorher in World.checkCollisions()
+                    // pro Schlag genau EINE Lebensstufe
                     if (typeof e.hit === 'function') {
-                        e.hit(10);
-                        if (this.world.statusBarEndboss) {
-                            this.world.statusBarEndboss.setPercentage(e.energy);
-                        }
+                        e.hit();          // Damage-Wert ist egal, Endboss zieht intern 20 ab
                     }
                 } else {
                     // normaler Orc stirbt

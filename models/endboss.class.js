@@ -32,7 +32,7 @@ class Endboss extends MovableObject {
     isDying = false;
 
     // Leben
-    energy = 100;
+    energy = 100;        // 100% = volle Lebensleiste
     isDeadFlag = false;
 
     // Hurt / Death
@@ -142,7 +142,7 @@ class Endboss extends MovableObject {
         this.animate();
     }
 
-    /** Boss bekommt Schaden vom Spieler */
+    /** Boss bekommt Schaden vom Spieler (Nahkampf oder Kunai) */
     hit(damage = 10) {
         if (this.isDeadFlag) return;
 
@@ -150,8 +150,14 @@ class Endboss extends MovableObject {
         if (now - this.lastHitAt < this.minHitInterval) return;
         this.lastHitAt = now;
 
-        this.energy -= damage;
+        // === HIER: immer genau EINE "Lebenseinheit" abziehen ===
+        this.energy -= 20;               // 100 → 80 → 60 → 40 → 20 → 0
         if (this.energy < 0) this.energy = 0;
+
+        // Statusbar sofort aktualisieren
+        if (this.world && this.world.statusBarEndboss) {
+            this.world.statusBarEndboss.setPercentage(this.energy);
+        }
 
         this.isMoving = false;
         this.hurtPlaying = true;
