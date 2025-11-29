@@ -226,7 +226,7 @@ function turnOnMusic() {
     world.character && world.character.hurt_sound,
     world.character && world.character.death_sound,
     // Boss-Intro / Alert-Sound
-
+    world.bossIntroSound 
   ];
 
   if (world.endboss) {
