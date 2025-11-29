@@ -441,3 +441,98 @@ button:hover {
 .overlay-buttons{
     gap: 20px;
 }
+
+/* =========================================
+   MOBILE: ROTATE-OVERLAY & TOUCH-STEUERUNG
+   ========================================= */
+
+/* Vollbild-Overlay fürs Hochformat */
+.rotate-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.9);
+    z-index: 1200;
+    display: none;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    padding: 20px;
+}
+
+.rotate-overlay .rotate-message {
+    color: #fff;
+    font-size: 1.4rem;
+    line-height: 1.5;
+}
+
+/* Touch-Steuerung Container */
+.touch-controls {
+    position: fixed;
+    inset: auto 0 0 0;
+    height: 30vh;
+    display: none;
+    z-index: 1150;
+    pointer-events: none;
+}
+
+/* Joystick links */
+.touch-joystick {
+    position: absolute;
+    left: 10px;
+    bottom: 10px;
+    pointer-events: none;
+}
+
+.joystick-base {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    border: 2px solid #fff;
+    background: rgba(0, 0, 0, 0.5);
+    position: relative;
+    pointer-events: auto;
+}
+
+.joystick-thumb {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    border: 2px solid #fff;
+    background: rgba(255, 255, 255, 0.1);
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+}
+
+/* Aktionen unten rechts */
+.touch-actions {
+    position: absolute;
+    right: 10px;
+    bottom: 10px;
+    display: flex;
+    gap: 10px;
+}
+
+.touch-btn {
+    pointer-events: auto;
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    border: 2px solid #fff;
+    background: rgba(0, 0, 0, 0.6);
+    color: #fff;
+    font-size: 1.4rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    touch-action: none;
+    user-select: none;
+}
+
+/* Auf Desktop sicherheitshalber komplett ausblenden, falls JS nicht greift */
+@media (hover: hover) and (pointer: fine) {
+    .touch-controls {
+        display: none !important;
+    }
+}

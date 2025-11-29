@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="stylesheet" href="./style.css" />
-    <link rel="stylesheet" href="./styles/responsive.css">
+    <link rel="stylesheet" href="./styles/responsive.css" />
     <link
       rel="icon"
       type="image/x-icon"
@@ -13,71 +13,86 @@
     <title>Shadow Shinobi</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Anton&family=Bebas+Neue&family=Hanalei+Fill&family=Montserrat:ital,wght@0,100..900;1,100..900&family=Pixelify+Sans:wght@400..700&family=Roboto+Mono:ital,wght@0,100..700;1,100..700&display=swap" rel="stylesheet">
-<!-- Basisklassen zuerst -->
-<script src="./models/drawable-object.class.js"></script>
-<script src="./models/moveable-object.class.js"></script>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Anton&family=Bebas+Neue&family=Hanalei+Fill&family=Montserrat:ital,wght@0,100..900;1,100..900&family=Pixelify+Sans:wght@400..700&family=Roboto+Mono:ital,wght@0,100..700;1,100..700&display=swap"
+      rel="stylesheet"
+    />
 
-<!-- statische/sprechende Objekte -->
-<script src="./models/background-object.class.js"></script>
-<script src="./models/firefly.class.js"></script>
+    <!-- Basisklassen zuerst -->
+    <script src="./models/drawable-object.class.js"></script>
+    <script src="./models/moveable-object.class.js"></script>
 
-<!-- sammelbare Items -->
-<script src="./models/coin.class.js"></script>
-<script src="./models/kunai-coin.class.js"></script>
+    <!-- statische/sprechende Objekte -->
+    <script src="./models/background-object.class.js"></script>
+    <script src="./models/firefly.class.js"></script>
 
-<!-- Player & Gegner -->
-<script src="./models/character.class.js"></script>
-<script src="./models/orc.class.js"></script>
-<script src="./models/orc-green.class.js"></script>
-<script src="./models/orc-red.class.js"></script>
-<script src="./models/endboss.class.js"></script>
+    <!-- sammelbare Items -->
+    <script src="./models/coin.class.js"></script>
+    <script src="./models/kunai-coin.class.js"></script>
 
-<!-- Statusleisten -->
-<script src="./models/status-bar-life.class.js"></script>
-<script src="./models/status-bar-coin.class.js"></script>
-<script src="./models/status-bar-kunai.class.js"></script>
-<script src="./models/status-bar-endboss.class.js"></script>
+    <!-- Player & Gegner -->
+    <script src="./models/character.class.js"></script>
+    <script src="./models/orc.class.js"></script>
+    <script src="./models/orc-green.class.js"></script>
+    <script src="./models/orc-red.class.js"></script>
+    <script src="./models/endboss.class.js"></script>
 
-<!-- Steuerung / Wurfobjekt -->
-<script src="./models/keyboard.class.js"></script>
-<script src="./models/throwable-object.class.js"></script>
-<script src="./models/kunai.class.js"></script> <!-- (dein Wurf-Kunai) -->
+    <!-- Statusleisten -->
+    <script src="./models/status-bar-life.class.js"></script>
+    <script src="./models/status-bar-coin.class.js"></script>
+    <script src="./models/status-bar-kunai.class.js"></script>
+    <script src="./models/status-bar-endboss.class.js"></script>
 
-<!-- Level -->
-<script src="./models/level.class.js"></script>
-<script src="./levels/level1.js"></script>
+    <!-- Steuerung / Wurfobjekt -->
+    <script src="./models/keyboard.class.js"></script>
+    <script src="./models/throwable-object.class.js"></script>
+    <script src="./models/kunai.class.js"></script>
 
-<!-- World & Start -->
-<script src="./models/world.class.js"></script>
-<script src="./scripts/game.js"></script>
+    <!-- Level -->
+    <script src="./models/level.class.js"></script>
+    <script src="./levels/level1.js"></script>
+
+    <!-- World & Start -->
+    <script src="./models/world.class.js"></script>
+    <script src="./scripts/game.js"></script>
   </head>
   <body>
     <header>
       <img src="img/8_coin/ninja-logo2.png" alt="" />
       <h2>Shadow Shinobi</h2>
     </header>
-    <!-- <div id="orientation-hint">
-        <div class="info-screen">
-        <h2>Please Turn Around Your Phone</h2>
-    </div> -->
-    </div>
+
     <div onclick="fullscreen()" class="fullscreen-button">
-        <img src="img/index/fullscreen-icon.png" alt="Fullscreen Button">
+      <img src="img/index/fullscreen-icon.png" alt="Fullscreen Button" />
     </div>
+
     <div id="sound-btn" class="sound-button">
-        <img onclick="toggleMusic('sound-btn'), turnOnMusic()" src="img/index/speaker-mute.png" alt="Music On Button">
+      <img
+        onclick="toggleMusic('sound-btn'), turnOnMusic()"
+        src="img/index/speaker-mute.png"
+        alt="Music On Button"
+      />
     </div>
+
     <div id="mute-btn" class="sound-button">
-        <img onclick="toggleMusic('sound-btn'), muteMusic()" src="img/index/speaker-loud.png" alt="Music Off Button">
+      <img
+        onclick="toggleMusic('sound-btn'), muteMusic()"
+        src="img/index/speaker-loud.png"
+        alt="Music Off Button"
+      />
     </div>
+
+    <!-- START-OVERLAY -->
     <div id="startoverlay">
       <button onclick="init(),toggle('canvas')">Start</button>
       <button onclick="toggle('control')">Controls</button>
       <button onclick="toggle('story')">Story</button>
-      <button class="impressum-button" onclick="toggle('impressum')">Impressum</button>
+      <button class="impressum-button" onclick="toggle('impressum')">
+        Impressum
+      </button>
     </div>
-    <!-- NEU: GAME OVER OVERLAY -->
+
+    <!-- GAME OVER OVERLAY -->
     <div id="game-over-overlay">
       <h2>Game Over!</h2>
       <div class="overlay-buttons">
@@ -86,7 +101,7 @@
       </div>
     </div>
 
-    <!-- NEU: WIN OVERLAY -->
+    <!-- WIN OVERLAY -->
     <div id="win-overlay">
       <h2>You win!!!</h2>
       <div class="overlay-buttons">
@@ -94,9 +109,35 @@
         <button onclick="backToMenu()">Menu</button>
       </div>
     </div>
+
+    <!-- MOBILE: ROTATE-OVERLAY -->
+    <div id="rotate-overlay" class="rotate-overlay">
+      <div class="rotate-message">
+        Bitte drehe dein Gerät ins Querformat,<br />
+        um Shadow Shinobi zu spielen.
+      </div>
+    </div>
+
+    <!-- MOBILE: TOUCH-STEUERUNG -->
+    <div id="touch-controls" class="touch-controls">
+      <!-- Joystick links -->
+      <div class="touch-joystick">
+        <div id="joystick-base" class="joystick-base">
+          <div id="joystick-thumb" class="joystick-thumb"></div>
+        </div>
+      </div>
+
+      <!-- Aktionen rechts -->
+      <div class="touch-actions">
+        <button id="btn-attack" class="touch-btn">⚔</button>
+        <button id="btn-throw" class="touch-btn">✦</button>
+      </div>
+    </div>
+
+    <!-- CONTROLS-OVERLAY -->
     <div id="control">
       <div class="control-headline">
-        </h2>CONTROLS</h2>
+        <h2>CONTROLS</h2>
       </div>
       <div class="control-container">
         <div class="control-button">
@@ -137,57 +178,82 @@
         </div>
       </div>
       <div class="menu-button">
-      <button onclick="toggle('control')">Back to Menu</button>
+        <button onclick="toggle('control')">Back to Menu</button>
+      </div>
     </div>
-    </div>
-    <div id="story">
-        <div class="story-headline">
-        <h2>Background Story</h2>
-        </div>
-        <div class="background-story">
-        <p>The Shadow Shinobi
 
-            In a small village hidden deep in the mountains, the nights were haunted by savage orcs that craved chaos. But the villagers slept soundly, knowing their protector lurked in the darkness. He was the Shadow Shinobi, a master of stealth and shadow magic, sworn to defend his people.
-            
-            Silent as the wind, he patrolled the village's borders each night, his blade striking faster than the eye could follow. Cloaked in darkness, he became one with the shadows, appearing only to strike down those who dared to threaten his home.
-            
-            One fateful night, a powerful orc shaman arrived, summoning an army of beasts. The Shinobi faced his greatest challenge yet. Without fear or hesitation, he vanished into the night, his blade ready, his mission clear: protect the village at all costs.
-            
-            And so, the legend of the Shadow Shinobi lived on, whispered in gratitude by those he saved.</p>
-        </div>
-        <div class="menu-button">
-            <button onclick="toggle('story')">Back to Menu</button>
-        </div>
+    <!-- STORY-OVERLAY -->
+    <div id="story">
+      <div class="story-headline">
+        <h2>Background Story</h2>
+      </div>
+      <div class="background-story">
+        <p>
+          The Shadow Shinobi
+
+          In a small village hidden deep in the mountains, the nights were
+          haunted by savage orcs that craved chaos. But the villagers slept
+          soundly, knowing their protector lurked in the darkness. He was the
+          Shadow Shinobi, a master of stealth and shadow magic, sworn to defend
+          his people.
+
+          Silent as the wind, he patrolled the village's borders each night, his
+          blade striking faster than the eye could follow. Cloaked in darkness,
+          he became one with the shadows, appearing only to strike down those
+          who dared to threaten his home.
+
+          One fateful night, a powerful orc shaman arrived, summoning an army of
+          beasts. The Shinobi faced his greatest challenge yet. Without fear or
+          hesitation, he vanished into the night, his blade ready, his mission
+          clear: protect the village at all costs.
+
+          And so, the legend of the Shadow Shinobi lived on, whispered in
+          gratitude by those he saved.
+        </p>
+      </div>
+      <div class="menu-button">
+        <button onclick="toggle('story')">Back to Menu</button>
+      </div>
     </div>
+
+    <!-- IMPRESSUM-OVERLAY -->
     <div id="impressum">
-        <div class="story-headline">
-            <h2>Impressum</h2>
-        </div>
-        <p>Ismail Baris</p>
-        <p>Software Developer</p>
-        <p>Finkenstraße 2</p>
-        <p>52531 Übach-Palenberg</p>
-        <p>Deutschland</p>
-        <div class="email-link">
+      <div class="story-headline">
+        <h2>Impressum</h2>
+      </div>
+      <p>Ismail Baris</p>
+      <p>Software Developer</p>
+      <p>Finkenstraße 2</p>
+      <p>52531 Übach-Palenberg</p>
+      <p>Deutschland</p>
+      <div class="email-link">
         <p>Email:</p>
         <a href="mailto:contact@ismail-baris.de">contact@ismail-baris.de</a>
-        </div>
-        <div class="menu-button">
-            <button onclick="toggle('impressum')">Back to Menu</button>
-        </div>
+      </div>
+      <div class="menu-button">
+        <button onclick="toggle('impressum')">Back to Menu</button>
+      </div>
     </div>
+
+    <!-- SPIELBEREICH -->
     <div id="canvas-box">
       <div id="fullscreen">
-        <canvas id="canvas" width="720" height="480"> </canvas>
+        <canvas id="canvas" width="720" height="480"></canvas>
       </div>
     </div>
 
     <footer>
       <div class="footer">
         <img src="img/8_coin/ninja-logo2.png" alt="" />
-        <p class="signature">Shadow Shinobi <br />by<br />Ismail</p>
+        <p class="signature">
+          Shadow Shinobi <br />
+          by<br />
+          Ismail
+        </p>
       </div>
-      <p class="under-signature">© 2025 picture from pixabay / craftpix</p>
+      <p class="under-signature">
+        © 2025 picture from pixabay / craftpix
+      </p>
     </footer>
   </body>
 </html>

@@ -191,6 +191,11 @@ class Character extends MovableObject {
         // nach GameOver/Win oder während Boss-Intro keine Kunai-Würfe
         if (this.world && (this.world.gameEnded || this.world.bossIntroActive)) return false;
 
+        // NEU: nur wenn überhaupt Kunai vorhanden sind
+        if (!this.world || this.world.kunaiAmmo <= 0) {
+            return false;
+        }
+
         if (this.isDead() || this.isAttacking) return false;
 
         this.isAttacking = true;
