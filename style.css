@@ -33,9 +33,8 @@ header{
     align-items: center;
     background-color: #B7694D;
     color: #493731;
-text-shadow:
-    2px 2px 4px rgba(205, 203, 203, 0.6);
-
+    text-shadow:
+        2px 2px 4px rgba(205, 203, 203, 0.6);
 }
 
 header img{
@@ -59,25 +58,63 @@ footer img{
     margin-bottom: 18px;
 }
 
+/* ======================
+   CANVAS
+   ======================*/
 canvas{
     background-color: black;
     border: 10px solid #B7694D;
     border-radius: 8px;
     display: none;
+
+    /* normales Verhalten */
+    max-width: 100%;
+    height: auto;
 }
 
+/* ===========================
+   FULLSCREEN FIX
+   =========================== */
+
+/* Header & Footer im Fullscreen ausblenden */
+:fullscreen header,
+:fullscreen footer {
+    display: none;
+}
+
+/* kein Scrollen im Fullscreen */
+:fullscreen body {
+    overflow: hidden;
+}
+
+/* Canvas-Container nimmt gesamten Screen ein */
+:fullscreen #canvas-box {
+    height: 100vh;
+}
+
+/* Canvas skaliert komplett hoch,
+   behält 720x480 Seitenverhältnis */
+:fullscreen canvas {
+    height: 100vh;  /* volle Höhe */
+    width: auto;    /* Breite proportional */
+    max-width: none;
+    max-height: none;
+}
+
+/* ======================================= */
+
 #control{
-    position: fixed; /* Überlagert den gesamten Bildschirm */
+    position: fixed;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
     width: 70%;
     height: 60%;
-    background-color: #b7694dec; /* Dunkler Hintergrund mit Transparenz */
+    background-color: #b7694dec;
     border-radius: 10px;
     color: #fff;
     font-family: 'Noto Sans', sans-serif;
-    z-index: 1000; /* Sicherstellen, dass das Overlay oben bleibt */
+    z-index: 1000;
     display: none;
 }
 
@@ -97,6 +134,7 @@ canvas{
     padding-top: 16px;
     padding-bottom: 16px;
 }
+
 .controls{
     display: flex;
     align-items: center;
@@ -191,41 +229,44 @@ canvas{
     justify-content: center;
     align-items: center;
     height: 70vh;
+
     background-image: url('img/index/background.jpg');
+    background-size: cover;
+    background-position: center;
 }
 
-/* Startoverlay Container */
+/* Startoverlay */
 #startoverlay {
-    position: fixed; /* Überlagert den gesamten Bildschirm */
+    position: fixed;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
     width: 50%;
     height: 50%;
-    background-color: #b7694dec; /* Dunkler Hintergrund mit Transparenz */
+    background-color: #b7694dec;
     border-radius: 10px;
     display: flex;
     flex-direction: column;
-    justify-content: center; /* Zentriert vertikal */
-    align-items: center; /* Zentriert horizontal */
+    justify-content: center;
+    align-items: center;
     color: #fff;
     font-family: 'NinjaNaruto', sans-serif;
-    z-index: 1000; /* Sicherstellen, dass das Overlay oben bleibt */
+    z-index: 1000;
 }
 
 #story{
-    position: fixed; /* Überlagert den gesamten Bildschirm */
+    position: fixed;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
     width: 70%;
     height: 60%;
-    background-color: #b7694dec; /* Dunkler Hintergrund mit Transparenz */
+    background-color: #b7694dec;
     border-radius: 10px;
     color: #fff;
     font-family: 'Noto Sans', sans-serif;
     font-size: 20px;
-    z-index: 1000; /* Sicherstellen, dass das Overlay oben bleibt */
+    z-index: 1000;
     display: none;
 }
 
@@ -236,7 +277,6 @@ canvas{
     justify-content: center;
     align-items: center;
     font-family: 'NinjaNaruto', sans-serif;
-    font-style: normal;
     text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.5);
     font-size: 36px;
     height: 64px;
@@ -259,18 +299,18 @@ canvas{
 }
 
 #impressum{
-    position: fixed; /* Überlagert den gesamten Bildschirm */
+    position: fixed;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
     width: 70%;
     height: 50%;
-    background-color: #b7694dec; /* Dunkler Hintergrund mit Transparenz */
+    background-color: #b7694dec;
     border-radius: 10px;
     color: #fff;
     font-family: 'Noto Sans', sans-serif;
     font-size: 20px;
-    z-index: 1000; /* Sicherstellen, dass das Overlay oben bleibt */
+    z-index: 1000;
     display: none;
 }
 
@@ -336,7 +376,6 @@ canvas{
     position: fixed;
     right: 8px;
     top:210px;
-
 }
 
 .fullscreen-button img{
@@ -354,7 +393,7 @@ canvas{
 
 /* Buttons */
 button {
-    background-color: #292929c6; /* Dunkler Hintergrund für Buttons */
+    background-color: #292929c6;
     color: #efefef;
     width: 200px;
     font-size: 20px;
@@ -363,11 +402,11 @@ button {
     border: none;
     border-radius: 10px;
     cursor: pointer;
-    transition: all 0.3s ease; /* Sanfte Übergänge für Hover-Effekte */
+    transition: all 0.3s ease;
 }
 
 button:hover {
-    background-color: #666; /* Hellerer Hintergrund, wenn der Button überfahren wird */
+    background-color: #666;
 }
 
 /* === GAME OVER & WIN OVERLAY === */
@@ -381,7 +420,7 @@ button:hover {
     height: 40%;
     background-color: #b7694dec;
     border-radius: 10px;
-    display: none;                 /* wird per JS auf flex gesetzt */
+    display: none;
     flex-direction: column;
     justify-content: center;
     align-items: center;
@@ -402,15 +441,3 @@ button:hover {
 .overlay-buttons{
     gap: 20px;
 }
-
-
-/* .info-screen {
-    display: flex;
-    justify-content: space-around;
-    flex-direction: column;
-    width: 95%;
-    background-color: black;
-    height: 100%;
-    border-radius: 10px;
-    padding: 10px;
- } */

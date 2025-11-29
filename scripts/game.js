@@ -226,7 +226,7 @@ function turnOnMusic() {
     world.character && world.character.hurt_sound,
     world.character && world.character.death_sound,
     // Boss-Intro / Alert-Sound
-    world.endbossAlertSound
+
   ];
 
   if (world.endboss) {
@@ -262,8 +262,15 @@ function turnOnMusic() {
 }
 
 function fullscreen() {
-  let fullscreen = document.getElementById('canvas');
-  enterFullscreen(fullscreen);
+  // Prüfen, ob wir bereits im Vollbildmodus sind
+  if (document.fullscreenElement || document.webkitFullscreenElement || document.msFullscreenElement) {
+    // → Vollbild verlassen
+    exitFullscreen();
+  } else {
+    // → Vollbild aktivieren
+    const elem = document.documentElement; // <html>
+    enterFullscreen(elem);
+  }
 }
 
 function enterFullscreen(element) {
@@ -281,8 +288,11 @@ function exitFullscreen() {
     document.exitFullscreen();
   } else if (document.webkitExitFullscreen) {
     document.webkitExitFullscreen();
+  } else if (document.msExitFullscreen) {
+    document.msExitFullscreen();
   }
 }
+
 
 /* ========= Keyboard ========= */
 
