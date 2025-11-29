@@ -31,7 +31,7 @@ class DrawableObject {
         if (this instanceof Character || this instanceof Orc || this instanceof Endboss || this instanceof Coin || this instanceof Kunai) {
             ctx.beginPath();
             ctx.lineWidth = '2';
-            ctx.strokeStyle = 'blue';
+            ctx.strokeStyle = 'transparent';  //==> hitbox visibility
             ctx.rect(this.x + this.offset.x, 
                 this.y + this.offset.y, 
                 this.width - this.offset.width, 

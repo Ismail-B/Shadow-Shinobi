@@ -2,6 +2,13 @@ class Character extends MovableObject {
     width = 100;
     speed = 10;
 
+        offset = {
+        x: 10,
+        y: 0,
+        width: 27,
+        height: 0
+    };
+
     // Wieviel Schaden pro Treffer durch Gegner
     DAMAGE_PER_HIT = 20;
 
@@ -271,7 +278,7 @@ class Character extends MovableObject {
         // wenn in dieser Attacke schon jemand getroffen wurde → nichts mehr
         if (this._hasDealtDamageThisAttack) return;
 
-        const range = 40;
+        const range = 0;
         const height = this.height * 0.6;
         const y = this.y + this.height * 0.2;
         const facingRight = !this.otherDirection;
