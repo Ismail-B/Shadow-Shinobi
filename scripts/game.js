@@ -82,10 +82,24 @@ function resetOrcAudioState() {
 }
 
 /**
- * Initialisiert Canvas, World und Mobile-Setup.
+ * Initialisiert Canvas, World und Mobile-Setup
+ * und schaltet vom Menü ins Spiel.
  */
 function init() {
-  canvas = document.getElementById('canvas');
+  // Spielzustand aktiv
+  document.body.classList.add('game-running');
+
+  const startOverlay = document.getElementById('startoverlay');
+  const canvasEl = document.getElementById('canvas');
+
+  if (startOverlay) {
+    startOverlay.style.display = 'none';
+  }
+  if (canvasEl) {
+    canvasEl.style.display = 'block';
+  }
+
+  canvas = canvasEl;
   resetOrcAudioState();
   world = new World(canvas, keyboard);
 
@@ -100,7 +114,7 @@ function init() {
 }
 
 /**
- * Blendet Canvas/Startscreen um.
+ * Blendet Canvas/Startscreen um (für Story/Controls/Impressum).
  * @param {string} canvasId
  */
 function toggle(canvasId) {
@@ -141,7 +155,12 @@ function restartGame() {
   hideEndOverlays();
 
   const canvasEl = document.getElementById('canvas');
-  canvasEl.style.display = 'block';
+  if (canvasEl) {
+    canvasEl.style.display = 'block';
+  }
+
+  // Sicherstellen, dass wir im "Spiel läuft"-Zustand sind
+  document.body.classList.add('game-running');
 
   world = new World(canvasEl, keyboard);
   applyMuteStateToWorld();
@@ -162,12 +181,20 @@ function backToMenu() {
   hideEndOverlays();
 
   const canvasEl = document.getElementById('canvas');
-  canvasEl.style.display = 'none';
+  if (canvasEl) {
+    canvasEl.style.display = 'none';
+  }
 
   const startOverlay = document.getElementById('startoverlay');
-  startOverlay.style.display = 'flex';
+  if (startOverlay) {
+    startOverlay.style.display = 'flex';
+  }
 
   world = null;
+
+  // Spielzustand beenden → Header/Footer werden wieder sichtbar (über CSS)
+  document.body.classList.remove('game-running');
+
   handleOrientation();
   updateFullscreenButtonVisibility();
 }

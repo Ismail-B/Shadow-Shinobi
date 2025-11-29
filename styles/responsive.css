@@ -167,3 +167,241 @@
         font-size: 10px;
     }
 }
+
+
+
+/* =========================================================
+   MOBILE / TABLET LANDSCAPE: MENÜ + SPIEL
+   ========================================================= */
+@media screen and (max-width: 912px) and (orientation: landscape) {
+
+    /* Grundgröße anpassen */
+    body {
+        font-size: 16px;
+    }
+
+    /* ============================================
+       HEADER & FOOTER GLEICHE HÖHE (70px)
+       ============================================ */
+    header,
+    footer {
+        height: 70px !important;
+        min-height: 70px !important;
+        display: flex;
+        align-items: center;
+        padding-inline: 8px;
+        box-sizing: border-box;
+    }
+
+    header img {
+        width: 60px;
+        margin-left: 8px;
+        margin-right: 8px;
+    }
+
+    header h2 {
+        font-size: clamp(20px, 3vw, 26px);
+    }
+
+    /* Footer-Innenleben NICHT größer machen */
+    .footer-content {
+        height: 100%;
+        min-height: 0;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background-color: #B7694D;
+        margin: 0;
+        padding: 0;
+    }
+
+    footer img {
+        width: 40px;
+        height: 40px;
+        margin: 0 8px 0 0;
+    }
+
+    .signature {
+        font-size: 12px;
+        line-height: 1.2;
+        margin: 0;
+        padding: 0;
+    }
+
+    /* Copyright-Zeile ausblenden, sonst wird Footer höher */
+    .under-signature {
+        display: none;
+    }
+
+    /* ============================================
+       CANVAS-Container
+       ============================================ */
+    /* Canvas-Box soll den gesamten Bereich zwischen Header und Footer füllen */
+    #canvas-box {
+        flex: 1 1 auto;
+        height: calc(100vh - 140px); /* 70px Header + 70px Footer */
+        max-height: calc(100vh - 140px);
+        padding: 0; /* wichtig, sonst entstehen Ränder */
+        margin: 0;
+    }
+
+    canvas {
+        width: 100%;
+        height: auto;
+        max-width: 100%;
+        border-width: 6px;
+    }
+
+#startoverlay {
+    width: 80%;
+    max-width: 500px;
+    height: auto;
+    box-sizing: border-box;
+
+    /* mehr Höhe geben */
+    padding: 32px 16px 28px;
+
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+
+    /* Overlay darf nicht über Header/Footer hinaus,
+       aber soll bei normalen Höhen ruhig „groß“ sein */
+    max-height: calc(100vh - 160px);
+    min-height: 50vh;   /* NEU: mindestens halbe Bildschirmhöhe */
+}
+
+/* Gruppe der drei Hauptbuttons */
+#startoverlay .menu-main {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+}
+
+/* Hauptbuttons */
+#startoverlay .menu-main button {
+    width: 80%;
+    max-width: 260px;
+    font-size: clamp(14px, 2.4vw, 18px);
+    padding: 10px 16px;
+    margin: 0;
+}
+
+/* Impressum-Button */
+#startoverlay .impressum-button {
+    align-self: center;
+    margin-top: 10px;
+    background: none;
+    border: none;
+    text-decoration: underline;
+    font-size: clamp(12px, 2vw, 16px);
+    padding: 0;
+}
+
+
+    /* ============================================
+       Overlays kleiner machen
+       ============================================ */
+    #control,
+    #story,
+    #impressum {
+        width: 90%;
+        height: auto;
+        max-height: 80vh;
+        overflow-y: auto;
+        font-size: 14px;
+    }
+
+    .story-headline,
+    .control-headline {
+        font-size: 24px;
+        height: auto;
+        padding: 8px 0;
+    }
+
+    .background-story {
+        padding: 12px 16px;
+    }
+
+    /* ============================================
+       SOUND / FULLSCREEN BUTTONS
+       ============================================ */
+    .sound-button,
+    .fullscreen-button {
+        right: 8px;
+    }
+
+    .sound-button {
+        top: 80px;
+    }
+
+    .fullscreen-button {
+        top: 130px;
+    }
+
+    .sound-button img,
+    .fullscreen-button img {
+        width: 30px;
+        padding: 4px;
+    }
+
+    /* ============================================
+       SPIEL LÄUFT → Header & Footer weg, Canvas full
+       ============================================ */
+    body.game-running header,
+    body.game-running footer {
+        display: none !important;
+    }
+
+    body.game-running #canvas-box {
+        height: 100vh;
+        padding: 0;
+    }
+
+    body.game-running canvas {
+        width: 100vw;
+        height: 100vh;
+        max-width: none;
+        max-height: none;
+        border-width: 0;
+        border-radius: 0;
+    }
+
+    body.game-running #startoverlay,
+    body.game-running #control,
+    body.game-running #story,
+    body.game-running #impressum {
+        display: none !important;
+    }
+}
+
+
+/* Sehr flache Landscape-Screens: Menü kompakter machen */
+@media screen and (max-width: 912px) and (max-height: 550px) and (orientation: landscape) {
+
+    #startoverlay {
+        padding: 16px 8px 12px;
+    }
+
+    #startoverlay .menu-main {
+        gap: 8px;
+    }
+
+    #startoverlay .menu-main button {
+        width: 70%;
+        max-width: 220px;
+        font-size: 14px;
+        padding: 6px 10px;
+    }
+
+    #startoverlay .impressum-button {
+        font-size: 12px;
+        margin-top: 4px;
+    }
+}

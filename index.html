@@ -156,14 +156,17 @@
     <!-- ===================================================
          START-OVERLAY (HAUPTMENÜ)
          =================================================== -->
-    <div id="startoverlay">
-      <button onclick="init(),toggle('canvas')">Start</button>
-      <button onclick="toggle('control')">Controls</button>
-      <button onclick="toggle('story')">Story</button>
-      <button class="impressum-button" onclick="toggle('impressum')">
-        Impressum
-      </button>
-    </div>
+<div id="startoverlay">
+  <div class="menu-main">
+    <button onclick="init()">Start</button>
+    <button onclick="toggle('control')">Controls</button>
+    <button onclick="toggle('story')">Story</button>
+  </div>
+
+  <button class="impressum-button" onclick="toggle('impressum')">
+    Impressum
+  </button>
+</div>
 
     <!-- ===================================================
          GAME OVER OVERLAY
@@ -340,7 +343,7 @@
          FOOTER
          =================================================== -->
     <footer>
-      <div class="footer">
+      <div class="footer-content">
         <img src="img/8_coin/ninja-logo2.png" alt="Footer Logo" />
         <p class="signature">
           Shadow Shinobi <br />

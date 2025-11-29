@@ -64,7 +64,7 @@ footer img {
     margin-bottom: 18px;
 }
 
-.footer {
+.footer-content {
     display: flex;
     justify-content: center;
     align-items: flex-end;
@@ -96,19 +96,22 @@ footer img {
     display: flex;
     justify-content: center;
     align-items: center;
-    height: 70vh;
+
+    /* Canvas-Bereich soll sich dynamisch füllen */
+    flex: 1 1 auto;
+
     background-image: url('img/index/background.jpg');
     background-size: cover;
     background-position: center;
+    overflow: hidden;
 }
 
 canvas {
-    background-color: black;
-    border: 10px solid #B7694D;
-    border-radius: 8px;
-    display: none;
+    width: auto;
+    height: 100%;
+    max-height: 100%;
     max-width: 100%;
-    height: auto;
+    object-fit: contain;
 }
 
 
@@ -160,27 +163,39 @@ canvas {
     display: none;
 }
 
+/* Startmenü-Overlay: zentriert, klassische Größe */
 #startoverlay {
-    width: 50%;
-    height: 50%;
+    padding-top: 30px;
+    width: 60%;
+    height: 40%;
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
 }
 
-#story {
-    width: 70%;
-    height: 60%;
-    font-family: 'Noto Sans', sans-serif;
-    font-size: 20px;
+/* Container für die drei Hauptbuttons (Start / Controls / Story) */
+#startoverlay .menu-main {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
 }
 
-#impressum {
-    width: 70%;
-    height: 50%;
-    font-family: 'Noto Sans', sans-serif;
-    font-size: 20px;
+/* Hauptbuttons im Desktop: wie gehabt */
+#startoverlay .menu-main button {
+    width: 200px;               /* entspricht deinem globalen button-Style */
+    margin: 0;
+}
+
+/* Impressum-Button unten drunter */
+#startoverlay .impressum-button {
+    margin-top: 12px;
+    background-color: transparent;
+    border: none;
+    text-decoration: underline;
+    cursor: pointer;
 }
 
 /* Story Headline */
