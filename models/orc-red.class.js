@@ -1,7 +1,20 @@
+/**
+ * Roter Orc-Gegner (größer als der grüne Orc).
+ * @extends Orc
+ */
 class OrcRed extends Orc {
+  /**
+   * Grund-Y-Position des Orcs.
+   * @type {number}
+   */
   y = 240;
+
+  /**
+   * Erstellt einen roten Orc und lädt seine Animationen.
+   */
   constructor() {
     super();
+
     this.height = 120;
     this.width = 80;
 

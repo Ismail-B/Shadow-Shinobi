@@ -1,223 +1,322 @@
+/**
+ * Basisklasse aller Orc-Gegner.
+ * Verantwortlich für Spawn, Bewegung, Sounds und Tod.
+ * @extends MovableObject
+ */
 class Orc extends MovableObject {
-  height = 100;
-  width = 70;
-  y = 265;
+    height = 100;
+    width = 70;
+    y = 265;
 
-  IMAGES_WALKING = [];
-  DEAD_IMAGES = []; // von Subklassen befüllt
+    /** @type {string[]} */
+    IMAGES_WALKING = [];
 
-  isDying = false;
-  collidable = true;
+    /** @type {string[]} */
+    DEAD_IMAGES = [];
 
-  walking_sound = new Audio('audio/running.mp3');
+    isDying = false;
+    collidable = true;
 
-  // ---------------- Gemeinsame Orc-Sounds ----------------
-  static voiceClips = [
-    new Audio('audio/orc.mp3'),
-    new Audio('audio/orc1.mp3'),
-    new Audio('audio/orc2.mp3'),
-  ];
+    walking_sound = new Audio('audio/running.mp3');
 
-  static instances = [];
-  static lastVoiceTime = 0;
-  static lastVoiceIndex = -1;
-  static voiceLoopId = null;
+    // Globale Orc-Sounds
+    static voiceClips = [
+        new Audio('audio/orc.mp3'),
+        new Audio('audio/orc1.mp3'),
+        new Audio('audio/orc2.mp3')
+    ];
 
-  // ---- Spawn-Parameter ----
-  static MIN_SPAWN_X = 2000;
-  static MAX_SPAWN_X = 7000;
-  static MIN_SPAWN_DISTANCE = 220;
+    static instances = [];
+    static lastVoiceTime = 0;
+    static lastVoiceIndex = -1;
+    static voiceLoopId = null;
 
-  // Intervalle pro Instanz
-  moveLeftInterval = null;
-  playAnimationInterval = null;
+    // Spawn-Parameter
+    static MIN_SPAWN_X = 2000;
+    static MAX_SPAWN_X = 7000;
+    static MIN_SPAWN_DISTANCE = 220;
 
-  // Death-Anim
-  _deadIndex = 0;
-  _deadTimer = null;
-  _deadFrameMs = 90;
+    moveLeftInterval = null;
+    playAnimationInterval = null;
 
-  constructor() {
-    super().loadImage('img/3_enemies_orcs/orc_green/1_walk/Walk_1.png');
-    this.loadImages(this.IMAGES_WALKING);
-    if (this.DEAD_IMAGES?.length) this.loadImages(this.DEAD_IMAGES);
+    _deadIndex = 0;
+    _deadTimer = null;
+    _deadFrameMs = 90;
 
-    // Spawn-Position mit Abstand
-    this.x = this.getSpawnXWithMinDistance();
+    constructor() {
+        super().loadImage('img/3_enemies_orcs/orc_green/1_walk/Walk_1.png');
 
-    // Orc-Variationen
-    this.speed = 0.15 + Math.random() * 3.5;
+        this.loadImages(this.IMAGES_WALKING);
+        if (this.DEAD_IMAGES.length) this.loadImages(this.DEAD_IMAGES);
 
-    Orc.instances.push(this);
-    Orc.startVoiceLoop();
+        this.x = this.getSpawnXWithMinDistance();
+        this.speed = 0.15 + Math.random() * 3.5;
 
-    this.animate();
-  }
+        Orc.instances.push(this);
+        Orc.startVoiceLoop();
 
-  /** Spawn mit Mindestabstand zu anderen Orcs */
-  getSpawnXWithMinDistance() {
-    const minX = Orc.MIN_SPAWN_X;
-    const maxX = Orc.MAX_SPAWN_X;
-    const minDist = Orc.MIN_SPAWN_DISTANCE;
+        this.startMoveLoop();
+        this.startAnimationLoop();
+    }
 
-    for (let tries = 0; tries < 50; tries++) {
-      const candidate = minX + Math.random() * (maxX - minX);
-      let ok = true;
+    /**
+     * Sucht eine Spawnposition mit Mindestabstand.
+     * @returns {number}
+     */
+    getSpawnXWithMinDistance() {
+        const minX = Orc.MIN_SPAWN_X;
+        const maxX = Orc.MAX_SPAWN_X;
+        const minDist = Orc.MIN_SPAWN_DISTANCE;
 
-      for (const o of Orc.instances) {
-        if (!o) continue;
-
-        if (Math.abs(candidate - o.x) < minDist) {
-          ok = false;
-          break;
+        for (let tries = 0; tries < 50; tries++) {
+            const candidate = minX + Math.random() * (maxX - minX);
+            if (this.isSpawnPositionValid(candidate, minDist)) {
+                return candidate;
+            }
         }
-      }
-
-      if (ok) return candidate;
+        return minX + Math.random() * (maxX - minX);
     }
 
-    return minX + Math.random() * (maxX - minX);
-  }
-
-  // -------- ORC GLOBALER SOUND LOOP --------
-  static startVoiceLoop() {
-    if (Orc.voiceLoopId) {
-      clearInterval(Orc.voiceLoopId);
-      Orc.voiceLoopId = null;
-    }
-
-    Orc.voiceLoopId = setInterval(() => {
-      Orc.checkAndPlayVoice();
-    }, 400);
-  }
-
-  static checkAndPlayVoice() {
-    const now = Date.now();
-
-    let visibleOrcs = 0;
-    for (const orc of Orc.instances) {
-      if (orc && !orc.isDying && orc.isVisibleAndChasing()) {
-        visibleOrcs++;
-      }
-    }
-
-    if (!visibleOrcs) return;
-
-    const baseDelay = 4500;
-    const minDelay = 1200;
-    const neededDelay = Math.max(minDelay, baseDelay / visibleOrcs);
-
-    if (now - Orc.lastVoiceTime < neededDelay) return;
-
-    Orc.lastVoiceIndex = (Orc.lastVoiceIndex + 1) % Orc.voiceClips.length;
-    const clip = Orc.voiceClips[Orc.lastVoiceIndex];
-
-    clip.volume = 0.25;
-    clip.playbackRate = 0.9 + Math.random() * 0.2;
-    clip.currentTime = 0;
-
-    clip.play().catch(() => {});
-    Orc.lastVoiceTime = now;
-  }
-
-  static resetAudioState() {
-    if (Orc.voiceLoopId) {
-      clearInterval(Orc.voiceLoopId);
-      Orc.voiceLoopId = null;
-    }
-    Orc.instances = [];
-    Orc.lastVoiceTime = 0;
-    Orc.lastVoiceIndex = -1;
-  }
-
-  isVisibleAndChasing() {
-    let onScreen = true;
-
-    if (typeof this.isInCamera === 'function') {
-      onScreen = this.isInCamera();
-    } else if (typeof world !== 'undefined' && world && world.canvas) {
-      const camX = world.camera_x || 0;
-      const canvasWidth = world.canvas.width || 720;
-      const sx = this.x + camX;
-      onScreen = sx + this.width > -100 && sx < canvasWidth + 100;
-    }
-
-    if (!onScreen) return false;
-
-    if (typeof world !== 'undefined' && world && world.character) {
-      return this.x > world.character.x - 50 && !this.otherDirection;
-    }
-
-    return true;
-  }
-
-  // --------- Animation ---------
-  animate() {
-    this.moveLeftInterval = setInterval(() => {
-      // Während Boss-Intro stehen bleiben
-      if (this.world && this.world.bossIntroActive) {
-        return;
-      }
-
-      if (!this.isDying) {
-        this.moveLeft();
-        this.otherDirection = false;
-      }
-    }, 1000 / 60);
-
-    this.playAnimationInterval = setInterval(() => {
-      // Während Boss-Intro keine Lauf-Animation (Orc „friert ein“)
-      if (this.world && this.world.bossIntroActive) {
-        return;
-      }
-
-      if (!this.isDying) {
-        this.playAnimation(this.IMAGES_WALKING);
-      }
-    }, 200);
-  }
-
-  // --------- TOD ---------
-  die() {
-    if (this.isDying) return;
-    this.isDying = true;
-    this.speed = 0;
-
-    // 👉 EINMALIGER TODESSOUND
-    const dyingSound = new Audio('audio/orc-dying.mp3');
-    dyingSound.volume = 0.35;
-    dyingSound.currentTime = 0;
-    if (typeof world !== 'undefined' && world && world.music instanceof Audio) {
-      dyingSound.muted = world.music.muted;
-    }
-    dyingSound.play();
-
-    clearInterval(this.moveLeftInterval);
-    clearInterval(this.playAnimationInterval);
-
-    const ow = this.width;
-    const oh = this.height;
-    this.width = ow * 1.4;
-    this.height = oh * 0.8;
-    this.y += oh * 0.2;
-
-    this._deadIndex = 0;
-    if (this.DEAD_IMAGES?.length) {
-      this.img = this.imageCache[this.DEAD_IMAGES[0]];
-    }
-
-    this._deadTimer = setInterval(() => {
-      if (this._deadIndex < this.DEAD_IMAGES.length - 1) {
-        this._deadIndex++;
-        this.img = this.imageCache[this.DEAD_IMAGES[this._deadIndex]];
-
-        if (this._deadIndex === this.DEAD_IMAGES.length - 1) {
-          this.collidable = false;
+    /**
+     * Prüft Mindestabstand zu vorhandenen Orcs.
+     * @param {number} candidate
+     * @param {number} minDist
+     * @returns {boolean}
+     */
+    isSpawnPositionValid(candidate, minDist) {
+        for (const o of Orc.instances) {
+            if (!o) continue;
+            if (Math.abs(candidate - o.x) < minDist) return false;
         }
-      } else {
+        return true;
+    }
+
+    // ------------ Globaler Voice-Loop ------------
+
+    /**
+     * Startet den globalen Orc-Voice-Loop.
+     */
+    static startVoiceLoop() {
+        if (Orc.voiceLoopId) {
+            clearInterval(Orc.voiceLoopId);
+            Orc.voiceLoopId = null;
+        }
+
+        Orc.voiceLoopId = setInterval(() => {
+            Orc.checkAndPlayVoice();
+        }, 400);
+    }
+
+    /**
+     * Entscheidet, ob ein Orc-Sound gespielt wird.
+     */
+    static checkAndPlayVoice() {
+        const now = Date.now();
+        const visible = Orc.getVisibleOrcCount();
+
+        if (!visible) return;
+        if (!Orc.shouldPlayVoice(now, visible)) return;
+
+        Orc.playNextVoiceClip(now);
+    }
+
+    /**
+     * Zählt Orcs, die sichtbar und aktiv sind.
+     * @returns {number}
+     */
+    static getVisibleOrcCount() {
+        let count = 0;
+
+        for (const orc of Orc.instances) {
+            if (orc && !orc.isDying && orc.isVisibleAndChasing()) {
+                count++;
+            }
+        }
+        return count;
+    }
+
+    /**
+     * Prüft, ob genügend Zeit seit dem letzten Sound vergangen ist.
+     * @param {number} now
+     * @param {number} visibleCount
+     * @returns {boolean}
+     */
+    static shouldPlayVoice(now, visibleCount) {
+        const baseDelay = 4500;
+        const minDelay = 1200;
+        const neededDelay = Math.max(minDelay, baseDelay / visibleCount);
+
+        return now - Orc.lastVoiceTime >= neededDelay;
+    }
+
+    /**
+     * Spielt den nächsten Orc-Voice-Clip ab.
+     * @param {number} now
+     */
+    static playNextVoiceClip(now) {
+        Orc.lastVoiceIndex =
+            (Orc.lastVoiceIndex + 1) % Orc.voiceClips.length;
+
+        const clip = Orc.voiceClips[Orc.lastVoiceIndex];
+        clip.volume = 0.25;
+        clip.playbackRate = 0.9 + Math.random() * 0.2;
+        clip.currentTime = 0;
+
+        clip.play().catch(() => {});
+        Orc.lastVoiceTime = now;
+    }
+
+    /**
+     * Setzt globale Audio-State zurück (z.B. bei Restart).
+     */
+    static resetAudioState() {
+        if (Orc.voiceLoopId) {
+            clearInterval(Orc.voiceLoopId);
+            Orc.voiceLoopId = null;
+        }
+        Orc.instances = [];
+        Orc.lastVoiceTime = 0;
+        Orc.lastVoiceIndex = -1;
+    }
+
+    /**
+     * Prüft, ob der Orc im Sichtbereich ist und jagt.
+     * @returns {boolean}
+     */
+    isVisibleAndChasing() {
+        if (!this.isOnScreen()) return false;
+
+        if (typeof world !== 'undefined' && world && world.character) {
+            return this.x > world.character.x - 50 && !this.otherDirection;
+        }
+        return true;
+    }
+
+    /**
+     * Prüft Sichtbarkeit im Kameraausschnitt.
+     * @returns {boolean}
+     */
+    isOnScreen() {
+        if (typeof world === 'undefined' || !world || !world.canvas) {
+            return true;
+        }
+
+        const camX = world.camera_x || 0;
+        const canvasWidth = world.canvas.width || 720;
+        const sx = this.x + camX;
+
+        return sx + this.width > -100 && sx < canvasWidth + 100;
+    }
+
+    // ------------ Bewegung & Animation ------------
+
+    /**
+     * Startet die Bewegungs-Logik nach links.
+     */
+    startMoveLoop() {
+        this.moveLeftInterval = setInterval(() => {
+            if (this.world?.bossIntroActive) return;
+            if (this.isDying) return;
+
+            this.moveLeft();
+            this.otherDirection = false;
+        }, 1000 / 60);
+    }
+
+    /**
+     * Startet die Laufanimation.
+     */
+    startAnimationLoop() {
+        this.playAnimationInterval = setInterval(() => {
+            if (this.world?.bossIntroActive) return;
+            if (this.isDying) return;
+
+            this.playAnimation(this.IMAGES_WALKING);
+        }, 200);
+    }
+
+    // ------------ Tod ------------
+
+    /**
+     * Löst die Todes-Sequenz aus.
+     */
+    die() {
+        if (this.isDying) return;
+
+        this.isDying = true;
+        this.speed = 0;
+
+        this.playDeathSound();
+        this.stopOrcIntervals();
+        this.prepareDeathSprite();
+        this.startDeathAnimation();
+    }
+
+    /**
+     * Spielt den Todessound des Orcs.
+     */
+    playDeathSound() {
+        const s = new Audio('audio/orc-dying.mp3');
+        s.volume = 0.35;
+        s.currentTime = 0;
+
+        if (typeof world !== 'undefined' && world?.music instanceof Audio) {
+            s.muted = world.music.muted;
+        }
+        s.play().catch(() => {});
+    }
+
+    /**
+     * Stoppt Bewegungs- und Animations-Intervalle.
+     */
+    stopOrcIntervals() {
+        clearInterval(this.moveLeftInterval);
+        clearInterval(this.playAnimationInterval);
+    }
+
+    /**
+     * Skaliert Sprite und setzt erste Death-Frame.
+     */
+    prepareDeathSprite() {
+        const ow = this.width;
+        const oh = this.height;
+
+        this.width = ow * 1.4;
+        this.height = oh * 0.8;
+        this.y += oh * 0.2;
+
+        this._deadIndex = 0;
+        if (this.DEAD_IMAGES.length) {
+            this.img = this.imageCache[this.DEAD_IMAGES[0]];
+        }
+    }
+
+    /**
+     * Startet die Death-Frame-Animation.
+     */
+    startDeathAnimation() {
+        this._deadTimer = setInterval(() => {
+            this.updateDeathFrame();
+        }, this._deadFrameMs);
+    }
+
+    /**
+     * Aktualisiert ein Death-Frame.
+     */
+    updateDeathFrame() {
+        const lastIndex = this.DEAD_IMAGES.length - 1;
+
+        if (this._deadIndex < lastIndex) {
+            this._deadIndex++;
+            this.img = this.imageCache[this.DEAD_IMAGES[this._deadIndex]];
+
+            if (this._deadIndex === lastIndex) {
+                this.collidable = false;
+            }
+            return;
+        }
+
         clearInterval(this._deadTimer);
         this.collidable = false;
-      }
-    }, this._deadFrameMs);
-  }
+    }
 }

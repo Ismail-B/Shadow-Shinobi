@@ -1,18 +1,25 @@
+/**
+ * Repräsentiert den Endboss des Levels.
+ * Steuert Leben, Animationen, Angriffe und einfache AI.
+ * @extends MovableObject
+ */
 class Endboss extends MovableObject {
     width = 380;
     height = 280;
     x = 3850;
     y = 110;
     speed = 2;
+
     offset = {
-        x: 50,
-        y: 15,
-        width: 260,
-        height: 50,
+        x: 0,
+        y: 0,
+        width: 0,
+        height: 0
     };
-    attackHitbox = { 
-        x: 0, 
-        y: 0, 
+
+    attackHitbox = {
+        x: 0,
+        y: 0,
         width: 380,
         height: 180
     };
@@ -48,11 +55,11 @@ class Endboss extends MovableObject {
     // Attack / Hitbox
     attacking = false;
     attackFrameIndex = 0;
-    currentAttackFrame = 0; // aktuell angezeigtes Attack-Frame
+    currentAttackFrame = 0;
     isMoving = false;
 
     // Boss → Character Schaden-Cooldown
-    damageInterval = 600; 
+    damageInterval = 600;
     lastDamageDealtAt = 0;
 
     // Cooldown zwischen zwei Attack-Starts
@@ -60,9 +67,9 @@ class Endboss extends MovableObject {
     lastAttackStartedAt = 0;
 
     // Spawn / Aktivierung
-    activated = false;        // wird erst aktiv, wenn der Spieler ihn „sieht“
-    activationTime = 0;       // lassen wir drin, aber brauchen es nicht mehr direkt
-    viewDistance = 720;       // wie weit der Spieler „sehen“ kann
+    activated = false;
+    activationTime = 0;
+    viewDistance = 720;
 
     // --- Audio ---
     attack_sound = new Audio('audio/endboss-attack.mp3');
@@ -71,7 +78,7 @@ class Endboss extends MovableObject {
         new Audio('audio/endboss-hurt.mp3'),
         new Audio('audio/endboss-hurt2.mp3')
     ];
-    nextHurtIndex = 0;       // 0 / 1 → wechselt zwischen hurt und hurt2
+    nextHurtIndex = 0;
     _deathSoundPlayed = false;
 
     // Animationen
@@ -140,10 +147,14 @@ class Endboss extends MovableObject {
         'img/4_enemie_boss_orc/3_attack/Attack_009.png'
     ];
 
+    /**
+     * Erzeugt den Endboss, lädt alle Animationen
+     * und startet die Animations-/AI-Loops.
+     */
     constructor() {
         super().loadImage(this.IMAGES_ALERT[0]);
-        this.baseY = this.y;
 
+        this.baseY = this.y;
         this.isEndboss = true;
 
         this.loadImages(this.IMAGES_WALKING);
@@ -152,88 +163,162 @@ class Endboss extends MovableObject {
         this.loadImages(this.IMAGES_DEAD);
         this.loadImages(this.IMAGES_ATTACK);
 
-        // Boss soll IMMER nach links schauen
         this.otherDirection = true;
-
-        // Grundlautstärke der Boss-Sounds
-        if (this.attack_sound) this.attack_sound.volume = 0.5;
-        if (this.dying_sound)  this.dying_sound.volume  = 0.6;
-        this.hurt_sounds.forEach(s => s.volume = 0.55);
-
+        this.initSoundVolumes();
         this.animate();
     }
 
-    /** Boss bekommt Schaden vom Spieler (Nahkampf oder Kunai) */
+
+    /**
+     * Setzt die Grundlautstärke der Boss-Sounds.
+     * @returns {void}
+     */
+    initSoundVolumes() {
+        if (this.attack_sound) this.attack_sound.volume = 0.5;
+        if (this.dying_sound) this.dying_sound.volume = 0.6;
+
+        this.hurt_sounds.forEach(sound => {
+            sound.volume = 0.55;
+        });
+    }
+
+
+    /**
+     * Boss bekommt Schaden vom Spieler (Nahkampf/Kunai).
+     * @param {number} [damage=10] - ungenutzt, Logik zieht feste 20 ab.
+     * @returns {void}
+     */
     hit(damage = 10) {
         if (this.isDeadFlag) return;
 
         const now = performance.now();
         if (now - this.lastHitAt < this.minHitInterval) return;
-        this.lastHitAt = now;
 
-        // immer genau EINE "Lebenseinheit" (20) abziehen
+        this.lastHitAt = now;
+        this.applyBossDamage();
+    }
+
+
+    /**
+     * Wendet Schaden auf den Boss an und setzt States.
+     * @returns {void}
+     */
+    applyBossDamage() {
         this.energy -= 20;
         if (this.energy < 0) this.energy = 0;
 
-        if (this.world && this.world.statusBarEndboss) {
-            this.world.statusBarEndboss.setPercentage(this.energy);
-        }
+        this.updateBossLifebar();
+        this.setHurtState();
+        this.playHurtSound();
 
+        if (this.energy === 0) {
+            this.handleBossDeath();
+        }
+    }
+
+
+    /**
+     * Aktualisiert die Lebensleiste des Bosses.
+     * @returns {void}
+     */
+    updateBossLifebar() {
+        if (!this.world || !this.world.statusBarEndboss) return;
+
+        this.world.statusBarEndboss.setPercentage(this.energy);
+    }
+
+
+    /**
+     * Versetzt den Boss in den Hurt-State.
+     * @returns {void}
+     */
+    setHurtState() {
         this.isMoving = false;
         this.hurtPlaying = true;
         this.hurtFrameIndex = 0;
         this.img = this.imageCache[this.IMAGES_HURT[0]];
-
-        // Hurt-Sound (abwechselnd)
-        this.playHurtSound();
-
-        if (this.energy === 0) {
-            this.isDeadFlag = true;
-            this.collidable = false;
-            this.isDying = true;
-            this.deathPlaying = true;
-            this.deathFrameIndex = 0;
-            this.attacking = false;
-            this.isMoving = false;
-
-            this.y = this.baseY + this.deadYOffset;
-            this.img = this.imageCache[this.IMAGES_DEAD[0]];
-
-            // Todes-Sound nur einmal
-            this.playDeathSound();
-        }
     }
 
+
+    /**
+     * Behandelt den Übergang in den Death-State.
+     * @returns {void}
+     */
+    handleBossDeath() {
+        this.isDeadFlag = true;
+        this.collidable = false;
+        this.isDying = true;
+        this.deathPlaying = true;
+        this.deathFrameIndex = 0;
+        this.attacking = false;
+        this.isMoving = false;
+
+        this.y = this.baseY + this.deadYOffset;
+        this.img = this.imageCache[this.IMAGES_DEAD[0]];
+        this.playDeathSound();
+    }
+
+
+    /**
+     * Prüft, ob der Boss tot ist.
+     * @returns {boolean}
+     */
     isDead() {
         return this.isDeadFlag;
     }
 
-    /** Boss → Player Damage Check */
-    canDamagePlayer() {
-        if (!this.attacking || this.isDeadFlag || this.hurtPlaying || this.deathPlaying) {
-            return false;
-        }
 
-        // NUR in Attack-Frames 4 & 5 (→ Bilder 5 & 6) Schaden machen
-        if (this.currentAttackFrame !== 4 && this.currentAttackFrame !== 5) {
-            return false;
-        }
+    /**
+     * Prüft, ob der Boss den Spieler aktuell schädigen darf.
+     * @returns {boolean}
+     */
+    canDamagePlayer() {
+        if (this.isDamageBlocked()) return false;
 
         const now = performance.now();
-        if (now - this.lastDamageDealtAt < this.damageInterval) return false;
-        this.lastDamageDealtAt = now;
+        if (now - this.lastDamageDealtAt < this.damageInterval) {
+            return false;
+        }
 
+        this.lastDamageDealtAt = now;
         return true;
     }
 
-    /** Angriff starten (mit Cooldown) */
+
+    /**
+     * Prüft Blocker für Boss → Player-Schaden.
+     * @returns {boolean}
+     */
+    isDamageBlocked() {
+        if (!this.attacking || this.isDeadFlag) return true;
+        if (this.hurtPlaying || this.deathPlaying) return true;
+
+        const frame = this.currentAttackFrame;
+        return frame !== 4 && frame !== 5;
+    }
+
+
+    /**
+     * Startet einen Angriff, falls Cooldown abgelaufen ist.
+     * @returns {boolean} true, wenn Angriff gestartet wurde.
+     */
     startAttack() {
         const now = performance.now();
-
         if (now - this.lastAttackStartedAt < this.attackCooldown) {
             return false;
         }
 
+        this.beginAttack(now);
+        return true;
+    }
+
+
+    /**
+     * Setzt die Attack-States und spielt Sound.
+     * @param {number} now - aktuelle Zeit.
+     * @returns {void}
+     */
+    beginAttack(now) {
         this.lastAttackStartedAt = now;
         this.attacking = true;
         this.attackFrameIndex = 0;
@@ -242,21 +327,17 @@ class Endboss extends MovableObject {
 
         this.otherDirection = true;
         this.img = this.imageCache[this.IMAGES_ATTACK[0]];
-
-        // Angriff-Sound pro Schlag
         this.playAttackSound();
-
-        return true;
     }
 
-    /** Skalierte Darstellung */
+
+    /**
+     * Zeichnet den Boss skaliert (Idle/Hurt/Dead/Attack).
+     * @param {CanvasRenderingContext2D} ctx - Canvas-Kontext.
+     * @returns {void}
+     */
     draw(ctx) {
-        let scale = this.scaleIdle;
-
-        if (this.hurtPlaying)       scale = this.scaleHurt;
-        else if (this.deathPlaying) scale = this.scaleDead;
-        else if (this.attacking)    scale = this.scaleAttack;
-
+        const scale = this.getCurrentScale();
         const w = this.width * scale;
         const h = this.height * scale;
 
@@ -266,130 +347,299 @@ class Endboss extends MovableObject {
         ctx.drawImage(this.img, dx, dy, w, h);
     }
 
+
+    /**
+     * Liefert den aktuellen Skalierungsfaktor je nach State.
+     * @returns {number}
+     */
+    getCurrentScale() {
+        if (this.hurtPlaying) return this.scaleHurt;
+        if (this.deathPlaying) return this.scaleDead;
+        if (this.attacking) return this.scaleAttack;
+
+        return this.scaleIdle;
+    }
+
+
+    /**
+     * Startet Animations- und AI-Schleifen.
+     * @returns {void}
+     */
     animate() {
-        // --- Animationslogik ---
+        this.startMainAnimationLoop();
+        this.startAiLoop();
+    }
+
+
+    /**
+     * Steuert die reinen Grafik-Animationen.
+     * @returns {void}
+     */
+    startMainAnimationLoop() {
         setInterval(() => {
-            if (this.deathPlaying)  return this.playDeathOnce();
-            if (this.hurtPlaying)   return this.playHurtOnce();
-            if (this.attacking)     return this.playAttackOnce();
-            if (this.isMoving)      return this.playAnimation(this.IMAGES_WALKING);
-            this.playAnimation(this.IMAGES_ALERT);
+            this.updateAnimation();
         }, 100);
+    }
 
-        // --- AI / Bewegung ---
+
+    /**
+     * Aktualisiert die Animation je nach State.
+     * @returns {void}
+     */
+    updateAnimation() {
+        if (this.deathPlaying) {
+            this.playDeathOnce();
+            return;
+        }
+
+        if (this.hurtPlaying) {
+            this.playHurtOnce();
+            return;
+        }
+
+        if (this.attacking) {
+            this.playAttackOnce();
+            return;
+        }
+
+        this.updateIdleOrWalkAnimation();
+    }
+
+
+    /**
+     * Spielt Alert- oder Walk-Animation ab.
+     * @returns {void}
+     */
+    updateIdleOrWalkAnimation() {
+        if (this.isMoving) {
+            this.playAnimation(this.IMAGES_WALKING);
+        } else {
+            this.playAnimation(this.IMAGES_ALERT);
+        }
+    }
+
+
+    /**
+     * Startet die AI-/Bewegungs-Logik.
+     * @returns {void}
+     */
+    startAiLoop() {
         setInterval(() => {
-
-            // 1) Noch NICHT aktiviert → prüfen, ob Spieler nah genug ist
-            if (!this.activated) {
-                if (this.world && this.world.character) {
-                    const char = this.world.character;
-
-                    if (char.x + this.viewDistance >= this.x) {
-                        this.activated = true;
-                        this.activationTime = performance.now();
-                        this.isMoving = false;
-                        this.attacking = false;
-
-                        // → Boss-Intro in der World starten
-                        if (this.world && typeof this.world.startBossIntro === 'function') {
-                            this.world.startBossIntro();
-                        }
-                    }
-                }
-                // solange nicht aktiviert: keine Bewegung / kein Angriff
-                return;
-            }
-
-            // 2) Während Boss-Intro: nichts machen (nur Alert-Anim läuft oben)
-            if (this.world && this.world.bossIntroActive) {
-                this.isMoving = false;
-                this.attacking = false;
-                return;
-            }
-
-            // 3) Normale AI
-            if (this.hurtPlaying || this.deathPlaying || this.attacking) {
-                this.isMoving = false;
-                return;
-            }
-
-            // Boss schaut IMMER nach links
-            this.otherDirection = true;
-
-            if (!this.world || !this.world.character) {
-                this.moveLeft();
-                this.isMoving = true;
-                return;
-            }
-
-            const char = this.world.character;
-            const attackRange = 40;
-            const dx = this.x - char.x;
-
-            if (dx <= attackRange) {
-                this.isMoving = false;
-                this.startAttack();
-            } else {
-                this.attacking = false;
-                this.isMoving = true;
-                this.moveLeft();
-            }
-
+            this.updateBossAi();
         }, 1000 / 60);
     }
 
-    playHurtOnce() {
-        this.y = this.baseY + this.hurtYOffset;
 
-        if (this.hurtFrameIndex >= this.IMAGES_HURT.length) {
-            this.hurtPlaying = false;
-            this.hurtFrameIndex = 0;
-            this.y = this.baseY;
+    /**
+     * Aktualisiert AI: Aktivierung, Intro, Bewegung, Angriff.
+     * @returns {void}
+     */
+    updateBossAi() {
+        if (!this.activated) {
+            this.tryActivateByPlayer();
             return;
         }
-        this.img = this.imageCache[this.IMAGES_HURT[this.hurtFrameIndex++]];
-    }
 
-    playDeathOnce() {
-        this.y = this.baseY + this.deadYOffset;
-
-        if (this.deathFrameIndex >= this.IMAGES_DEAD.length) {
-            this.img = this.imageCache[this.IMAGES_DEAD[this.IMAGES_DEAD.length - 1]];
-            return;
-        }
-        this.img = this.imageCache[this.IMAGES_DEAD[this.deathFrameIndex++]];
-    }
-
-    playAttackOnce() {
-        const frame = this.attackFrameIndex;
-
-        if (frame >= this.IMAGES_ATTACK.length) {
-            this.attackFrameIndex = 0;
-            this.currentAttackFrame = 0;
+        if (this.isInIntroPhase()) {
+            this.isMoving = false;
             this.attacking = false;
             return;
         }
 
+        if (this.hurtPlaying || this.deathPlaying || this.attacking) {
+            this.isMoving = false;
+            return;
+        }
+
+        this.updateActiveAi();
+    }
+
+
+    /**
+     * Versucht den Boss zu aktivieren, wenn der Spieler nah genug ist.
+     * @returns {void}
+     */
+    tryActivateByPlayer() {
+        if (!this.world || !this.world.character) return;
+
+        const char = this.world.character;
+        if (char.x + this.viewDistance < this.x) return;
+
+        this.activated = true;
+        this.activationTime = performance.now();
+        this.isMoving = false;
+        this.attacking = false;
+
+        if (typeof this.world.startBossIntro === 'function') {
+            this.world.startBossIntro();
+        }
+    }
+
+
+    /**
+     * Prüft, ob sich der Boss im Intro befindet.
+     * @returns {boolean}
+     */
+    isInIntroPhase() {
+        if (!this.world) return false;
+        return !!this.world.bossIntroActive;
+    }
+
+
+    /**
+     * AI-Logik im aktiven Kampfzustand.
+     * @returns {void}
+     */
+    updateActiveAi() {
+        this.otherDirection = true;
+
+        if (!this.world || !this.world.character) {
+            this.moveLeft();
+            this.isMoving = true;
+            return;
+        }
+
+        const char = this.world.character;
+        const dx = this.x - char.x;
+        const attackRange = 40;
+
+        if (dx <= attackRange) {
+            this.handleInRangeAttack();
+        } else {
+            this.handleOutOfRangeMovement();
+        }
+    }
+
+
+    /**
+     * Verhalten, wenn Spieler in Angriffsreichweite ist.
+     * @returns {void}
+     */
+    handleInRangeAttack() {
+        this.isMoving = false;
+        this.startAttack();
+    }
+
+
+    /**
+     * Verhalten, wenn Spieler außerhalb der Reichweite ist.
+     * @returns {void}
+     */
+    handleOutOfRangeMovement() {
+        this.attacking = false;
+        this.isMoving = true;
+        this.moveLeft();
+    }
+
+
+    /**
+     * Spielt einmal die Hurt-Animation ab.
+     * @returns {void}
+     */
+    playHurtOnce() {
+        this.y = this.baseY + this.hurtYOffset;
+
+        if (this.hurtFrameIndex >= this.IMAGES_HURT.length) {
+            this.resetHurtState();
+            return;
+        }
+
+        this.img = this.imageCache[this.IMAGES_HURT[this.hurtFrameIndex++]];
+    }
+
+
+    /**
+     * Setzt Hurt-State zurück.
+     * @returns {void}
+     */
+    resetHurtState() {
+        this.hurtPlaying = false;
+        this.hurtFrameIndex = 0;
+        this.y = this.baseY;
+    }
+
+
+    /**
+     * Spielt einmal die Death-Animation ab.
+     * @returns {void}
+     */
+    playDeathOnce() {
+        this.y = this.baseY + this.deadYOffset;
+
+        if (this.deathFrameIndex >= this.IMAGES_DEAD.length) {
+            const lastIndex = this.IMAGES_DEAD.length - 1;
+            this.img = this.imageCache[this.IMAGES_DEAD[lastIndex]];
+            return;
+        }
+
+        this.img = this.imageCache[this.IMAGES_DEAD[this.deathFrameIndex++]];
+    }
+
+
+    /**
+     * Spielt einmal die Attack-Animation ab.
+     * @returns {void}
+     */
+    playAttackOnce() {
+        const frame = this.attackFrameIndex;
+
+        if (frame >= this.IMAGES_ATTACK.length) {
+            this.resetAttackState();
+            return;
+        }
+
+        this.updateAttackFrame(frame);
+        this.updateAttackHitbox();
+    }
+
+
+    /**
+     * Setzt Attack-Status zurück.
+     * @returns {void}
+     */
+    resetAttackState() {
+        this.attackFrameIndex = 0;
+        this.currentAttackFrame = 0;
+        this.attacking = false;
+    }
+
+
+    /**
+     * Aktualisiert Bild und Frameindex der Attack-Animation.
+     * @param {number} frame - aktueller Frameindex.
+     * @returns {void}
+     */
+    updateAttackFrame(frame) {
         const path = this.IMAGES_ATTACK[frame];
         this.img = this.imageCache[path];
 
         this.currentAttackFrame = frame;
         this.attackFrameIndex++;
+    }
 
-        // Hitbox ausrichten
-        this.attackHitbox.x = this.x - 60; 
+
+    /**
+     * Positioniert die Angriff-Hitbox.
+     * @returns {void}
+     */
+    updateAttackHitbox() {
+        this.attackHitbox.x = this.x - 60;
         this.attackHitbox.y = this.y + 40;
     }
+
 
     /* =====================
        SOUND-HILFSMETHODEN
        ===================== */
 
-    /** zentraler Sound-Handler, berücksichtigt Mute */
+    /**
+     * Zentrale Soundsteuerung, berücksichtigt Mute-Status.
+     * @param {HTMLAudioElement} audio - Audioinstanz.
+     * @returns {void}
+     */
     playBossSound(audio) {
         if (!audio) return;
 
-        // Wenn die Welt gemuted ist → gar nicht abspielen
         if (this.world && this.world.isMuted) {
             audio.pause();
             audio.currentTime = 0;
@@ -400,18 +650,34 @@ class Endboss extends MovableObject {
         audio.play();
     }
 
+
+    /**
+     * Spielt den Angriffssound des Bosses ab.
+     * @returns {void}
+     */
     playAttackSound() {
         this.playBossSound(this.attack_sound);
     }
 
+
+    /**
+     * Spielt einen der Hurt-Sounds ab (abwechselnd).
+     * @returns {void}
+     */
     playHurtSound() {
         const sound = this.hurt_sounds[this.nextHurtIndex];
         this.nextHurtIndex = (this.nextHurtIndex + 1) % this.hurt_sounds.length;
         this.playBossSound(sound);
     }
 
+
+    /**
+     * Spielt den Death-Sound einmalig ab.
+     * @returns {void}
+     */
     playDeathSound() {
         if (this._deathSoundPlayed) return;
+
         this._deathSoundPlayed = true;
         this.playBossSound(this.dying_sound);
     }

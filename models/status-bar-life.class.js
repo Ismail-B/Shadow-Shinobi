@@ -1,15 +1,29 @@
+/**
+ * Statusleiste für die Lebenspunkte des Charakters.
+ * Zeigt 6 Füllstufen zwischen 0 % und 100 % an.
+ * @extends DrawableObject
+ */
 class StatusBarLife extends DrawableObject {
+
+    /**
+     * Sprite-Pfade der Lebensanzeige.
+     * @type {string[]}
+     */
     IMAGES = [
-        'img/7_statusbars/1_statusbar/2_statusbar_health/green/0.png',   // 0%
-        'img/7_statusbars/1_statusbar/2_statusbar_health/green/20.png',  // 20%
-        'img/7_statusbars/1_statusbar/2_statusbar_health/green/40.png',  // 40%
-        'img/7_statusbars/1_statusbar/2_statusbar_health/green/60.png',  // 60%
-        'img/7_statusbars/1_statusbar/2_statusbar_health/green/80.png',  // 80%
-        'img/7_statusbars/1_statusbar/2_statusbar_health/green/100.png'  // 100%
+        'img/7_statusbars/1_statusbar/2_statusbar_health/green/0.png',
+        'img/7_statusbars/1_statusbar/2_statusbar_health/green/20.png',
+        'img/7_statusbars/1_statusbar/2_statusbar_health/green/40.png',
+        'img/7_statusbars/1_statusbar/2_statusbar_health/green/60.png',
+        'img/7_statusbars/1_statusbar/2_statusbar_health/green/80.png',
+        'img/7_statusbars/1_statusbar/2_statusbar_health/green/100.png'
     ];
 
-    percentage = 100; // Start: voll
+    /** @type {number} */
+    percentage = 100;
 
+    /**
+     * Erstellt die Lebens-Statusbar.
+     */
     constructor() {
         super();
         this.loadImages(this.IMAGES);
@@ -21,37 +35,25 @@ class StatusBarLife extends DrawableObject {
     }
 
     /**
-     * Setzt den Prozentwert (0–100) und wählt das passende Bild.
+     * Setzt den Gesundheitswert (0–100 %) und aktualisiert das Bild.
+     * @param {number} percentage
      */
     setPercentage(percentage) {
-        this.percentage = percentage;
+        this.percentage = Math.max(0, Math.min(100, percentage));
         const index = this.resolveImageIndex();
-        const path = this.IMAGES[index];
-        this.img = this.imageCache[path];
+        this.img = this.imageCache[this.IMAGES[index]];
     }
 
     /**
-     * Sorgt dafür, dass JEDE 20er-Stufe genau EIN Bild weiterspringt:
-     * 100 → Bild für 100
-     * 80  → Bild für 80
-     * 60  → Bild für 60
-     * 40  → Bild für 40
-     * 20  → Bild für 20
-     * 0   → Bild für 0
+     * Ermittelt das passende Bild zur aktuellen Prozentstufe.
+     * @returns {number}
      */
     resolveImageIndex() {
-        if (this.percentage >= 100) {
-            return 5; // 100
-        } else if (this.percentage >= 80) {
-            return 4; // 80
-        } else if (this.percentage >= 60) {
-            return 3; // 60
-        } else if (this.percentage >= 40) {
-            return 2; // 40
-        } else if (this.percentage >= 20) {
-            return 1; // 20
-        } else {
-            return 0; // 0
-        }
+        if (this.percentage >= 100) return 5;
+        if (this.percentage >= 80)  return 4;
+        if (this.percentage >= 60)  return 3;
+        if (this.percentage >= 40)  return 2;
+        if (this.percentage >= 20)  return 1;
+        return 0;
     }
 }

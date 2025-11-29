@@ -1,7 +1,21 @@
+/**
+ * Grüner Orc-Gegner (schnelle, kleine Variante).
+ * Nutzt Orc-Basislogik mit eigenen Sprites.
+ * @extends Orc
+ */
 class OrcGreen extends Orc {
+  /**
+   * Grund-Y-Position des Orcs.
+   * @type {number}
+   */
   y = 260;
+
+  /**
+   * Erstellt einen grünen Orc und lädt seine Animationen.
+   */
   constructor() {
     super();
+
     this.height = 100;
     this.width = 70;
 

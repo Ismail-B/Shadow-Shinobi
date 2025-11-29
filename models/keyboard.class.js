@@ -1,12 +1,18 @@
+/**
+ * Repräsentiert den aktuellen Zustand der Tastatureingaben
+ * für die Spielsteuerung.
+ */
 class Keyboard {
-    LEFT  = false;
-    RIGHT = false;
-    UP = false;
-    D = false;
-    SPACE = false;
-    ATTACK= false;
+    /** @type {boolean} */ LEFT  = false;
+    /** @type {boolean} */ RIGHT = false;
+    /** @type {boolean} */ UP    = false;
+    /** @type {boolean} */ D     = false;
+    /** @type {boolean} */ SPACE = false;
+    /** @type {boolean} */ ATTACK = false;
 
-    constructor(){
-
-    }
+    /**
+     * Erstellt eine neue Keyboard-Input-Struktur.
+     * Wird von game.js mit Event-Listenern befüllt.
+     */
+    constructor() {}
 }

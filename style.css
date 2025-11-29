@@ -1,7 +1,10 @@
-body{
+/* =========================================================
+   GLOBAL BASE STYLES
+   ========================================================= */
+body {
     font-family: Montserrat;
     font-size: 32px;
-    background-color:rgb(59, 56, 56);
+    background-color: rgb(59, 56, 56);
     margin: 0;
     display: flex;
     flex-direction: column;
@@ -15,7 +18,7 @@ body{
     font-style: normal;
 }
 
-main{
+main {
     flex: 1;
 }
 
@@ -24,7 +27,11 @@ h1 {
     right: 160px;
 }
 
-header{
+
+/* =========================================================
+   HEADER & FOOTER
+   ========================================================= */
+header {
     font-family: 'NinjaNaruto', sans-serif;
     font-style: normal;
     min-height: 100px;
@@ -33,174 +40,31 @@ header{
     align-items: center;
     background-color: #B7694D;
     color: #493731;
-    text-shadow:
-        2px 2px 4px rgba(205, 203, 203, 0.6);
+    text-shadow: 2px 2px 4px rgba(205, 203, 203, 0.6);
 }
 
-header img{
+header img {
     width: 100px;
     margin-left: 24px;
     margin-right: 16px;
 }
 
-footer{
+footer {
     display: flex;
-    background-color:#B7694D;
+    background-color: #B7694D;
     justify-content: flex-start;
     flex-direction: column;
     min-height: 30px;
 }
 
-footer img{
+footer img {
     width: 60px;
     height: 60px;
     margin-right: 16px;
     margin-bottom: 18px;
 }
 
-/* ======================
-   CANVAS
-   ======================*/
-canvas{
-    background-color: black;
-    border: 10px solid #B7694D;
-    border-radius: 8px;
-    display: none;
-
-    /* normales Verhalten */
-    max-width: 100%;
-    height: auto;
-}
-
-/* ===========================
-   FULLSCREEN FIX
-   =========================== */
-
-/* Header & Footer im Fullscreen ausblenden */
-:fullscreen header,
-:fullscreen footer {
-    display: none;
-}
-
-/* kein Scrollen im Fullscreen */
-:fullscreen body {
-    overflow: hidden;
-}
-
-/* Canvas-Container nimmt gesamten Screen ein */
-:fullscreen #canvas-box {
-    height: 100vh;
-}
-
-/* Canvas skaliert komplett hoch,
-   behält 720x480 Seitenverhältnis */
-:fullscreen canvas {
-    height: 100vh;  /* volle Höhe */
-    width: auto;    /* Breite proportional */
-    max-width: none;
-    max-height: none;
-}
-
-/* ======================================= */
-
-#control{
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 70%;
-    height: 60%;
-    background-color: #b7694dec;
-    border-radius: 10px;
-    color: #fff;
-    font-family: 'Noto Sans', sans-serif;
-    z-index: 1000;
-    display: none;
-}
-
-.control-headline{
-    background-color: #473631;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    font-family: 'NinjaNaruto', sans-serif;
-    font-weight: 400;
-    font-style: normal;
-    text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.5);
-    font-size: 48px;
-    height: 64px;
-    border-top-left-radius: 10px;
-    border-top-right-radius: 10px;
-    padding-top: 16px;
-    padding-bottom: 16px;
-}
-
-.controls{
-    display: flex;
-    align-items: center;
-    flex-direction: column;
-}
-
-.controls span{
-    padding: 12px;
-    text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.5);
-}
-
-.control-button{
-    color: black;
-    display: flex;
-    flex-direction: column;
-    justify-content: flex-start;
-    gap: 10%;
-}
-
-.control-button p{
-    display: flex;
-    justify-content: center;
-    height: auto;
-}
-
-.control-button-style{
-    display: flex;
-    justify-content: flex-start;
-    align-items: center;
-    font-size: 24px;
-}
-
-.control-button-style button{
-    display: flex;
-    justify-content: center;
-    align-self: center;
-    max-width: 24px;
-    max-height: 52px;
-}
-
-.control-button-style img{
-    width: 30px;
-    filter:invert()
-}
-
-.control-container{
-    padding-top: 16px;
-    font-family: 'NinjaNaruto', sans-serif;
-    font-style: normal;
-    font-size: 36px;
-    display: flex;
-    align-items: center;
-    justify-content: space-evenly;
-}
-
-.menu-button{
-    display: flex;
-    justify-content:center;
-    padding: 16px;
-}
-
-.menu-button button{
-    margin: 0;
-}
-
-.footer{
+.footer {
     display: flex;
     justify-content: center;
     align-items: flex-end;
@@ -208,7 +72,7 @@ canvas{
     background-color: #B7694D;
 }
 
-.signature{
+.signature {
     font-family: "Kalam";
     font-weight: bold;
     font-size: 14px;
@@ -216,7 +80,7 @@ canvas{
     color: rgb(221, 221, 221);
 }
 
-.under-signature{
+.under-signature {
     display: flex;
     justify-content: center;
     font-size: 12px;
@@ -224,37 +88,160 @@ canvas{
     margin-bottom: 16px;
 }
 
+
+/* =========================================================
+   CANVAS & CANVAS WRAPPER
+   ========================================================= */
 #canvas-box {
     display: flex;
     justify-content: center;
     align-items: center;
     height: 70vh;
-
     background-image: url('img/index/background.jpg');
     background-size: cover;
     background-position: center;
 }
 
-/* Startoverlay */
-#startoverlay {
+canvas {
+    background-color: black;
+    border: 10px solid #B7694D;
+    border-radius: 8px;
+    display: none;
+    max-width: 100%;
+    height: auto;
+}
+
+
+/* =========================================================
+   FULLSCREEN MODE FIXES
+   ========================================================= */
+
+/* Header & Footer im Fullscreen verstecken */
+:fullscreen header,
+:fullscreen footer {
+    display: none;
+}
+
+/* Kein Scrollen im Fullscreen */
+:fullscreen body {
+    overflow: hidden;
+}
+
+/* Canvas-Container füllt Fullscreen */
+:fullscreen #canvas-box {
+    height: 100vh;
+}
+
+/* Canvas füllt Fullscreen mit korrekt erhaltenem Seitenverhältnis */
+:fullscreen canvas {
+    height: 100vh;
+    width: auto;
+    max-width: none;
+    max-height: none;
+}
+
+
+/* =========================================================
+   STARTOVERLAY / STORY / IMPRESSUM
+   ========================================================= */
+
+#startoverlay,
+#story,
+#impressum {
     position: fixed;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    width: 50%;
-    height: 50%;
     background-color: #b7694dec;
     border-radius: 10px;
+    color: #fff;
+    font-family: 'NinjaNaruto', sans-serif;
+    z-index: 1000;
+    display: none;
+}
+
+#startoverlay {
+    width: 50%;
+    height: 50%;
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    color: #fff;
-    font-family: 'NinjaNaruto', sans-serif;
-    z-index: 1000;
 }
 
-#story{
+#story {
+    width: 70%;
+    height: 60%;
+    font-family: 'Noto Sans', sans-serif;
+    font-size: 20px;
+}
+
+#impressum {
+    width: 70%;
+    height: 50%;
+    font-family: 'Noto Sans', sans-serif;
+    font-size: 20px;
+}
+
+/* Story Headline */
+.story-headline {
+    background-color: #473630;
+    color: rgb(241, 241, 241);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-family: 'NinjaNaruto', sans-serif;
+    font-size: 36px;
+    height: 64px;
+    border-radius: 10px 10px 0 0;
+    text-shadow: 2px 2px 5px rgba(0,0,0,0.5);
+    padding: 16px 0;
+}
+
+/* Story Text */
+.background-story {
+    padding: 24px 64px;
+}
+.background-story p {
+    margin-bottom: 0;
+    text-shadow: 2px 2px 5px rgba(0,0,0,0.5);
+}
+
+/* Impressum */
+#impressum p {
+    display: flex;
+    justify-content: center;
+    text-shadow: 2px 2px 5px rgba(0,0,0,0.5);
+}
+
+.impressum-button {
+    background-color: transparent;
+    text-decoration: underline;
+}
+.impressum-button:hover {
+    color: rgb(59, 58, 58);
+}
+
+.email-link {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+}
+.email-link a {
+    color: rgb(205, 203, 203);
+    text-decoration: none;
+    text-shadow: 2px 2px 5px rgba(0,0,0,0.5);
+}
+.email-link a:hover {
+    color: rgb(57, 57, 57);
+}
+
+
+/* =========================================================
+   CONTROL OVERLAY (STEUERUNG)
+   ========================================================= */
+#control {
     position: fixed;
     top: 50%;
     left: 50%;
@@ -265,133 +252,107 @@ canvas{
     border-radius: 10px;
     color: #fff;
     font-family: 'Noto Sans', sans-serif;
-    font-size: 20px;
     z-index: 1000;
     display: none;
 }
 
-.story-headline{
-    background-color: #473630;
-    color: rgb(241, 241, 241);
+.control-headline {
+    background-color: #473631;
     display: flex;
     justify-content: center;
     align-items: center;
     font-family: 'NinjaNaruto', sans-serif;
-    text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.5);
-    font-size: 36px;
+    font-size: 48px;
     height: 64px;
-    border-top-left-radius: 10px;
-    border-top-right-radius: 10px;
-    padding-bottom: 16px;
-    padding-top: 16px;
+    border-radius: 10px 10px 0 0;
+    text-shadow: 2px 2px 5px rgba(0,0,0,0.5);
+    padding: 16px 0;
 }
 
-.background-story{
-    padding-right: 64px;
-    padding-left: 64px;
-    padding-bottom: 24px;
-    padding-top: 24px;
-}
-
-.background-story p{
-    margin-bottom: 0;
-    text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.5);
-}
-
-#impressum{
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 70%;
-    height: 50%;
-    background-color: #b7694dec;
-    border-radius: 10px;
-    color: #fff;
-    font-family: 'Noto Sans', sans-serif;
-    font-size: 20px;
-    z-index: 1000;
-    display: none;
-}
-
-#impressum p{
+.controls {
     display: flex;
-    justify-content: center;
-    text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.5);
-}
-
-.impressum-button{
-    background-color: transparent;
-    text-decoration: underline;
-}
-
-.impressum-button:hover{
-    background-color: transparent;
-    color: rgb(59, 58, 58);
-}
-
-.email-link{
-    display: flex;
-    justify-content: center;
+    flex-direction: column;
     align-items: center;
-    gap: 8px;
 }
 
-.email-link a{
-    color: rgb(205, 203, 203);
-    text-decoration: none;
-    text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.5);
+.controls span {
+    padding: 12px;
+    text-shadow: 2px 2px 5px rgba(0,0,0,0.5);
 }
 
-.email-link a:hover{
-    color: rgb(57, 57, 57);
-    text-decoration: none;
+.control-button {
+    display: flex;
+    flex-direction: column;
+    gap: 10%;
 }
 
-.sound-button{
+.control-button-style {
+    display: flex;
+    align-items: center;
+    font-size: 24px;
+}
+
+.control-button-style img {
+    width: 30px;
+    filter: invert();
+}
+
+.control-container {
+    padding-top: 16px;
+    font-family: 'NinjaNaruto', sans-serif;
+    font-size: 36px;
+    display: flex;
+    justify-content: space-evenly;
+}
+
+.menu-button {
+    display: flex;
+    justify-content: center;
+    padding: 16px;
+}
+
+
+/* =========================================================
+   SOUND & FULLSCREEN BUTTONS
+   ========================================================= */
+
+.sound-button,
+.fullscreen-button {
     position: fixed;
     right: 8px;
-    top:150px;
+}
+
+.sound-button {
+    top: 150px;
     display: none;
 }
 
-.sound-button img{
+.fullscreen-button {
+    top: 210px;
+}
+
+.sound-button img,
+.fullscreen-button img {
     width: 38px;
-    background-color: rgba(18, 18, 18, 0.484);
+    background-color: rgba(18,18,18,0.48);
     filter: invert();
     border-radius: 8px;
     padding: 6px;
-}
-
-.sound-button img:hover{
     cursor: pointer;
-    background-color: rgba(18, 18, 18, 0.289);
+}
+.sound-button img:hover,
+.fullscreen-button img:hover {
+    background-color: rgba(18,18,18,0.28);
 }
 
-#mute-btn{
+#mute-btn {
     display: block;
 }
 
-.fullscreen-button{
-    position: fixed;
-    right: 8px;
-    top:210px;
-}
 
-.fullscreen-button img{
-    width: 38px;
-    background-color: rgba(18, 18, 18, 0.484);
-    filter: invert();
-    border-radius: 8px;
-    padding: 6px;
-}
-
-.fullscreen-button img:hover{
-    cursor: pointer;
-    background-color: rgba(18, 18, 18, 0.289);
-}
-
-/* Buttons */
+/* =========================================================
+   BUTTONS (ALLGEMEIN)
+   ========================================================= */
 button {
     background-color: #292929c6;
     color: #efefef;
@@ -404,12 +365,14 @@ button {
     cursor: pointer;
     transition: all 0.3s ease;
 }
-
 button:hover {
     background-color: #666;
 }
 
-/* === GAME OVER & WIN OVERLAY === */
+
+/* =========================================================
+   GAME OVER & WIN OVERLAYS
+   ========================================================= */
 #game-over-overlay,
 #win-overlay {
     position: fixed;
@@ -433,24 +396,24 @@ button:hover {
 #win-overlay h2 {
     margin-bottom: 20px;
     font-family: 'NinjaNaruto', sans-serif;
-    font-weight: 400;
     font-size: 48px;
     text-shadow: 2px 2px 5px rgba(0,0,0,0.5);
 }
 
-.overlay-buttons{
+.overlay-buttons {
     gap: 20px;
 }
 
-/* =========================================
-   MOBILE: ROTATE-OVERLAY & TOUCH-STEUERUNG
-   ========================================= */
 
-/* Vollbild-Overlay fürs Hochformat */
+/* =========================================================
+   MOBILE: ROTATE OVERLAY & TOUCH CONTROLS
+   ========================================================= */
+
+/* Hochformat-Warnung */
 .rotate-overlay {
     position: fixed;
     inset: 0;
-    background: rgba(0, 0, 0, 0.9);
+    background: rgba(0,0,0,0.9);
     z-index: 1200;
     display: none;
     justify-content: center;
@@ -458,14 +421,12 @@ button:hover {
     text-align: center;
     padding: 20px;
 }
-
 .rotate-overlay .rotate-message {
     color: #fff;
     font-size: 1.4rem;
-    line-height: 1.5;
 }
 
-/* Touch-Steuerung Container */
+/* Touch Controls */
 .touch-controls {
     position: fixed;
     inset: auto 0 0 0;
@@ -488,7 +449,7 @@ button:hover {
     height: 120px;
     border-radius: 50%;
     border: 2px solid #fff;
-    background: rgba(0, 0, 0, 0.5);
+    background: rgba(0,0,0,0.5);
     position: relative;
     pointer-events: auto;
 }
@@ -498,14 +459,14 @@ button:hover {
     height: 50px;
     border-radius: 50%;
     border: 2px solid #fff;
-    background: rgba(255, 255, 255, 0.1);
+    background: rgba(255,255,255,0.1);
     position: absolute;
     left: 50%;
     top: 50%;
     transform: translate(-50%, -50%);
 }
 
-/* Aktionen unten rechts */
+/* Buttons rechts */
 .touch-actions {
     position: absolute;
     right: 10px;
@@ -520,17 +481,16 @@ button:hover {
     height: 64px;
     border-radius: 50%;
     border: 2px solid #fff;
-    background: rgba(0, 0, 0, 0.6);
+    background: rgba(0,0,0,0.6);
     color: #fff;
     font-size: 1.4rem;
     display: flex;
     justify-content: center;
     align-items: center;
-    touch-action: none;
     user-select: none;
 }
 
-/* Auf Desktop sicherheitshalber komplett ausblenden, falls JS nicht greift */
+/* Desktop → Touch Controls aus */
 @media (hover: hover) and (pointer: fine) {
     .touch-controls {
         display: none !important;

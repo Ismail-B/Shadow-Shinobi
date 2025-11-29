@@ -1,5 +1,13 @@
+/**
+ * Statusleiste für die Lebenspunkte des Endbosses.
+ * Zeigt 6 Stufen zwischen 0 % und 100 % an.
+ * @extends DrawableObject
+ */
 class StatusBarEndboss extends DrawableObject {
-
+    /**
+     * Sprite-Pfade der Endboss-Lebensanzeige.
+     * @type {string[]}
+     */
     IMAGES = [
         'img/7_statusbars/2_statusbar_endboss/orange/orange0.png',
         'img/7_statusbars/2_statusbar_endboss/orange/orange20.png',
@@ -9,8 +17,12 @@ class StatusBarEndboss extends DrawableObject {
         'img/7_statusbars/2_statusbar_endboss/orange/orange100.png'
     ];
 
+    /** @type {number} */
     percentage = 100;
 
+    /**
+     * Erstellt die Endboss-Statusleiste.
+     */
     constructor() {
         super();
         this.loadImages(this.IMAGES);
@@ -21,26 +33,26 @@ class StatusBarEndboss extends DrawableObject {
         this.setPercentage(100);
     }
 
+    /**
+     * Setzt den Prozentwert der Lebensanzeige.
+     * @param {number} percentage
+     */
     setPercentage(percentage) {
-        this.percentage = percentage; // 0–100
-        let path = this.IMAGES[this.resolveImageIndex()];
-        this.img = this.imageCache[path];
+        this.percentage = Math.max(0, Math.min(100, percentage));
+        const index = this.resolveImageIndex();
+        this.img = this.imageCache[this.IMAGES[index]];
     }
 
+    /**
+     * Liefert den Bildindex basierend auf dem prozentualen Wert.
+     * @returns {number}
+     */
     resolveImageIndex() {
-        // 100, 80, 60, 40, 20, 0 – jeweils EIN Schritt
-        if (this.percentage >= 100) {
-            return 5;               // 100 %
-        } else if (this.percentage >= 80) {
-            return 4;               // 80–99 %
-        } else if (this.percentage >= 60) {
-            return 3;               // 60–79 %
-        } else if (this.percentage >= 40) {
-            return 2;               // 40–59 %
-        } else if (this.percentage >= 20) {
-            return 1;               // 20–39 %
-        } else {
-            return 0;               // 0–19 %
-        }
+        if (this.percentage >= 100) return 5;
+        if (this.percentage >= 80)  return 4;
+        if (this.percentage >= 60)  return 3;
+        if (this.percentage >= 40)  return 2;
+        if (this.percentage >= 20)  return 1;
+        return 0;
     }
 }

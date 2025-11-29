@@ -1,22 +1,30 @@
+/**
+ * Repräsentiert den spielbaren Charakter (Ninja).
+ * Steuert Bewegung, Angriffe, Schaden und Animationen.
+ * @extends MovableObject
+ */
 class Character extends MovableObject {
     width = 100;
     speed = 10;
 
-        offset = {
+    offset = {
         x: 10,
         y: 0,
         width: 27,
         height: 0
     };
 
-    // Wieviel Schaden pro Treffer durch Gegner
+    /**
+     * Wieviel Schaden der Charakter pro Treffer erleidet.
+     * @type {number}
+     */
     DAMAGE_PER_HIT = 20;
 
     // Death-Anim Steuerung
-    deathIndex = 0;         // aktuelles Frame der Sterbeanimation
-    deathFrozen = false;    // am letzten Frame eingefroren
-    deathTimer = null;      // eigener Timer für langsame Death-Anim
-    deathFrameDuration = 180; // ms pro Frame (größer = langsamer)
+    deathIndex = 0;
+    deathFrozen = false;
+    deathTimer = null;
+    deathFrameDuration = 180;
 
     IMAGES_WALKING = [
         'img/2_character_shinobi/2_walk/Run_1.png',
@@ -76,13 +84,12 @@ class Character extends MovableObject {
     // --- Angriff-Status (Nahkampf + Kunai) ---
     isAttacking = false;
     attackFrameIndex = 0;
-    attackFrameMs = 10;        // wird je nach Attack-Typ angepasst
+    attackFrameMs = 10;
     attackCooldownMs = 250;
     lastAttackAt = 0;
     _lastAttackTick = 0;
-    attackType = null;         // 'melee' | 'kunai' | null
+    attackType = null; // 'melee' | 'kunai' | null
 
-    // pro Attacke nur ein Treffer
     _hasDealtDamageThisAttack = false;
 
     // Sound-Flags
@@ -92,12 +99,16 @@ class Character extends MovableObject {
 
     world;
     walking_sound     = new Audio('audio/running.mp3');
-    kunai_throw_sound = new Audio('audio/throw_kunai.mp3');   // Kunai-Wurf-Sound
-    hit_sound         = new Audio('audio/ninja-hit.wav');     // Nahkampf-Sound
-    jump_sound        = new Audio('audio/jump.mp3');          // Jump-Sound
-    hurt_sound        = new Audio('audio/ninja-hurt.mp3');    // Hurt-Sound
-    death_sound       = new Audio('audio/ninja-dying.mp3');   // Death-Sound
+    kunai_throw_sound = new Audio('audio/throw_kunai.mp3');
+    hit_sound         = new Audio('audio/ninja-hit.wav');
+    jump_sound        = new Audio('audio/jump.mp3');
+    hurt_sound        = new Audio('audio/ninja-hurt.mp3');
+    death_sound       = new Audio('audio/ninja-dying.mp3');
 
+    /**
+     * Erzeugt den Charakter, lädt alle Bilder und startet die Animation.
+     * @constructor
+     */
     constructor() {
         super().loadImage('img/2_character_shinobi/1_idle/idle/Idle_1.png');
         this.loadImages(this.IMAGES_WALKING);
@@ -110,210 +121,369 @@ class Character extends MovableObject {
         this.animateCharacter();
     }
 
+
     /* =========================================================
        >>> HORIZONTALBEWEGUNG MIT BOSS-BLOCK <<<
        ========================================================= */
 
+    /**
+     * Prüft, ob der Charakter bei testX mit dem Endboss kollidiert.
+     * @param {number} testX - Testposition auf der X-Achse.
+     * @returns {boolean} true, wenn eine Kollision mit dem Endboss vorliegt.
+     */
     collidesWithEndbossAtX(testX) {
-        if (!this.world || !this.world.level || !this.world.level.enemies) return false;
+        if (!this.world?.level?.enemies) return false;
 
         const enemies = this.world.level.enemies;
         const oldX = this.x;
-        this.x = testX; // temporär verschieben
+        this.x = testX;
 
-        let hit = false;
-        for (let i = 0; i < enemies.length; i++) {
-            const enemy = enemies[i];
-            if (!enemy || !enemy.isEndboss || !enemy.collidable) continue;
+        const hit = enemies.some(
+            enemy =>
+                enemy &&
+                enemy.isEndboss &&
+                enemy.collidable &&
+                this.isColliding(enemy)
+        );
 
-            if (this.isColliding(enemy)) {
-                hit = true;
-                break;
-            }
-        }
-
-        this.x = oldX; // Position zurücksetzen
+        this.x = oldX;
         return hit;
     }
 
+
+    /**
+     * Bewegt den Charakter nach rechts und stoppt vor dem Endboss.
+     * @returns {void}
+     */
     moveRight() {
         const oldX = this.x;
-        const maxStep = this.speed;
-        let lastFreeX = oldX;
-
-        for (let s = 1; s <= maxStep; s++) {
-            const testX = oldX + s;
-
-            if (this.collidesWithEndbossAtX(testX)) {
-                this.x = lastFreeX;
-                this.otherDirection = false;
-                return;
-            } else {
-                lastFreeX = testX;
-            }
-        }
-
-        this.x = lastFreeX;
+        this.x = this.findLastFreeXToRight(oldX);
         this.otherDirection = false;
     }
 
+
+    /**
+     * Bestimmt die letzte freie X-Position nach rechts.
+     * @param {number} startX - Ausgangsposition.
+     * @returns {number} Letzte freie X-Position.
+     */
+    findLastFreeXToRight(startX) {
+        let lastFreeX = startX;
+
+        for (let s = 1; s <= this.speed; s++) {
+            const testX = startX + s;
+            if (this.collidesWithEndbossAtX(testX)) break;
+            lastFreeX = testX;
+        }
+
+        return lastFreeX;
+    }
+
+
+    /**
+     * Bewegt den Charakter nach links.
+     * @returns {void}
+     */
     moveLeft() {
         this.otherDirection = true;
         this.x -= this.speed;
     }
 
+
     /* ===================== ANGRIFFS-LOGIK ===================== */
 
-    /** Von World bei Tastendruck 'B' aufgerufen: Nahkampfangriff */
+    /**
+     * Startet einen Nahkampfangriff (Taste B), falls möglich.
+     * @returns {void}
+     */
     tryStartAttack() {
         const now = performance.now();
-
-        // nach GameOver/Win oder während Boss-Intro keine Angriffe
-        if (this.world && (this.world.gameEnded || this.world.bossIntroActive)) return;
-
-        if (this.isDead() || this.isAttacking) return;
-        if (now - this.lastAttackAt < this.attackCooldownMs) return;
+        if (this.isAttackBlocked(now)) return;
 
         this.isAttacking = true;
         this.attackType = 'melee';
         this.attackFrameIndex = 0;
-
-        // Nahkampf etwas LANGSAMER
         this.attackFrameMs = 60;
-
         this._lastAttackTick = now;
         this.lastAttackAt = now;
 
-        // pro Attacke bisher noch keinen Schaden gemacht
         this._hasDealtDamageThisAttack = false;
-
-        // erstes Frame sofort zeigen
         this.img = this.imageCache[this.IMAGES_ATTACK[0]];
     }
 
-    /** Von World bei Tastendruck 'V' aufgerufen: Kunai-Wurf mit Attack-Anim */
+
+    /**
+     * Prüft, ob ein Angriff aktuell blockiert ist.
+     * @param {number} now - Aktuelle Zeit in ms.
+     * @returns {boolean} true, wenn Angriff blockiert ist.
+     */
+    isAttackBlocked(now) {
+        if (this.world && (this.world.gameEnded || this.world.bossIntroActive)) {
+            return true;
+        }
+
+        if (this.isDead() || this.isAttacking) {
+            return true;
+        }
+
+        return now - this.lastAttackAt < this.attackCooldownMs;
+    }
+
+
+    /**
+     * Startet einen Kunai-Wurf mit Attack-Animation.
+    * Nur möglich, wenn Charakter nach rechts schaut.
+    * @returns {boolean}
+    */
     tryStartKunaiThrow() {
         const now = performance.now();
 
-        // nach GameOver/Win oder während Boss-Intro keine Kunai-Würfe
-        if (this.world && (this.world.gameEnded || this.world.bossIntroActive)) return false;
+       // Keine Würfe bei Intro/GameOver
+       if (this.world && (this.world.gameEnded || this.world.bossIntroActive)) return false;
 
-        // NEU: nur wenn überhaupt Kunai vorhanden sind
-        if (!this.world || this.world.kunaiAmmo <= 0) {
-            return false;
+       // Keine Ammo?
+       if (!this.world || this.world.kunaiAmmo <= 0) return false;
+
+       // 🔥 WICHTIG: Nur werfen, wenn nach rechts geschaut wird
+       if (this.otherDirection === true) return false;
+
+       if (this.isDead() || this.isAttacking) return false;
+
+       this.isAttacking = true;
+       this.attackType = 'kunai';
+       this.attackFrameIndex = 0;
+       this.attackFrameMs = 60;
+       this._lastAttackTick = now;
+       this._hasDealtDamageThisAttack = false;
+
+       this.img = this.imageCache[this.IMAGES_ATTACK[0]];
+
+       return true;
+}
+
+
+
+    /**
+     * Prüft, ob Kunai-Wurf aktuell blockiert ist.
+     * @returns {boolean} true, wenn Kunai-Wurf blockiert ist.
+     */
+    isKunaiThrowBlocked() {
+        if (this.world && (this.world.gameEnded || this.world.bossIntroActive)) {
+            return true;
         }
 
-        if (this.isDead() || this.isAttacking) return false;
+        if (!this.world || this.world.kunaiAmmo <= 0) {
+            return true;
+        }
 
-        this.isAttacking = true;
-        this.attackType = 'kunai';
-        this.attackFrameIndex = 0;
-
-        // Kunai-Animation SCHNELLER als Nahkampf
-        this.attackFrameMs = 60;
-
-        this._lastAttackTick = now;
-
-        // pro Attacke bisher noch keinen Schaden gemacht
-        this._hasDealtDamageThisAttack = false;
-
-        this.img = this.imageCache[this.IMAGES_ATTACK[0]];
-
-        return true;
+        return this.isDead() || this.isAttacking;
     }
 
+
+    /**
+     * Aktualisiert die aktuelle Angriffs-Animation.
+     * @returns {void}
+     */
     updateAttack() {
         if (!this.isAttacking) return;
 
         const now = performance.now();
-        if (now - this._lastAttackTick >= this.attackFrameMs) {
-            this._lastAttackTick = now;
-            this.attackFrameIndex++;
+        if (!this.isNextAttackFrameDue(now)) return;
 
-            // Ende der Attack-Animation
-            if (this.attackFrameIndex >= this.IMAGES_ATTACK.length) {
-                this.isAttacking = false;
-                this.attackType = null;
-                this._hitSoundPlayed = false;          // Reset für nächsten Schlag
-                this._hasDealtDamageThisAttack = false; // Sicherheitshalber reset
-                return;
-            }
+        this.attackFrameIndex++;
+        if (this.isAttackFinished()) {
+            this.resetAttackState();
+            return;
+        }
 
-            const key = this.IMAGES_ATTACK[this.attackFrameIndex];
-            this.img = this.imageCache[key];
+        this.updateAttackFrameImage();
+        this.handleAttackEffects();
+    }
 
-            // Nahkampf-Trefffenster
-            if (this.attackType === 'melee') {
-                if (this.attackFrameIndex === 2 || this.attackFrameIndex === 3) {
-                    this.applyMeleeHit();
 
-                    // Schlag-Sound genau 1x pro Angriff
-                    if (!this._hitSoundPlayed) {
-                        this.playHitSound();
-                        this._hitSoundPlayed = true;
-                    }
-                }
-            }
+    /**
+     * Prüft, ob das nächste Angriffs-Frame fällig ist.
+     * @param {number} now - Aktuelle Zeit in ms.
+     * @returns {boolean} true, wenn das nächste Frame angezeigt werden soll.
+     */
+    isNextAttackFrameDue(now) {
+        if (now - this._lastAttackTick < this.attackFrameMs) {
+            return false;
+        }
 
-            // Kunai-Wurf: beim Frame Attack_4.png (Index 3)
-            if (this.attackType === 'kunai') {
-                if (this.attackFrameIndex === 3) {
-                    if (this.world && typeof this.world.onCharacterKunaiRelease === 'function') {
-                        this.world.onCharacterKunaiRelease();   // Kunai spawnen
-                    }
-                    this.playKunaiThrowSound();                  // Sound genau 1x
-                }
-            }
+        this._lastAttackTick = now;
+        return true;
+    }
+
+
+    /**
+     * Prüft, ob die Angriffs-Animation zu Ende ist.
+     * @returns {boolean} true, wenn Angriff fertig ist.
+     */
+    isAttackFinished() {
+        return this.attackFrameIndex >= this.IMAGES_ATTACK.length;
+    }
+
+
+    /**
+     * Setzt den Angriffsstatus nach Ende der Animation zurück.
+     * @returns {void}
+     */
+    resetAttackState() {
+        this.isAttacking = false;
+        this.attackType = null;
+        this._hitSoundPlayed = false;
+        this._hasDealtDamageThisAttack = false;
+    }
+
+
+    /**
+     * Aktualisiert das aktuell angezeigte Angriffsbild.
+     * @returns {void}
+     */
+    updateAttackFrameImage() {
+        const key = this.IMAGES_ATTACK[this.attackFrameIndex];
+        this.img = this.imageCache[key];
+    }
+
+
+    /**
+     * Führt Effekte für Nahkampf oder Kunai beim passenden Frame aus.
+     * @returns {void}
+     */
+    handleAttackEffects() {
+        if (this.attackType === 'melee') {
+            this.handleMeleeAttackFrame();
+        }
+
+        if (this.attackType === 'kunai') {
+            this.handleKunaiAttackFrame();
         }
     }
 
+
     /**
-     * Nahkampftreffer:
-     * - nur EIN Gegner / Boss pro Attacke
-     * - Endboss-Schaden und Lebensleiste hier updaten
+     * Behandelt das Trefffenster beim Nahkampf.
+     * @returns {void}
+     */
+    handleMeleeAttackFrame() {
+        if (this.attackFrameIndex !== 2 && this.attackFrameIndex !== 3) {
+            return;
+        }
+
+        this.applyMeleeHit();
+        this.playMeleeHitSoundOnce();
+    }
+
+
+    /**
+     * Spielt den Nahkampf-Sound genau einmal pro Angriff.
+     * @returns {void}
+     */
+    playMeleeHitSoundOnce() {
+        if (this._hitSoundPlayed) return;
+
+        this.playHitSound();
+        this._hitSoundPlayed = true;
+    }
+
+
+    /**
+     * Behandelt das Wurf-Frame beim Kunai-Angriff.
+     * @returns {void}
+     */
+    handleKunaiAttackFrame() {
+        if (this.attackFrameIndex !== 3) return;
+
+        if (this.world && typeof this.world.onCharacterKunaiRelease === 'function') {
+            this.world.onCharacterKunaiRelease();
+        }
+
+        this.playKunaiThrowSound();
+    }
+
+
+    /**
+     * Nahkampftreffer auf Gegner (Orcs & Endboss).
+     * Pro Attacke nur ein getroffener Gegner.
+     * @returns {void}
      */
     applyMeleeHit() {
-        if (!this.world || !this.world.level?.enemies) return;
-
-        // wenn in dieser Attacke schon jemand getroffen wurde → nichts mehr
+        if (!this.world?.level?.enemies) return;
         if (this._hasDealtDamageThisAttack) return;
 
+        const hitbox = this.createMeleeHitbox();
+        const enemies = this.world.level.enemies;
+
+        for (let i = 0; i < enemies.length; i++) {
+            const enemy = enemies[i];
+            if (this.isInvalidMeleeTarget(enemy, hitbox)) continue;
+
+            this.applyMeleeDamageToEnemy(enemy);
+            this._hasDealtDamageThisAttack = true;
+            break;
+        }
+    }
+
+
+    /**
+     * Erzeugt die Nahkampf-Hitbox vor dem Charakter.
+     * @returns {{x:number,y:number,w:number,h:number}} Hitbox-Objekt.
+     */
+    createMeleeHitbox() {
         const range = 0;
         const height = this.height * 0.6;
         const y = this.y + this.height * 0.2;
         const facingRight = !this.otherDirection;
-        const x = facingRight ? (this.x + this.width) : (this.x - range);
-        const hitbox = { x, y, w: range, h: height };
+        const x = facingRight ? this.x + this.width : this.x - range;
 
-        const enemies = this.world.level.enemies;
+        return { x, y, w: range, h: height };
+    }
 
-        for (let i = 0; i < enemies.length; i++) {
-            const e = enemies[i];
-            if (!e || !e.collidable || e.isDying) continue;
 
-            if (typeof e.overlapsRect === 'function' && e.overlapsRect(hitbox)) {
+    /**
+     * Prüft, ob ein Gegner für Nahkampftreffer ungeeignet ist.
+     * @param {Object} enemy - Der zu prüfende Gegner.
+     * @param {Object} hitbox - Hitbox des Angriffs.
+     * @returns {boolean} true, wenn kein gültiges Ziel.
+     */
+    isInvalidMeleeTarget(enemy, hitbox) {
+        if (!enemy || !enemy.collidable || enemy.isDying) {
+            return true;
+        }
 
-                if (e.isEndboss) {
-                    // pro Schlag genau EINE Lebensstufe
-                    if (typeof e.hit === 'function') {
-                        e.hit();          // Damage-Wert ist egal, Endboss zieht intern 20 ab
-                    }
-                } else {
-                    // normaler Orc stirbt
-                    if (typeof e.die === 'function') {
-                        e.die();
-                    }
-                }
+        if (typeof enemy.overlapsRect !== 'function') {
+            return true;
+        }
 
-                // ab hier für diese Attacke nichts mehr treffen
-                this._hasDealtDamageThisAttack = true;
-                break;
-            }
+        return !enemy.overlapsRect(hitbox);
+    }
+
+
+    /**
+     * Wendet Nahkampfschaden auf einen Gegner an.
+     * @param {Object} enemy - Getroffener Gegner.
+     * @returns {void}
+     */
+    applyMeleeDamageToEnemy(enemy) {
+        if (enemy.isEndboss && typeof enemy.hit === 'function') {
+            enemy.hit();
+            return;
+        }
+
+        if (!enemy.isEndboss && typeof enemy.die === 'function') {
+            enemy.die();
         }
     }
 
+
     /* ===================== SCHADEN / TOD ===================== */
 
+    /**
+     * Verarbeitet Schaden am Charakter.
+     * @param {number} [dmg=this.DAMAGE_PER_HIT] - Schaden je Treffer.
+     * @returns {void}
+     */
     hit(dmg = this.DAMAGE_PER_HIT) {
         if (this.isDead()) return;
 
@@ -323,189 +493,408 @@ class Character extends MovableObject {
         this.energy -= dmg;
         if (this.energy < 0) this.energy = 0;
 
+        this.updateLastHitTime(oldEnergy);
+        this.handleHitSounds(wasDeadBefore, oldEnergy);
+    }
+
+
+    /**
+     * Aktualisiert den Zeitpunkt des letzten Treffers.
+     * @param {number} oldEnergy - Energie vor dem Treffer.
+     * @returns {void}
+     */
+    updateLastHitTime(oldEnergy) {
         if (this.energy < oldEnergy && this.energy > 0) {
             this.lastHit = new Date().getTime();
         }
+    }
 
+
+    /**
+     * Spielt bei Bedarf Hurt- oder Death-Sounds ab.
+     * @param {boolean} wasDeadBefore - War der Charakter vorher schon tot?
+     * @param {number} oldEnergy - Energie vor dem Treffer.
+     * @returns {void}
+     */
+    handleHitSounds(wasDeadBefore, oldEnergy) {
         const deadNow = this.isDead();
-
         if (wasDeadBefore) return;
 
         if (!wasDeadBefore && deadNow) {
             this.playDeathSound();
-        } else if (!deadNow && this.energy < oldEnergy) {
+            return;
+        }
+
+        if (!deadNow && this.energy < oldEnergy) {
             this.playHurtSound();
         }
     }
 
+
+    /**
+     * Prüft, ob der Charakter tot ist.
+     * @returns {boolean} true, wenn Energie <= 0.
+     */
     isDead() {
         return this.energy <= 0;
     }
 
+
+    /**
+     * Prüft, ob der Charakter vor kurzem Schaden erlitten hat.
+     * @returns {boolean} true, wenn kürzlich getroffen.
+     */
     isHurt() {
         let timepassed = new Date().getTime() - this.lastHit;
         timepassed = timepassed / 1000;
         return this.energy > 0 && timepassed < 1;
     }
 
+
+    /**
+     * Spielt die Death-Animation genau einmal ab.
+     * @returns {void}
+     */
     playDeathOnce() {
-        if (this.deathFrozen) return;
-        if (this.deathTimer) return;
+        if (this.deathFrozen || this.deathTimer) return;
 
         const seq = this.IMAGES_DEAD;
-
         this.img = this.imageCache[seq[this.deathIndex]];
+        this.startDeathInterval(seq);
+    }
 
+
+    /**
+     * Startet den Death-Animation-Interval.
+     * @param {string[]} seq - Death-Frames.
+     * @returns {void}
+     */
+    startDeathInterval(seq) {
         this.deathTimer = setInterval(() => {
-            this.deathIndex = Math.min(this.deathIndex + 1, seq.length - 1);
-            this.img = this.imageCache[seq[this.deathIndex]];
-
-            if (this.deathIndex >= seq.length - 1) {
-                clearInterval(this.deathTimer);
-                this.deathTimer = null;
-                this.deathFrozen = true;
-            }
+            this.advanceDeathFrame(seq);
         }, this.deathFrameDuration);
     }
 
+
+    /**
+     * Schaltet auf das nächste Death-Frame um.
+     * @param {string[]} seq - Death-Frames.
+     * @returns {void}
+     */
+    advanceDeathFrame(seq) {
+        this.deathIndex = Math.min(this.deathIndex + 1, seq.length - 1);
+        this.img = this.imageCache[seq[this.deathIndex]];
+
+        if (this.deathIndex >= seq.length - 1) {
+            clearInterval(this.deathTimer);
+            this.deathTimer = null;
+            this.deathFrozen = true;
+        }
+    }
+
+
+    /**
+     * Setzt die Death-Animation zurück (z.B. bei Restart).
+     * @returns {void}
+     */
     resetDeathAnim() {
         this.deathIndex = 0;
         this.deathFrozen = false;
+
         if (this.deathTimer) {
             clearInterval(this.deathTimer);
             this.deathTimer = null;
         }
+
         this._deathSoundPlayed = false;
         this.loadImage('img/2_character_shinobi/1_idle/idle/Idle_1.png');
     }
 
+
     /* ===================== ANIMATION / BEWEGUNG ===================== */
 
+    /**
+     * Startet die Bewegungs- und Animations-Loops.
+     * @returns {void}
+     */
     animateCharacter() {
+        this.startMovementLoop();
+        this.startAnimationLoop();
+    }
 
-        // Bewegung / Physik
+
+    /**
+     * Startet den Bewegungs-Loop (Physik, Input, Kamera).
+     * @returns {void}
+     */
+    startMovementLoop() {
         setInterval(() => {
-
-            // während Boss-Intro: Character komplett einfrieren
-            if (this.world && this.world.bossIntroActive) {
-                this.walking_sound.pause();
-                return;
-            }
-
-            if (this.world && this.world.gameEnded) {
-                this.walking_sound.pause();
-                return;
-            }
-
-            this.walking_sound.pause();
-
-            const onGround = !this.isAboveGround();
-
-            // WÄHREND ATTACKE KEINE HORIZONTALE BEWEGUNG
-            if (this.world.keyboard.RIGHT &&
-                this.x < this.world.level.level_end_x &&
-                !this.isDead() &&
-                !this.isAttacking) {
-
-                this.moveRight();
-                this.soundEffects(0.3, 2.5);
-            }
-
-            if (this.world.keyboard.LEFT &&
-                this.x > -670 &&
-                !this.isDead() &&
-                !this.isAttacking) {
-
-                this.moveLeft();
-                this.soundEffects(0.3, 2.5);
-            }
-
-            // SPRUNG nur wenn NICHT attacking
-            if (this.world.keyboard.SPACE &&
-                onGround &&
-                !this.isDead() &&
-                !this.isAttacking) {
-
-                if (!this._jumpSoundPlayed) {
-                    this.playJumpSound();
-                    this._jumpSoundPlayed = true;
-                }
-
-                this.jump();
-            }
-
-            if (onGround && !this.world.keyboard.SPACE) {
-                this._jumpSoundPlayed = false;
-            }
-
-            this.world.camera_x = -this.x + 50;
+            this.updateMovement();
         }, 1000 / 60);
+    }
 
-        // Animationen + Attack-Takt
+
+    /**
+     * Startet den Animations-Loop (Sprites, Angriffe).
+     * @returns {void}
+     */
+    startAnimationLoop() {
         setInterval(() => {
-
-            // Attack-Frames immer erlauben (auch nach Intro)
-            if (this.isAttacking) {
-                this.updateAttack();
-                return;
-            }
-
-            if (this.isDead()) {
-                this.playDeathOnce();
-                return;
-            }
-
-            if (this.isHurt()) {
-                this.playAnimation(this.IMAGES_HURT);
-            } else if (this.isNotMoving()) {
-                this.playAnimation(this.IMAGES_IDLE);
-            } else if (this.isAboveGround()) {
-                this.playAnimation(this.IMAGES_JUMPING);
-            } else if (this.world.keyboard.RIGHT || this.world.keyboard.LEFT) {
-                this.playAnimation(this.IMAGES_WALKING);
-            }
+            this.updateAnimation();
         }, 100);
     }
 
+
+    /**
+     * Aktualisiert Bewegung und Eingaben innerhalb des Movement-Loops.
+     * @returns {void}
+     */
+    updateMovement() {
+        if (this.isMovementFrozen()) {
+            this.walking_sound.pause();
+            return;
+        }
+
+        this.walking_sound.pause();
+        const onGround = !this.isAboveGround();
+
+        this.handleHorizontalMovement();
+        this.handleJump(onGround);
+        this.world.camera_x = -this.x + 50;
+    }
+
+
+    /**
+     * Prüft, ob der Charakter wegen Boss-Intro oder GameEnd eingefroren ist.
+     * @returns {boolean} true, wenn Bewegung gesperrt.
+     */
+    isMovementFrozen() {
+        if (!this.world) return false;
+
+        if (this.world.bossIntroActive) {
+            return true;
+        }
+
+        return this.world.gameEnded;
+    }
+
+
+    /**
+     * Verarbeitet horizontale Eingaben (Links/Rechts).
+     * @returns {void}
+     */
+    handleHorizontalMovement() {
+        if (this.canMoveRight()) {
+            this.moveRight();
+            this.soundEffects(0.3, 2.5);
+        }
+
+        if (this.canMoveLeft()) {
+            this.moveLeft();
+            this.soundEffects(0.3, 2.5);
+        }
+    }
+
+
+    /**
+     * Prüft, ob eine Rechtsbewegung erlaubt ist.
+     * @returns {boolean} true, wenn Bewegung nach rechts möglich.
+     */
+    canMoveRight() {
+        if (!this.world || !this.world.keyboard.RIGHT) return false;
+        if (this.isDead() || this.isAttacking) return false;
+
+        return this.x < this.world.level.level_end_x;
+    }
+
+
+    /**
+     * Prüft, ob eine Linksbewegung erlaubt ist.
+     * @returns {boolean} true, wenn Bewegung nach links möglich.
+     */
+    canMoveLeft() {
+        if (!this.world || !this.world.keyboard.LEFT) return false;
+        if (this.isDead() || this.isAttacking) return false;
+
+        return this.x > -670;
+    }
+
+
+    /**
+     * Verarbeitet Sprung-Eingaben.
+     * @param {boolean} onGround - true, wenn Charakter am Boden ist.
+     * @returns {void}
+     */
+    handleJump(onGround) {
+        if (this.canStartJump(onGround)) {
+            this.playJumpSoundOnce();
+            this.jump();
+        }
+
+        if (onGround && !this.world.keyboard.SPACE) {
+            this._jumpSoundPlayed = false;
+        }
+    }
+
+
+    /**
+     * Prüft, ob ein Sprung gestartet werden kann.
+     * @param {boolean} onGround - true, wenn Charakter am Boden ist.
+     * @returns {boolean} true, wenn Sprung möglich.
+     */
+    canStartJump(onGround) {
+        if (!this.world || !this.world.keyboard.SPACE) return false;
+        if (!onGround) return false;
+
+        return !this.isDead() && !this.isAttacking;
+    }
+
+
+    /**
+     * Spielt den Sprung-Sound genau einmal pro Sprung.
+     * @returns {void}
+     */
+    playJumpSoundOnce() {
+        if (this._jumpSoundPlayed) return;
+
+        this.playJumpSound();
+        this._jumpSoundPlayed = true;
+    }
+
+
+    /**
+     * Aktualisiert Animation und Angriff innerhalb des Animation-Loops.
+     * @returns {void}
+     */
+    updateAnimation() {
+        if (this.isAttacking) {
+            this.updateAttack();
+            return;
+        }
+
+        if (this.handleDeathOrHurtAnimation()) {
+            return;
+        }
+
+        this.handleMovementAnimation();
+    }
+
+
+    /**
+     * Behandelt Death- oder Hurt-Animation.
+     * @returns {boolean} true, wenn Animation gesetzt wurde.
+     */
+    handleDeathOrHurtAnimation() {
+        if (this.isDead()) {
+            this.playDeathOnce();
+            return true;
+        }
+
+        if (this.isHurt()) {
+            this.playAnimation(this.IMAGES_HURT);
+            return true;
+        }
+
+        return false;
+    }
+
+
+    /**
+     * Schaltet zwischen Idle-, Jump- und Walk-Animation um.
+     * @returns {void}
+     */
+    handleMovementAnimation() {
+        if (this.isNotMoving()) {
+            this.playAnimation(this.IMAGES_IDLE);
+            return;
+        }
+
+        if (this.isAboveGround()) {
+            this.playAnimation(this.IMAGES_JUMPING);
+            return;
+        }
+
+        if (this.world?.keyboard.RIGHT || this.world?.keyboard.LEFT) {
+            this.playAnimation(this.IMAGES_WALKING);
+        }
+    }
+
+
+    /**
+     * Spielt die Lauf-Soundeffekte ab.
+     * @param {number} volume - Lautstärke (0–1).
+     * @param {number} playbackRate - Abspielgeschwindigkeit.
+     * @returns {void}
+     */
     soundEffects(volume, playbackRate) {
         this.walking_sound.play();
         this.walking_sound.playbackRate = playbackRate;
         this.walking_sound.volume = volume;
     }
 
+
+    /**
+     * Spielt den Kunai-Wurf-Sound ab.
+     * @returns {void}
+     */
     playKunaiThrowSound() {
         if (!this.kunai_throw_sound) return;
+
         this.kunai_throw_sound.currentTime = 0;
         this.kunai_throw_sound.volume = 0.3;
         this.kunai_throw_sound.play();
     }
 
+
+    /**
+     * Spielt den Nahkampf-Sound ab.
+     * @returns {void}
+     */
     playHitSound() {
         if (!this.hit_sound) return;
+
         this.hit_sound.currentTime = 0;
         this.hit_sound.volume = 0.3;
         this.hit_sound.play();
     }
 
+
+    /**
+     * Spielt den Sprung-Sound ab.
+     * @returns {void}
+     */
     playJumpSound() {
         if (!this.jump_sound) return;
+
         this.jump_sound.currentTime = 0;
         this.jump_sound.volume = 0.35;
         this.jump_sound.play();
     }
 
+
+    /**
+     * Spielt den Hurt-Sound ab.
+     * @returns {void}
+     */
     playHurtSound() {
         if (!this.hurt_sound) return;
+
         this.hurt_sound.currentTime = 0;
         this.hurt_sound.volume = 0.35;
         this.hurt_sound.play();
     }
 
+
+    /**
+     * Spielt den Death-Sound einmalig ab.
+     * @returns {void}
+     */
     playDeathSound() {
         if (this._deathSoundPlayed) return;
         this._deathSoundPlayed = true;
 
         if (!this.death_sound) return;
+
         this.death_sound.currentTime = 0;
         this.death_sound.volume = 0.4;
         this.death_sound.play();
