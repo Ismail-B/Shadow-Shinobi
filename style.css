@@ -152,7 +152,7 @@ canvas {
 #story,
 #impressum {
     position: fixed;
-    top: 50%;
+    top: 49.5%;
     left: 50%;
     transform: translate(-50%, -50%);
     background-color: #b7694dec;
@@ -161,6 +161,11 @@ canvas {
     font-family: 'NinjaNaruto', sans-serif;
     z-index: 1000;
     display: none;
+}
+
+#story{
+    min-height: 600px;
+    min-width: 800px;
 }
 
 /* Startmenü-Overlay: zentriert, klassische Größe */
@@ -206,7 +211,6 @@ canvas {
     justify-content: center;
     align-items: center;
     font-family: 'NinjaNaruto', sans-serif;
-    font-size: 36px;
     height: 64px;
     border-radius: 10px 10px 0 0;
     text-shadow: 2px 2px 5px rgba(0,0,0,0.5);
@@ -215,7 +219,8 @@ canvas {
 
 /* Story Text */
 .background-story {
-    padding: 24px 64px;
+    padding: 24px;
+    font-size: 20px;
 }
 .background-story p {
     margin-bottom: 0;
@@ -223,10 +228,14 @@ canvas {
 }
 
 /* Impressum */
-#impressum p {
+#impressum{
+    font-family: Arial, Helvetica, sans-serif;
+    min-width: 700px; 
+    >p {
     display: flex;
     justify-content: center;
     text-shadow: 2px 2px 5px rgba(0,0,0,0.5);
+    }
 }
 
 .impressum-button {
@@ -242,6 +251,7 @@ canvas {
     justify-content: center;
     align-items: center;
     gap: 8px;
+    font-family: Arial, Helvetica, sans-serif;
 }
 .email-link a {
     color: rgb(205, 203, 203);
@@ -261,7 +271,7 @@ canvas {
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    width: 70%;
+    min-width: 800px;
     height: 60%;
     background-color: #b7694dec;
     border-radius: 10px;
@@ -277,17 +287,17 @@ canvas {
     justify-content: center;
     align-items: center;
     font-family: 'NinjaNaruto', sans-serif;
-    font-size: 48px;
     height: 64px;
     border-radius: 10px 10px 0 0;
     text-shadow: 2px 2px 5px rgba(0,0,0,0.5);
-    padding: 16px 0;
+    padding: 24px;
 }
 
 .controls {
     display: flex;
     flex-direction: column;
     align-items: center;
+    justify-content: space-evenly;
 }
 
 .controls span {
@@ -298,13 +308,15 @@ canvas {
 .control-button {
     display: flex;
     flex-direction: column;
-    gap: 10%;
 }
 
 .control-button-style {
     display: flex;
     align-items: center;
     font-size: 24px;
+    button{
+        height: 48px;
+    }
 }
 
 .control-button-style img {
@@ -317,7 +329,7 @@ canvas {
     font-family: 'NinjaNaruto', sans-serif;
     font-size: 36px;
     display: flex;
-    justify-content: space-evenly;
+    justify-content: center;
 }
 
 .menu-button {
@@ -428,7 +440,7 @@ button:hover {
 .rotate-overlay {
     position: fixed;
     inset: 0;
-    background: rgba(0,0,0,0.9);
+    background: black;
     z-index: 1200;
     display: none;
     justify-content: center;

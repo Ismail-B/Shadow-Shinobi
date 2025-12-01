@@ -25,20 +25,41 @@ function isMobileLike() {
   const uaMobile = /Android|iPhone|iPad|iPod|Windows Phone|webOS|BlackBerry/i.test(
     navigator.userAgent
   );
+
   const minSide = Math.min(window.innerWidth, window.innerHeight);
-  return uaMobile || minSide <= MOBILE_MAX_SIDE;
+  const smallScreen = minSide <= MOBILE_MAX_SIDE;
+  const touch = isTouchDevice();
+
+  // → Nur Geräte, die wirklich "mobil" wirken: Touch + klein ODER typischer Mobile-UserAgent
+  return (touch && smallScreen) || (uaMobile && smallScreen);
 }
+
+
+
+function isTouchDevice() {
+  return (
+    'ontouchstart' in window ||
+    navigator.maxTouchPoints > 0 ||
+    navigator.msMaxTouchPoints > 0
+  );
+}
+
 
 /**
  * Blendet den Fullscreen-Button je nach Gerät ein/aus.
  */
 function updateFullscreenButtonVisibility() {
   const fsBtn = document.querySelector('.fullscreen-button');
-  if (!fsBtn) {
-    return;
+  if (!fsBtn) return;
+
+  // Button nur ausblenden, wenn Gerät "mobil" ist
+  if (isMobileLike()) {
+    fsBtn.style.display = 'none';
+  } else {
+    fsBtn.style.display = 'block';
   }
-  fsBtn.style.display = isMobileLike() ? 'none' : 'block';
 }
+
 
 /**
  * Wendet globalen Mute-Status auf die aktuelle Welt an.

@@ -78,15 +78,6 @@
     .story-headline{
         font-size: 24px;
     }
-    .background-story p{
-        font-size: 14px;
-    }
-    .menu-button button{
-        width: 140px;
-        height: 40px;
-        font-size: 16px;
-        padding: 0;
-    }
 }
 
 @media (max-width:800px){
@@ -173,7 +164,7 @@
 /* =========================================================
    MOBILE / TABLET LANDSCAPE: MENÜ + SPIEL
    ========================================================= */
-@media screen and (max-width: 912px) and (orientation: landscape) {
+@media screen and (max-width: 916px) and (orientation: landscape) {
 
     /* Grundgröße anpassen */
     body {
