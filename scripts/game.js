@@ -3,7 +3,7 @@ let world;
 let keyboard = new Keyboard();
 let intervalIds = [];
 
-const MOBILE_MAX_SIDE = 912;
+const MOBILE_MAX_SIDE = 1100;
 let touchControlsInitialized = false;
 
 let joystickBase = null;
