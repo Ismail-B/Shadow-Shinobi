@@ -43,6 +43,32 @@ function isTouchDevice() {
 }
 
 /**
+ * Aktiviert Layout für laufendes Spiel.
+ */
+function enterGameMode() {                         // NEU
+  document.body.classList.add('game-running');     // NEU
+}
+
+/**
+ * Deaktiviert Layout für laufendes Spiel und verlässt ggf. Fullscreen.
+ */
+function exitGameMode() {                          // NEU
+  document.body.classList.remove('game-running');  // NEU
+
+  // Vollbild verlassen, falls noch aktiv              // NEU
+  try {                                             // NEU
+    if (isFullscreenActive()) {                     // NEU
+      exitFullscreen();                             // NEU
+    }                                               // NEU
+  } catch (e) {                                     // NEU
+    // bewusst ignoriert                             // NEU
+  }
+
+  // Scrollposition zurücksetzen (verhindert grauen Balken im Menü) // NEU
+  window.scrollTo(0, 0);                            // NEU
+}
+
+/**
  * Blendet den Fullscreen-Button je nach Gerät ein/aus.
  */
 function updateFullscreenButtonVisibility() {
@@ -104,7 +130,7 @@ function resetOrcAudioState() {
  */
 function init() {
   // Spielzustand aktiv
-  document.body.classList.add('game-running');
+  enterGameMode(); // GEÄNDERT
 
   const startOverlay = document.getElementById('startoverlay');
   const canvasEl = document.getElementById('canvas');
@@ -179,7 +205,7 @@ function restartGame() {
   }
 
   // Sicherstellen, dass wir im "Spiel läuft"-Zustand sind
-  document.body.classList.add('game-running');
+  enterGameMode(); // GEÄNDERT
 
   world = new World(canvasEl, keyboard);
   applyMuteStateToWorld();
@@ -212,8 +238,8 @@ function backToMenu() {
 
   world = null;
 
-  // Spielzustand beenden → Header/Footer werden wieder sichtbar (über CSS)
-  document.body.classList.remove('game-running');
+  // Spielzustand beenden → Header/Footer wieder sichtbar & Fullscreen verlassen
+  exitGameMode(); // GEÄNDERT
 
   handleOrientation();
   updateFullscreenButtonVisibility();

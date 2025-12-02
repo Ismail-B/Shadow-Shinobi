@@ -156,7 +156,7 @@
 /* =========================================================
    MOBILE / TABLET LANDSCAPE: MENÜ + SPIEL
    ========================================================= */
-@media screen and (max-width: 933px) and (orientation: landscape) {
+@media screen and (max-width: 1100px) and (orientation: landscape) {
 
     /* Grundgröße anpassen */
     body {

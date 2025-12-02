@@ -438,7 +438,7 @@ button:hover {
     left: 50%;
     transform: translate(-50%, -50%);
     min-width: 600px;
-    height: 40%;
+    height: 50%;
     background-color: #b7694dec;
     border-radius: 10px;
     display: none;
