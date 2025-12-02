@@ -71,14 +71,6 @@
 /* =========================================================
    STORY SCREEN RESPONSIVE
    ========================================================= */
-@media (max-width:1024px){
-    #story{
-        height: 45%;
-    }
-    .story-headline{
-        font-size: 24px;
-    }
-}
 
 @media (max-width:800px){
     #story{
@@ -221,7 +213,8 @@
 
     /* Copyright-Zeile ausblenden, sonst wird Footer höher */
     .under-signature {
-        display: none;
+        margin-bottom: 3px;
+        margin-top: 0;
     }
 
     /* ============================================
@@ -312,7 +305,7 @@
     .story-headline,
     .control-headline {
         font-size: 24px;
-        height: auto;
+        height: 56px;
         padding: 8px 0;
     }
 

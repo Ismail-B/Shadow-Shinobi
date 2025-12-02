@@ -34,8 +34,6 @@ function isMobileLike() {
   return (touch && smallScreen) || (uaMobile && smallScreen);
 }
 
-
-
 function isTouchDevice() {
   return (
     'ontouchstart' in window ||
@@ -43,7 +41,6 @@ function isTouchDevice() {
     navigator.msMaxTouchPoints > 0
   );
 }
-
 
 /**
  * Blendet den Fullscreen-Button je nach Gerät ein/aus.
@@ -59,7 +56,6 @@ function updateFullscreenButtonVisibility() {
     fsBtn.style.display = 'block';
   }
 }
-
 
 /**
  * Wendet globalen Mute-Status auf die aktuelle Welt an.
@@ -128,6 +124,7 @@ function init() {
   setupTouchControls();
   handleOrientation();
   updateFullscreenButtonVisibility();
+  handleScreenTooSmallOverlay(); // NEU: beim Start prüfen
 
   if (isMobileLike()) {
     enterFullscreenSafe();
@@ -142,8 +139,9 @@ function toggle(canvasId) {
   const canvasEl = document.getElementById(canvasId);
   const startOverlay = document.getElementById('startoverlay');
 
-  const isHidden = canvasEl.style.display === 'none' || canvasEl.style.display === '';
-  canvasEl.style.display = isHidden ? 'block' : 'none';
+  const isHidden =
+    canvasEl.style.display === 'none' || canvasEl.style.display === '';
+  canvasEl.style.display = isHidden ? 'flex' : 'none';
   startOverlay.style.display = isHidden ? 'none' : 'flex';
 }
 
@@ -188,6 +186,7 @@ function restartGame() {
 
   handleOrientation();
   updateFullscreenButtonVisibility();
+  handleScreenTooSmallOverlay(); // NEU: auch beim Restart prüfen
 
   if (isMobileLike()) {
     enterFullscreenSafe();
@@ -218,6 +217,7 @@ function backToMenu() {
 
   handleOrientation();
   updateFullscreenButtonVisibility();
+  handleScreenTooSmallOverlay(); // NEU
 }
 
 /**
@@ -439,6 +439,24 @@ function handleOrientation() {
     if (touchControls) {
       touchControls.style.display = gameStarted ? 'block' : 'none';
     }
+  }
+}
+
+/**
+ * Steuert das "Screen too small"-Overlay
+ * für Nicht-Touch-Geräte mit Breite <= 800px.
+ */
+function handleScreenTooSmallOverlay() {          // NEU
+  const overlay = document.getElementById('screen-too-small-overlay');
+  if (!overlay) return;
+
+  const hasTouch = isTouchDevice();
+  const tooSmall = window.innerWidth <= 800;
+
+  if (!hasTouch && tooSmall) {
+    overlay.style.display = 'flex';
+  } else {
+    overlay.style.display = 'none';
   }
 }
 
@@ -687,6 +705,7 @@ function setupTouchControls() {
 function handleLayoutChange() {
   handleOrientation();
   updateFullscreenButtonVisibility();
+  handleScreenTooSmallOverlay(); // NEU: bei jedem Layout-Change prüfen
 }
 
 window.addEventListener('resize', handleLayoutChange);

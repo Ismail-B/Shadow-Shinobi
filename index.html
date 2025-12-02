@@ -57,7 +57,7 @@
     <script src="./models/endboss.class.js"></script>
 
     <!-- Statusleisten -->
-     <script src="models/status-bar-base.class.js"></script>
+    <script src="models/status-bar-base.class.js"></script>
     <script src="./models/status-bar-life.class.js"></script>
     <script src="./models/status-bar-coin.class.js"></script>
     <script src="./models/status-bar-kunai.class.js"></script>
@@ -156,17 +156,17 @@
     <!-- ===================================================
          START-OVERLAY (HAUPTMENÜ)
          =================================================== -->
-<div id="startoverlay">
-  <div class="menu-main">
-    <button onclick="init()">Start</button>
-    <button onclick="toggle('control')">Controls</button>
-    <button onclick="toggle('story')">Story</button>
-  </div>
+    <div id="startoverlay">
+      <div class="menu-main">
+        <button onclick="init()">Start</button>
+        <button onclick="toggle('control')">Controls</button>
+        <button onclick="toggle('story')">Story</button>
+      </div>
 
-  <button class="impressum-button" onclick="toggle('impressum')">
-    Impressum
-  </button>
-</div>
+      <button class="impressum-button" onclick="toggle('impressum')">
+        Impressum
+      </button>
+    </div>
 
     <!-- ===================================================
          GAME OVER OVERLAY
@@ -259,26 +259,15 @@
 
       <div class="background-story">
         <p>
-          The Shadow Shinobi
+          Hidden deep within the mountains lay a quiet village, threatened each night by savage orcs hungry for chaos.
+          Yet the villagers slept without fear — because someone watched over them: the Shadow Shinobi.<br>
 
-          In a small village hidden deep in the mountains, the nights were
-          haunted by savage orcs that craved chaos. But the villagers slept
-          soundly, knowing their protector lurked in the darkness. He was the
-          Shadow Shinobi, a master of stealth and shadow magic, sworn to defend
-          his people.
+          Silent as the wind and one with the darkness, he patrolled the borders every night. Those who dared to approach saw only a flash of steel… and then nothing.<br>
 
-          Silent as the wind, he patrolled the village's borders each night, his
-          blade striking faster than the eye could follow. Cloaked in darkness,
-          he became one with the shadows, appearing only to strike down those
-          who dared to threaten his home.
+          But one night, a powerful orc shaman appeared, summoning an entire horde. It became the Shinobi’s greatest challenge.<br>
+          Without hesitation, he vanished into the shadows, his blade ready, determined to protect his home at all costs.<br>
 
-          One fateful night, a powerful orc shaman arrived, summoning an army of
-          beasts. The Shinobi faced his greatest challenge yet. Without fear or
-          hesitation, he vanished into the night, his blade ready, his mission
-          clear: protect the village at all costs.
-
-          And so, the legend of the Shadow Shinobi lived on, whispered in
-          gratitude by those he saved.
+          Since that day, the villagers whisper of the warrior who fights unseen — their guardian in the dark.
         </p>
       </div>
 
@@ -294,13 +283,13 @@
       <div class="story-headline">
         <h2>Impressum</h2>
       </div>
-
-      <p>Ismail Baris</p>
-      <p>Software Developer</p>
-      <p>Finkenstraße 2</p>
-      <p>52531 Übach-Palenberg</p>
-      <p>Deutschland</p>
-
+      <div class="impressum-content">
+        <p>Ismail Baris</p>
+        <p>Software Developer</p>
+        <p>Finkenstraße 2</p>
+        <p>52531 Übach-Palenberg</p>
+        <p>Deutschland</p>
+      </div>
       <div class="email-link">
         <p>Email:</p>
         <a href="mailto:contact@ismail-baris.de">contact@ismail-baris.de</a>
@@ -318,6 +307,16 @@
       <div class="rotate-message">
         Bitte drehe dein Gerät ins Querformat,<br />
         um Shadow Shinobi zu spielen.
+      </div>
+    </div>
+
+    <!-- ===================================================
+         DESKTOP: SCREEN TOO SMALL OVERLAY (NON-TOUCH)
+         =================================================== -->
+    <div id="screen-too-small-overlay" class="screen-too-small-overlay">
+      <!-- NEU: Overlay für Nicht-Touch-Geräte mit Breite <= 800px -->
+      <div class="screen-too-small-message">
+        Screen too small
       </div>
     </div>
 

@@ -34,7 +34,7 @@ h1 {
 header {
     font-family: 'NinjaNaruto', sans-serif;
     font-style: normal;
-    min-height: 100px;
+    height: 100px;
     display: flex;
     justify-content: flex-start;
     align-items: center;
@@ -54,7 +54,7 @@ footer {
     background-color: #B7694D;
     justify-content: flex-start;
     flex-direction: column;
-    min-height: 30px;
+    height: 100px;
 }
 
 footer img {
@@ -68,7 +68,6 @@ footer img {
     display: flex;
     justify-content: center;
     align-items: flex-end;
-    min-height: 106.8px;
     background-color: #B7694D;
 }
 
@@ -86,6 +85,7 @@ footer img {
     font-size: 12px;
     color: rgb(192, 192, 192);
     margin-bottom: 16px;
+    margin-top: 0;
 }
 
 
@@ -164,8 +164,10 @@ canvas {
 }
 
 #story{
-    min-height: 600px;
-    min-width: 800px;
+    min-height: 400px;
+    min-width: 790px;
+    flex-direction: column;
+    height: 62%;
 }
 
 /* Startmenü-Overlay: zentriert, klassische Größe */
@@ -211,18 +213,24 @@ canvas {
     justify-content: center;
     align-items: center;
     font-family: 'NinjaNaruto', sans-serif;
-    height: 64px;
+    height: 48px;
     border-radius: 10px 10px 0 0;
     text-shadow: 2px 2px 5px rgba(0,0,0,0.5);
     padding: 16px 0;
+    >h2{
+        font-size: 36px;
+    }
 }
 
 /* Story Text */
 .background-story {
-    padding: 24px;
+    padding-top: 14px;
+    padding-right: 24px;
+    padding-left: 24px;
     font-size: 20px;
 }
 .background-story p {
+    margin-top: 0;
     margin-bottom: 0;
     text-shadow: 2px 2px 5px rgba(0,0,0,0.5);
 }
@@ -231,10 +239,22 @@ canvas {
 #impressum{
     font-family: Arial, Helvetica, sans-serif;
     min-width: 700px; 
-    >p {
+    flex-direction: column;
+    height: 60%;
+}
+
+.impressum-content{
     display: flex;
-    justify-content: center;
-    text-shadow: 2px 2px 5px rgba(0,0,0,0.5);
+    flex-direction: column;
+    align-items: center;
+    margin-top: 12px;
+    flex: 1;
+    >p{
+        flex: 1;
+        margin-top: 10px;
+        margin-bottom: 0;
+        font-size: 24px;
+        text-shadow: 2px 2px 5px rgba(0,0,0,0.5);
     }
 }
 
@@ -252,6 +272,7 @@ canvas {
     align-items: center;
     gap: 8px;
     font-family: Arial, Helvetica, sans-serif;
+    font-size: 24px;
 }
 .email-link a {
     color: rgb(205, 203, 203);
@@ -278,7 +299,9 @@ canvas {
     color: #fff;
     font-family: 'Noto Sans', sans-serif;
     z-index: 1000;
-    display: none;
+    display: none;          /* ← NUR das, kein zweites display mehr */
+    flex-direction: column; /* ← bleibt, Layout funktioniert,
+                               sobald JS auf flex schaltet */
 }
 
 .control-headline {
@@ -287,10 +310,13 @@ canvas {
     justify-content: center;
     align-items: center;
     font-family: 'NinjaNaruto', sans-serif;
-    height: 64px;
+    height: 24px;
     border-radius: 10px 10px 0 0;
     text-shadow: 2px 2px 5px rgba(0,0,0,0.5);
     padding: 24px;
+    >h2{
+        font-size: 36px;
+    }
 }
 
 .controls {
@@ -315,7 +341,8 @@ canvas {
     align-items: center;
     font-size: 24px;
     button{
-        height: 48px;
+        height: 32px;
+        padding: 0;
     }
 }
 
@@ -327,15 +354,19 @@ canvas {
 .control-container {
     padding-top: 16px;
     font-family: 'NinjaNaruto', sans-serif;
-    font-size: 36px;
+    font-size: 24px;
     display: flex;
     justify-content: center;
+    flex: 1 1 auto;
+    align-items: center;
+    overflow-y: auto;
 }
 
 .menu-button {
     display: flex;
     justify-content: center;
     padding: 16px;
+    flex: 0 0 auto;
 }
 
 
@@ -406,7 +437,7 @@ button:hover {
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    width: 50%;
+    min-width: 600px;
     height: 40%;
     background-color: #b7694dec;
     border-radius: 10px;
@@ -522,4 +553,27 @@ button:hover {
     .touch-controls {
         display: none !important;
     }
+}
+
+
+/* =========================================================
+   DESKTOP: SCREEN TOO SMALL OVERLAY (NON-TOUCH)
+   ========================================================= */
+
+.screen-too-small-overlay {          /* NEU */
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.96);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    z-index: 1300; /* über allen anderen Overlays */
+}
+
+.screen-too-small-message {          /* NEU */
+    color: #ffffff;
+    font-size: 2rem;
+    font-family: 'NinjaNaruto', sans-serif;
+    text-shadow: 2px 2px 5px rgba(0,0,0,0.8);
 }
