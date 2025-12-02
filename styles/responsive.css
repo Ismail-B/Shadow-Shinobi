@@ -336,25 +336,42 @@
     }
 
     /* ============================================
-       SPIEL LÄUFT → Header & Footer weg, Canvas full
+       SPIEL LÄUFT → Vollbild nur Canvas
        ============================================ */
+
+    body.game-running {                  /* NEW */
+        display: block;                  /* NEW: Flex-Layout ausschalten */
+        min-height: 0;                   /* NEW */
+        margin: 0;                       /* NEW */
+        overflow: hidden;                /* NEW: kein Scrollen → kein grauer Balken */
+    }
+
     body.game-running header,
     body.game-running footer {
         display: none !important;
     }
 
+    body.game-running main {             /* NEW */
+        margin: 0;                       /* NEW */
+        padding: 0;                      /* NEW */
+        height: 100dvh;                  /* NEW: echte Viewport-Höhe */
+    }
+
     body.game-running #canvas-box {
-        height: 100vh;
+        height: 100dvh;                  /* CHANGED: 100vh -> 100dvh */
+        max-height: 100dvh;              /* NEW */
         padding: 0;
+        margin: 0;                       /* NEW */
     }
 
     body.game-running canvas {
         width: 100vw;
-        height: 100vh;
+        height: 100dvh;                  /* CHANGED: 100vh -> 100dvh */
         max-width: none;
         max-height: none;
         border-width: 0;
         border-radius: 0;
+        display: block;                  /* NEW: kein zusätzlicher Abstand */
     }
 
     body.game-running #startoverlay,
