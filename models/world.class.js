@@ -1,5 +1,5 @@
 /**
- * Verwaltet Spielfigur, Gegner, Level, Sounds, HUD, Game-Loop und Rendering.
+ * Manages player, enemies, level, sounds, HUD, game loop and rendering.
  */
 class World {
   character = new Character();
@@ -39,9 +39,9 @@ class World {
   gameEnded = false;
 
   /**
-   * Erstellt eine neue Spielwelt.
-   * @param {HTMLCanvasElement} canvas - Zeichenfläche.
-   * @param {Keyboard} keyboard - Eingabesteuerung.
+   * Creates a new game world instance.
+   * @param {HTMLCanvasElement} canvas - Rendering canvas.
+   * @param {Keyboard} keyboard - Keyboard input instance.
    */
   constructor(canvas, keyboard) {
     this.ctx = canvas.getContext('2d');
@@ -56,7 +56,7 @@ class World {
   }
 
   /**
-   * Verknüpft das Ende des Boss-Intro-Sounds mit stopBossIntro.
+   * Registers handler for when the boss intro sound ends.
    */
   registerBossIntroEndHandler() {
     this.bossIntroSound.addEventListener('ended', () => {
@@ -65,7 +65,7 @@ class World {
   }
 
   /**
-   * Registriert Tastatur-Aktionen (Kunai-Wurf, Nahkampf).
+   * Registers keyboard actions (kunai throw, melee attack).
    */
   registerKeyListeners() {
     window.addEventListener('keydown', (event) => {
@@ -79,7 +79,7 @@ class World {
   }
 
   /**
-   * Initialisiert Sounds und World-Referenzen für Charakter und Gegner.
+   * Initializes sounds and world references for character and enemies.
    */
   setWorld() {
     this.playBackgroundAudio();
@@ -88,7 +88,7 @@ class World {
   }
 
   /**
-   * Startet Hintergrundsounds.
+   * Starts background sounds.
    */
   playBackgroundAudio() {
     this.background_sound.play();
@@ -98,7 +98,7 @@ class World {
   }
 
   /**
-   * Setzt die World-Referenz auf alle Gegner.
+   * Sets world reference on all enemies.
    */
   setWorldOnEnemies() {
     const enemies = this.level && this.level.enemies;
@@ -114,7 +114,7 @@ class World {
   }
 
   /**
-   * Startet den Game-Loop (Logik-Updates).
+   * Starts the game loop (logic updates).
    */
   run() {
     const intervalMs = 1000 / 60;
@@ -124,12 +124,14 @@ class World {
   }
 
   /**
-   * Führt einen Logik-Tick aus.
+   * Executes one logic tick of the game loop.
    */
   updateGameLoop() {
     if (this.gameEnded || this.bossIntroActive) {
       return;
     }
+
+    this.updateCollectibleBobbing();
 
     this.checkCollisions();
     this.checkCollectibles();
@@ -146,7 +148,7 @@ class World {
   }
 
   /**
-   * Prüft, ob der Charakter tot ist.
+   * Checks if the player character is dead.
    * @returns {boolean}
    */
   isCharacterDead() {
@@ -157,7 +159,7 @@ class World {
   }
 
   /**
-   * Prüft, ob der Endboss tot ist.
+   * Checks if the endboss is dead.
    * @returns {boolean}
    */
   isEndbossDead() {
@@ -169,8 +171,8 @@ class World {
   }
 
   /**
-   * Markiert das Spiel als beendet und triggert Game-Over-Logik.
-   * @param {boolean} playerWon - True, wenn der Spieler gewonnen hat.
+   * Marks the game as finished and triggers game-over logic.
+   * @param {boolean} playerWon - True if the player has won.
    */
   finishGame(playerWon) {
     this.gameEnded = true;
@@ -178,7 +180,7 @@ class World {
   }
 
   /**
-   * Startet das Boss-Intro (mit oder ohne Sound).
+   * Starts the boss intro sequence (with or without sound).
    */
   startBossIntro() {
     if (this.bossIntroActive || this.gameEnded) {
@@ -196,7 +198,7 @@ class World {
   }
 
   /**
-   * Boss-Intro ohne Sound, nur kurze Verzögerung.
+   * Handles boss intro when game is muted (no sound, just delay).
    */
   handleMutedBossIntro() {
     this.bossIntroSound.pause();
@@ -207,7 +209,7 @@ class World {
   }
 
   /**
-   * Spielt den Boss-Intro-Sound mit Fallback.
+   * Plays the boss intro sound with error fallback.
    */
   playBossIntroSound() {
     try {
@@ -221,15 +223,15 @@ class World {
   }
 
   /**
-   * Beendet das Boss-Intro.
+   * Stops the boss intro sequence.
    */
   stopBossIntro() {
     this.bossIntroActive = false;
   }
 
   /**
-   * Reagiert auf Spielende: Sounds stoppen, Overlay anzeigen.
-   * @param {boolean} playerWon - True, wenn der Spieler gewonnen hat.
+   * Handles game over: stops sounds and shows the appropriate overlay.
+   * @param {boolean} playerWon - True if the player has won.
    */
   onGameOver(playerWon) {
     this.pauseGameOverAudio();
@@ -242,7 +244,7 @@ class World {
   }
 
   /**
-   * Pausiert relevante Sounds beim Game-Over.
+   * Pauses relevant game sounds on game over.
    */
   pauseGameOverAudio() {
     this.background_sound.pause();
@@ -255,7 +257,7 @@ class World {
   }
 
   /**
-   * Spielt den Gewinn-Sound ab.
+   * Plays the win sound.
    */
   playWinSound() {
     this.win_sound.currentTime = 0;
@@ -264,8 +266,8 @@ class World {
   }
 
   /**
-   * Zeigt das passende Overlay mit Verzögerung an.
-   * @param {boolean} playerWon - True, wenn der Spieler gewonnen hat.
+   * Shows the game-over or win overlay after a short delay.
+   * @param {boolean} playerWon - True if the player has won.
    */
   showEndOverlayWithDelay(playerWon) {
     const overlayId = playerWon ? 'win-overlay' : 'game-over-overlay';
@@ -279,7 +281,7 @@ class World {
   }
 
   /**
-   * Stoppt das Spiel komplett.
+   * Completely stops the game.
    */
   stop() {
     this.gameEnded = true;
@@ -299,7 +301,7 @@ class World {
   }
 
   /**
-   * Prüft Kollisionen zwischen Charakter, Gegnern und Kunai.
+   * Checks collisions between character, enemies and kunai projectiles.
    */
   checkCollisions() {
     this.checkCharacterEnemyCollisions();
@@ -307,7 +309,7 @@ class World {
   }
 
   /**
-   * Prüft Kollisionen zwischen Charakter und allen Gegnern.
+   * Checks collisions between character and all enemies.
    */
   checkCharacterEnemyCollisions() {
     const enemies = this.level.enemies;
@@ -335,8 +337,8 @@ class World {
   }
 
   /**
-   * Behandelt Kollision mit Endboss.
-   * @param {Endboss} enemy - Endboss-Instanz.
+   * Handles collision with the endboss.
+   * @param {Endboss} enemy - Endboss instance.
    */
   handleEndbossCollision(enemy) {
     if (this.character.isHurt()) {
@@ -349,7 +351,7 @@ class World {
   }
 
   /**
-   * Behandelt Kollision mit Normalgegner.
+   * Handles collision with a regular enemy.
    */
   handleRegularEnemyCollision() {
     if (this.character.isHurt()) {
@@ -359,7 +361,7 @@ class World {
   }
 
   /**
-   * Trägt Schaden auf Charakter ein und aktualisiert Lebensleiste.
+   * Applies damage to the character and updates the life bar.
    */
   applyCharacterHit() {
     this.character.hit();
@@ -367,7 +369,7 @@ class World {
   }
 
   /**
-   * Prüft Kollisionen zwischen Kunai und Gegnern.
+   * Checks collisions between kunai projectiles and enemies.
    */
   checkKunaiEnemyCollisions() {
     for (let i = this.throwableObjects.length - 1; i >= 0; i--) {
@@ -380,9 +382,9 @@ class World {
   }
 
   /**
-   * Prüft Kunai-Treffer gegen Gegner.
-   * @param {ThrowableObject} kunai - Aktueller Kunai.
-   * @param {number} kunaiIndex - Index im Array.
+   * Checks kunai projectile hits against enemies.
+   * @param {ThrowableObject} kunai - The current kunai.
+   * @param {number} kunaiIndex - Index in the projectiles array.
    */
   handleKunaiHitsEnemies(kunai, kunaiIndex) {
     const enemies = this.level.enemies;
@@ -404,8 +406,8 @@ class World {
   }
 
   /**
-   * Wendet Kunai-Treffer auf Gegner an.
-   * @param {MovableObject} enemy - Getroffener Gegner.
+   * Applies kunai hit to an enemy.
+   * @param {MovableObject} enemy - Hit enemy instance.
    */
   applyKunaiHitOnEnemy(enemy) {
     if (enemy.isEndboss && typeof enemy.hit === 'function') {
@@ -420,7 +422,7 @@ class World {
   }
 
   /**
-   * Versucht, einen Kunai zu werfen.
+   * Tries to throw a kunai if all conditions are met.
    */
   tryThrowKunai() {
     const now = performance.now();
@@ -448,7 +450,7 @@ class World {
   }
 
   /**
-   * Wird vom Charakter aufgerufen, wenn der Kunai wirklich fliegt.
+   * Called by the character when the kunai actually gets thrown.
    */
   onCharacterKunaiRelease() {
     if (this.kunaiAmmo <= 0) {
@@ -462,16 +464,18 @@ class World {
   }
 
   /**
-   * Erzeugt ein Kunai-Projektil und fügt es der Welt hinzu.
+   * Creates a kunai projectile and adds it to the world.
    */
   throwKunai() {
     const kunaiY = this.character.y + 60;
-    const kunai = new ThrowableObject(this.character.x, kunaiY);
+    const throwLeft = !!this.character.otherDirection;
+
+    const kunai = new ThrowableObject(this.character.x, kunaiY, throwLeft);
     this.throwableObjects.push(kunai);
   }
 
   /**
-   * Aktualisiert die Kunai-Leiste nach aktueller Munition.
+   * Updates the kunai status bar based on current ammo.
    */
   updateKunaiBarFromAmmo() {
     const segments = Math.ceil(this.kunaiAmmo / this.kunaiPerSegment);
@@ -481,7 +485,26 @@ class World {
   }
 
   /**
-   * Prüft, ob der Endboss gespawnt werden muss, und spawnt ihn ggf.
+   * Updates bobbing animation of coins and kunai collectibles.
+   */
+  updateCollectibleBobbing() {
+    const timeSeconds = performance.now() / 1000;
+
+    this.level.coins.forEach((coin) => {
+      if (coin && typeof coin.updateBobbing === 'function') {
+        coin.updateBobbing(timeSeconds);
+      }
+    });
+
+    this.level.kunais.forEach((kunaiCoin) => {
+      if (kunaiCoin && typeof kunaiCoin.updateBobbing === 'function') {
+        kunaiCoin.updateBobbing(timeSeconds);
+      }
+    });
+  }
+
+  /**
+   * Checks if the endboss should be spawned and spawns it if needed.
    */
   checkForEndboss() {
     if (!this.shouldSpawnEndboss()) {
@@ -500,7 +523,7 @@ class World {
   }
 
   /**
-   * Bedingungen zum Laden des Endbosses.
+   * Conditions for loading/spawning the endboss.
    * @returns {boolean}
    */
   shouldSpawnEndboss() {
@@ -514,7 +537,7 @@ class World {
   }
 
   /**
-   * Zeichnet komplettes Frame und plant das nächste.
+   * Draws a full frame and schedules the next one.
    */
   draw() {
     this.clearCanvas();
@@ -528,28 +551,28 @@ class World {
   }
 
   /**
-   * Löscht den Zeichenbereich.
+   * Clears the drawing area.
    */
   clearCanvas() {
     this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
   }
 
   /**
-   * Wendet Kameraverschiebung an.
+   * Applies the camera translation.
    */
   translateCamera() {
     this.ctx.translate(this.camera_x, 0);
   }
 
   /**
-   * Zeichnet Hintergrund-Objekte.
+   * Draws background objects.
    */
   drawBackgroundObjects() {
     this.addObjectsToMap(this.level.backgroundObjects);
   }
 
   /**
-   * Plant das nächste Zeichnen.
+   * Schedules the next draw call via requestAnimationFrame.
    */
   scheduleNextFrame() {
     this.animationFrameId = requestAnimationFrame(() => {
@@ -558,7 +581,7 @@ class World {
   }
 
   /**
-   * Zeichnet bewegliche Weltobjekte und Charakter.
+   * Draws all dynamic world objects and the character.
    */
   drawDynamicWorld() {
     this.addObjectsToMap(this.level.fireflys);
@@ -570,14 +593,14 @@ class World {
   }
 
   /**
-   * Setzt Kameraverschiebung zurück.
+   * Resets the camera translation.
    */
   resetCamera() {
     this.ctx.translate(-this.camera_x, 0);
   }
 
   /**
-   * Zeichnet Statusleisten (HUD).
+   * Draws the HUD status bars.
    */
   drawStatusBars() {
     this.addToMap(this.statusBarLife);
@@ -587,7 +610,7 @@ class World {
   }
 
   /**
-   * Erhält das Transform-Verhalten wie im Originalcode.
+   * Keeps transform behavior aligned with the original implementation.
    */
   finalCameraTranslateHack() {
     this.ctx.translate(this.camera_x, 0);
@@ -595,8 +618,8 @@ class World {
   }
 
   /**
-   * Zeichnet eine Liste von Objekten.
-   * @param {MovableObject[]} objects - Zu zeichnende Objekte.
+   * Draws a list of objects on the canvas.
+   * @param {MovableObject[]} objects - Objects to draw.
    */
   addObjectsToMap(objects) {
     objects.forEach((object) => {
@@ -605,8 +628,8 @@ class World {
   }
 
   /**
-   * Zeichnet ein Objekt inkl. optionalem horizontalen Flip.
-   * @param {MovableObject} mo - Zu zeichnendes Objekt.
+   * Draws a single object, including optional horizontal flip.
+   * @param {MovableObject} mo - Object to draw.
    */
   addToMap(mo) {
     if (mo.otherDirection) {
@@ -620,8 +643,8 @@ class World {
   }
 
   /**
-   * Spiegelt die Darstellung eines Objekts horizontal.
-   * @param {MovableObject} mo - Zu spiegelndes Objekt.
+   * Flips an object's rendering horizontally.
+   * @param {MovableObject} mo - Object to flip.
    */
   flipImage(mo) {
     this.ctx.save();
@@ -631,8 +654,8 @@ class World {
   }
 
   /**
-   * Hebt den horizontalen Flip eines Objekts wieder auf.
-   * @param {MovableObject} mo - Objekt mit zurückzusetzender Position.
+   * Restores the object position after horizontal flip.
+   * @param {MovableObject} mo - Object to restore.
    */
   flipImageBack(mo) {
     mo.x = mo.x * -1;
@@ -640,7 +663,7 @@ class World {
   }
 
   /**
-   * Prüft Einsammeln von Münzen und Kunai-Collectibles.
+   * Checks collectible pickups (coins + kunai collectibles).
    */
   checkCollectibles() {
     this.collectCoins();
@@ -648,7 +671,7 @@ class World {
   }
 
   /**
-   * Verarbeitet das Einsammeln aller Münzen.
+   * Handles picking up all coins.
    */
   collectCoins() {
     for (let i = this.level.coins.length - 1; i >= 0; i--) {
@@ -663,7 +686,7 @@ class World {
   }
 
   /**
-   * Verarbeitet das Einsammeln aller Kunai-Collectibles.
+   * Handles picking up all kunai collectibles.
    */
   collectKunaiCoins() {
     for (let i = this.level.kunais.length - 1; i >= 0; i--) {

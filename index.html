@@ -37,33 +37,33 @@
          GAME SCRIPTS
          =================================================== -->
 
-    <!-- Basisklassen -->
+    <!-- Base classes -->
     <script src="./models/drawable-object.class.js"></script>
     <script src="./models/moveable-object.class.js"></script>
 
-    <!-- Statische / visuelle Objekte -->
+    <!-- Static / visual objects -->
     <script src="./models/background-object.class.js"></script>
     <script src="./models/firefly.class.js"></script>
 
-    <!-- Sammelbare Items -->
+    <!-- Collectible items -->
     <script src="./models/coin.class.js"></script>
     <script src="./models/kunai-coin.class.js"></script>
 
-    <!-- Player & Gegner -->
+    <!-- Player & enemies -->
     <script src="./models/character.class.js"></script>
     <script src="./models/orc.class.js"></script>
     <script src="./models/orc-green.class.js"></script>
     <script src="./models/orc-red.class.js"></script>
     <script src="./models/endboss.class.js"></script>
 
-    <!-- Statusleisten -->
+    <!-- Status bars -->
     <script src="models/status-bar-base.class.js"></script>
     <script src="./models/status-bar-life.class.js"></script>
     <script src="./models/status-bar-coin.class.js"></script>
     <script src="./models/status-bar-kunai.class.js"></script>
     <script src="./models/status-bar-endboss.class.js"></script>
 
-    <!-- Steuerung / Wurfobjekt -->
+    <!-- Controls / throwable object -->
     <script src="./models/keyboard.class.js"></script>
     <script src="./models/throwable-object.class.js"></script>
     <script src="./models/kunai.class.js"></script>
@@ -72,44 +72,45 @@
     <script src="./models/level.class.js"></script>
     <script src="./levels/level1.js"></script>
 
-    <!-- World & Game-Logik -->
+    <!-- World & game logic -->
     <script src="./models/world.class.js"></script>
     <script src="./scripts/game.js"></script>
   </head>
 
   <body>
     <!-- ===================================================
-         DOKU: IDs & KLASSEN, DIE game.js BENUTZT
+         IMPORTANT: IDs & CLASSES USED BY JS
+         (DO NOT RENAME)
          =================================================== -->
     <!--
-      Wichtig für JS-Logik (game.js):
+      IDs (used e.g. by game.js / world.class.js):
 
-      IDs:
-        - canvas              → Spielfeld
-        - canvas-box          → Canvas-Container
-        - startoverlay        → Hauptmenü / Startscreen
-        - control             → Controls-Overlay
-        - story               → Story-Overlay
-        - impressum           → Impressum-Overlay
-        - game-over-overlay   → Game-Over-Overlay
-        - win-overlay         → Win-Overlay
-        - rotate-overlay      → "Gerät drehen"-Hinweis (Mobile)
-        - touch-controls      → Container für Touch-Steuerung
-        - joystick-base       → Basis des virtuellen Joysticks
-        - joystick-thumb      → Thumb des virtuellen Joysticks
-        - btn-attack          → Touch-Attack-Button
-        - btn-throw           → Touch-Kunai-Button
-        - sound-btn           → Laut-Icon (Sound an)
-        - mute-btn            → Mute-Icon (Sound aus)
+        - canvas                    → game canvas
+        - canvas-box                → canvas wrapper
+        - startoverlay              → main menu / start screen
+        - control                   → controls overlay
+        - story                     → story overlay
+        - impressum                 → imprint overlay
+        - game-over-overlay         → game over overlay
+        - win-overlay               → win overlay
+        - rotate-overlay            → "rotate device" hint (mobile)
+        - screen-too-small-overlay  → "screen too small" overlay (non-touch desktop)
+        - touch-controls            → mobile controls container
+        - joystick-base             → virtual joystick base
+        - joystick-thumb            → virtual joystick thumb
+        - btn-attack                → touch attack button
+        - btn-throw                 → touch kunai button
+        - sound-btn                 → sound on button (icon)
+        - mute-btn                  → sound off button (icon)
 
-      Klassen:
-        - fullscreen-button   → Fullscreen-Button rechts
-        - sound-button        → Wrapper für Sound-Buttons
-        - rotate-overlay      → Vollbild-Hinweis-Overlay
-        - touch-controls      → Mobile-Steuerung
-        - touch-btn           → Mobile-Action-Buttons
+      Important classes:
 
-      IDs/Klassen nicht umbenennen, sonst bricht die Logik in game.js / world.class.js.
+        - fullscreen-button         → fullscreen button (top-right)
+        - sound-button              → wrapper for sound buttons
+        - rotate-overlay            → rotate-device overlay
+        - screen-too-small-overlay  → overlay for small desktop screens
+        - touch-controls            → mobile controls
+        - touch-btn                 → touch action buttons
     -->
 
     <!-- ===================================================
@@ -127,7 +128,6 @@
       <img src="img/index/fullscreen-icon.png" alt="Fullscreen Button" />
     </div>
 
-    <!-- Sound an/aus: zwei Buttons, die sich gegenseitig ausblenden -->
     <div id="sound-btn" class="sound-button">
       <img
         onclick="toggleMusic('sound-btn'), turnOnMusic()"
@@ -145,7 +145,7 @@
     </div>
 
     <!-- ===================================================
-         SPIELBEREICH (CANVAS)
+         GAME AREA (CANVAS)
          =================================================== -->
     <div id="canvas-box">
       <div id="fullscreen">
@@ -154,7 +154,7 @@
     </div>
 
     <!-- ===================================================
-         START-OVERLAY (HAUPTMENÜ)
+         START OVERLAY (MAIN MENU)
          =================================================== -->
     <div id="startoverlay">
       <div class="menu-main">
@@ -191,7 +191,7 @@
     </div>
 
     <!-- ===================================================
-         CONTROLS-OVERLAY (TASTENBELEGUNG)
+         CONTROLS OVERLAY (KEYBOARD MAPPING)
          =================================================== -->
     <div id="control">
       <div class="control-headline">
@@ -199,7 +199,7 @@
       </div>
 
       <div class="control-container">
-        <!-- Linke Spalte: Tasten -->
+        <!-- Left column: keys -->
         <div class="control-button">
           <div class="control-button-style">
             <button>A</button>
@@ -234,7 +234,7 @@
           </div>
         </div>
 
-        <!-- Rechte Spalte: Beschreibung -->
+        <!-- Right column: description -->
         <div class="controls">
           <span>MOVE LEFT</span>
           <span>MOVE RIGHT</span>
@@ -250,7 +250,7 @@
     </div>
 
     <!-- ===================================================
-         STORY-OVERLAY (HINTERGRUNDGESCHICHTE)
+         STORY OVERLAY (BACKGROUND STORY)
          =================================================== -->
     <div id="story">
       <div class="story-headline">
@@ -259,15 +259,21 @@
 
       <div class="background-story">
         <p>
-          Hidden deep within the mountains lay a quiet village, threatened each night by savage orcs hungry for chaos.
-          Yet the villagers slept without fear — because someone watched over them: the Shadow Shinobi.<br>
-
-          Silent as the wind and one with the darkness, he patrolled the borders every night. Those who dared to approach saw only a flash of steel… and then nothing.<br>
-
-          But one night, a powerful orc shaman appeared, summoning an entire horde. It became the Shinobi’s greatest challenge.<br>
-          Without hesitation, he vanished into the shadows, his blade ready, determined to protect his home at all costs.<br>
-
-          Since that day, the villagers whisper of the warrior who fights unseen — their guardian in the dark.
+          Hidden deep within the mountains lay a quiet village, threatened each
+          night by savage orcs hungry for chaos. Yet the villagers slept without
+          fear — because someone watched over them: the Shadow Shinobi.<br />
+          <br />
+          Silent as the wind and one with the darkness, he patrolled the
+          borders every night. Those who dared to approach saw only a flash of
+          steel… and then nothing.<br />
+          <br />
+          But one night, a powerful orc shaman appeared, summoning an entire
+          horde. It became the Shinobi’s greatest challenge.<br />
+          Without hesitation, he vanished into the shadows, his blade ready,
+          determined to protect his home at all costs.<br />
+          <br />
+          Since that day, the villagers whisper of the warrior who fights
+          unseen — their guardian in the dark.
         </p>
       </div>
 
@@ -277,7 +283,7 @@
     </div>
 
     <!-- ===================================================
-         IMPRESSUM-OVERLAY
+         IMPRESSUM OVERLAY
          =================================================== -->
     <div id="impressum">
       <div class="story-headline">
@@ -301,37 +307,38 @@
     </div>
 
     <!-- ===================================================
-         MOBILE: ROTATE-HINWEIS
+         MOBILE: ROTATE HINT
          =================================================== -->
     <div id="rotate-overlay" class="rotate-overlay">
       <div class="rotate-message">
-        Bitte drehe dein Gerät ins Querformat,<br />
-        um Shadow Shinobi zu spielen.
+        Please turn your device
       </div>
     </div>
 
     <!-- ===================================================
          DESKTOP: SCREEN TOO SMALL OVERLAY (NON-TOUCH)
          =================================================== -->
-    <div id="screen-too-small-overlay" class="screen-too-small-overlay">
-      <!-- NEU: Overlay für Nicht-Touch-Geräte mit Breite <= 800px -->
+    <div
+      id="screen-too-small-overlay"
+      class="screen-too-small-overlay"
+    >
       <div class="screen-too-small-message">
         Screen too small
       </div>
     </div>
 
     <!-- ===================================================
-         MOBILE: TOUCH-STEUERUNG (JOYSTICK & ACTION-BUTTONS)
+         MOBILE: TOUCH CONTROLS (JOYSTICK & ACTION BUTTONS)
          =================================================== -->
     <div id="touch-controls" class="touch-controls">
-      <!-- Joystick links -->
+      <!-- Joystick left -->
       <div class="touch-joystick">
         <div id="joystick-base" class="joystick-base">
           <div id="joystick-thumb" class="joystick-thumb"></div>
         </div>
       </div>
 
-      <!-- Aktionen rechts -->
+      <!-- Actions right -->
       <div class="touch-actions">
         <button id="btn-attack" class="touch-btn">⚔</button>
         <button id="btn-throw" class="touch-btn">✦</button>

@@ -97,7 +97,7 @@ footer img {
     justify-content: center;
     align-items: center;
 
-    /* Canvas-Bereich soll sich dynamisch füllen */
+    /* canvas area should grow into available space */
     flex: 1 1 auto;
 
     background-image: url('img/index/background.jpg');
@@ -119,24 +119,24 @@ canvas {
    FULLSCREEN MODE FIXES
    ========================================================= */
 
-/* Header & Footer im Fullscreen verstecken */
-:fullscreen header,
-:fullscreen footer {
+/* Header & Footer NUR verstecken, wenn SPIEL läuft UND Fullscreen aktiv ist */ /* CHANGED */
+html:fullscreen body.game-running header,
+html:fullscreen body.game-running footer {
     display: none;
 }
 
-/* Kein Scrollen im Fullscreen */
-:fullscreen body {
+/* Scrollen in Fullscreen nur im Spiel deaktivieren */ /* CHANGED */
+html:fullscreen body.game-running {
     overflow: hidden;
 }
 
-/* Canvas-Container füllt Fullscreen */
-:fullscreen #canvas-box {
+/* canvas container füllt Fullscreen nur im Spiel */ /* CHANGED */
+html:fullscreen body.game-running #canvas-box {
     height: 100vh;
 }
 
-/* Canvas füllt Fullscreen mit korrekt erhaltenem Seitenverhältnis */
-:fullscreen canvas {
+/* canvas füllt Fullscreen, Seitenverhältnis bleibt erhalten – nur im Spiel */ /* CHANGED */
+html:fullscreen body.game-running canvas {
     height: 100vh;
     width: auto;
     max-width: none;
@@ -145,9 +145,8 @@ canvas {
 
 
 /* =========================================================
-   STARTOVERLAY / STORY / IMPRESSUM
+   START OVERLAY / STORY / IMPRESSUM
    ========================================================= */
-
 #startoverlay,
 #story,
 #impressum {
@@ -164,14 +163,14 @@ canvas {
     display: none;
 }
 
-#story{
+#story {
     min-height: 400px;
     min-width: 790px;
     flex-direction: column;
     height: 62%;
 }
 
-/* Startmenü-Overlay: zentriert, klassische Größe */
+/* main menu overlay: centered, classic size */
 #startoverlay {
     padding-top: 30px;
     width: 60%;
@@ -182,7 +181,7 @@ canvas {
     align-items: center;
 }
 
-/* Container für die drei Hauptbuttons (Start / Controls / Story) */
+/* container for main buttons (Start / Controls / Story) */
 #startoverlay .menu-main {
     width: 100%;
     display: flex;
@@ -191,13 +190,13 @@ canvas {
     gap: 16px;
 }
 
-/* Hauptbuttons im Desktop: wie gehabt */
+/* main buttons in desktop */
 #startoverlay .menu-main button {
-    width: 200px;               /* entspricht deinem globalen button-Style */
+    width: 200px;
     margin: 0;
 }
 
-/* Impressum-Button unten drunter */
+/* impressum button below menu */
 #startoverlay .impressum-button {
     margin-top: 12px;
     background-color: transparent;
@@ -206,7 +205,7 @@ canvas {
     cursor: pointer;
 }
 
-/* Story Headline */
+/* story headline */
 .story-headline {
     background-color: #473630;
     color: rgb(241, 241, 241);
@@ -218,39 +217,40 @@ canvas {
     border-radius: 10px 10px 0 0;
     text-shadow: 2px 2px 5px rgba(0,0,0,0.5);
     padding: 16px 0;
-    >h2{
+    >h2 {
         font-size: 36px;
     }
 }
 
-/* Story Text */
+/* story text */
 .background-story {
     padding-top: 14px;
     padding-right: 24px;
     padding-left: 24px;
     font-size: 20px;
 }
+
 .background-story p {
     margin-top: 0;
     margin-bottom: 0;
     text-shadow: 2px 2px 5px rgba(0,0,0,0.5);
 }
 
-/* Impressum */
-#impressum{
+/* impressum overlay */
+#impressum {
     font-family: Arial, Helvetica, sans-serif;
-    min-width: 700px; 
+    min-width: 700px;
     flex-direction: column;
     height: 60%;
 }
 
-.impressum-content{
+.impressum-content {
     display: flex;
     flex-direction: column;
     align-items: center;
     margin-top: 12px;
     flex: 1;
-    >p{
+    >p {
         flex: 1;
         margin-top: 10px;
         margin-bottom: 0;
@@ -263,6 +263,7 @@ canvas {
     background-color: transparent;
     text-decoration: underline;
 }
+
 .impressum-button:hover {
     color: rgb(59, 58, 58);
 }
@@ -275,18 +276,20 @@ canvas {
     font-family: Arial, Helvetica, sans-serif;
     font-size: 24px;
 }
+
 .email-link a {
     color: rgb(205, 203, 203);
     text-decoration: none;
     text-shadow: 2px 2px 5px rgba(0,0,0,0.5);
 }
+
 .email-link a:hover {
     color: rgb(57, 57, 57);
 }
 
 
 /* =========================================================
-   CONTROL OVERLAY (STEUERUNG)
+   CONTROL OVERLAY
    ========================================================= */
 #control {
     position: fixed;
@@ -301,9 +304,8 @@ canvas {
     color: #fff;
     font-family: 'Noto Sans', sans-serif;
     z-index: 1000;
-    display: none;          /* ← NUR das, kein zweites display mehr */
-    flex-direction: column; /* ← bleibt, Layout funktioniert,
-                               sobald JS auf flex schaltet */
+    display: none;          /* hidden by default, JS switches to flex */
+    flex-direction: column;
 }
 
 .control-headline {
@@ -316,7 +318,7 @@ canvas {
     border-radius: 10px 10px 0 0;
     text-shadow: 2px 2px 5px rgba(0,0,0,0.5);
     padding: 24px;
-    >h2{
+    >h2 {
         font-size: 36px;
     }
 }
@@ -342,7 +344,7 @@ canvas {
     display: flex;
     align-items: center;
     font-size: 24px;
-    button{
+    button {
         height: 32px;
         padding: 0;
     }
@@ -375,7 +377,6 @@ canvas {
 /* =========================================================
    SOUND & FULLSCREEN BUTTONS
    ========================================================= */
-
 .sound-button,
 .fullscreen-button {
     position: fixed;
@@ -400,6 +401,7 @@ canvas {
     padding: 6px;
     cursor: pointer;
 }
+
 .sound-button img:hover,
 .fullscreen-button img:hover {
     background-color: rgba(18,18,18,0.28);
@@ -411,7 +413,7 @@ canvas {
 
 
 /* =========================================================
-   BUTTONS (ALLGEMEIN)
+   BUTTONS (GLOBAL)
    ========================================================= */
 button {
     background-color: #292929c6;
@@ -425,6 +427,7 @@ button {
     cursor: pointer;
     transition: all 0.3s ease;
 }
+
 button:hover {
     background-color: #666;
 }
@@ -469,7 +472,7 @@ button:hover {
    MOBILE: ROTATE OVERLAY & TOUCH CONTROLS
    ========================================================= */
 
-/* Hochformat-Warnung */
+/* portrait warning overlay */
 .rotate-overlay {
     position: fixed;
     inset: 0;
@@ -481,12 +484,13 @@ button:hover {
     text-align: center;
     padding: 20px;
 }
+
 .rotate-overlay .rotate-message {
     color: #fff;
     font-size: 1.4rem;
 }
 
-/* Touch Controls */
+/* touch controls wrapper */
 .touch-controls {
     position: fixed;
     inset: auto 0 0 0;
@@ -496,7 +500,7 @@ button:hover {
     pointer-events: none;
 }
 
-/* Joystick links */
+/* joystick (left) */
 .touch-joystick {
     position: absolute;
     left: 10px;
@@ -526,7 +530,7 @@ button:hover {
     transform: translate(-50%, -50%);
 }
 
-/* Buttons rechts */
+/* action buttons (right) */
 .touch-actions {
     position: absolute;
     right: 10px;
@@ -550,7 +554,7 @@ button:hover {
     user-select: none;
 }
 
-/* Desktop → Touch Controls aus */
+/* desktop → always hide touch controls */
 @media (hover: hover) and (pointer: fine) {
     .touch-controls {
         display: none !important;
@@ -561,8 +565,7 @@ button:hover {
 /* =========================================================
    DESKTOP: SCREEN TOO SMALL OVERLAY (NON-TOUCH)
    ========================================================= */
-
-.screen-too-small-overlay {          /* NEU */
+.screen-too-small-overlay {
     position: fixed;
     inset: 0;
     background: rgba(0,0,0,0.96);
@@ -570,10 +573,10 @@ button:hover {
     justify-content: center;
     align-items: center;
     text-align: center;
-    z-index: 1300; /* über allen anderen Overlays */
+    z-index: 1300;
 }
 
-.screen-too-small-message {          /* NEU */
+.screen-too-small-message {
     color: #ffffff;
     font-size: 2rem;
     font-family: 'NinjaNaruto', sans-serif;

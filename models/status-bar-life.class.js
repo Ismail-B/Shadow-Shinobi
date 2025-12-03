@@ -17,6 +17,6 @@ class StatusBarLife extends StatusBarBase {
             'img/7_statusbars/1_statusbar/2_statusbar_health/green/100.png'
         ];
 
-        super(images, 10, 0, 180, 50, 100);
+        super(images, 0, 0, 170, 50, 100);
     }
 }

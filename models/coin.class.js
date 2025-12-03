@@ -27,6 +27,18 @@ class Coin extends MovableObject {
         height: 110
     };
 
+    /** Basis-Y-Position, um die gewippt wird. */
+    baseY = 0;
+
+    /** Maximale Auslenkung nach oben/unten. */
+    bobAmplitude = 4;
+
+    /** Geschwindigkeit der Wipp-Bewegung (Radiant pro Sekunde). */
+    bobSpeed = 2;
+
+    /** Zufällige Phasenverschiebung, damit nicht alle Coins gleich wippen. */
+    bobPhase = Math.random() * Math.PI * 2;
+
     /**
      * Erzeugt eine neue Coin an der angegebenen Position.
      * @param {number} x - X-Position der Coin.
@@ -36,6 +48,16 @@ class Coin extends MovableObject {
         super();
         this.loadImage('img/8_coin/ninja-coin.png');
         this.x = x;
+        this.baseY = y;
         this.y = y;
+    }
+
+    /**
+     * Aktualisiert die Wipp-Animation.
+     * @param {number} timeSeconds - aktuelle Zeit in Sekunden.
+     */
+    updateBobbing(timeSeconds) {
+        const angle = timeSeconds * this.bobSpeed + this.bobPhase;
+        this.y = this.baseY + Math.sin(angle) * this.bobAmplitude;
     }
 }

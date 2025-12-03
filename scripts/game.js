@@ -14,26 +14,27 @@ let joystickCenterX = 0;
 let joystickCenterY = 0;
 let joystickJumpTriggered = false;
 
-// Mute nur für aktuelle Session
+// mute state is only for the current session
 let isMutedGlobal = false;
 
 /**
- * Prüft, ob Gerät / Fenster "mobil" wirkt.
+ * Checks if the current device/window should be treated as "mobile".
  * @returns {boolean}
  */
 function isMobileLike() {
   const uaMobile = /Android|iPhone|iPad|iPod|Windows Phone|webOS|BlackBerry/i.test(
     navigator.userAgent
   );
-
   const minSide = Math.min(window.innerWidth, window.innerHeight);
   const smallScreen = minSide <= MOBILE_MAX_SIDE;
   const touch = isTouchDevice();
-
-  // → Nur Geräte, die wirklich "mobil" wirken: Touch + klein ODER typischer Mobile-UserAgent
   return (touch && smallScreen) || (uaMobile && smallScreen);
 }
 
+/**
+ * Checks if the current device supports touch input.
+ * @returns {boolean}
+ */
 function isTouchDevice() {
   return (
     'ontouchstart' in window ||
@@ -43,39 +44,36 @@ function isTouchDevice() {
 }
 
 /**
- * Aktiviert Layout für laufendes Spiel.
+ * Activates layout for a running game (hides header/footer via CSS).
  */
-function enterGameMode() {                         // NEU
-  document.body.classList.add('game-running');     // NEU
+function enterGameMode() {
+  document.body.classList.add('game-running');
 }
 
 /**
- * Deaktiviert Layout für laufendes Spiel und verlässt ggf. Fullscreen.
+ * Deactivates layout for a running game and leaves fullscreen if needed.
  */
-function exitGameMode() {                          // NEU
-  document.body.classList.remove('game-running');  // NEU
+function exitGameMode() {
+  document.body.classList.remove('game-running');
 
-  // Vollbild verlassen, falls noch aktiv              // NEU
-  try {                                             // NEU
-    if (isFullscreenActive()) {                     // NEU
-      exitFullscreen();                             // NEU
-    }                                               // NEU
-  } catch (e) {                                     // NEU
-    // bewusst ignoriert                             // NEU
+  try {
+    if (isFullscreenActive()) {
+      exitFullscreen();
+    }
+  } catch (e) {
+    // intentionally ignored
   }
 
-  // Scrollposition zurücksetzen (verhindert grauen Balken im Menü) // NEU
-  window.scrollTo(0, 0);                            // NEU
+  window.scrollTo(0, 0);
 }
 
 /**
- * Blendet den Fullscreen-Button je nach Gerät ein/aus.
+ * Shows the fullscreen button only on non-mobile setups.
  */
 function updateFullscreenButtonVisibility() {
   const fsBtn = document.querySelector('.fullscreen-button');
   if (!fsBtn) return;
 
-  // Button nur ausblenden, wenn Gerät "mobil" ist
   if (isMobileLike()) {
     fsBtn.style.display = 'none';
   } else {
@@ -84,12 +82,13 @@ function updateFullscreenButtonVisibility() {
 }
 
 /**
- * Wendet globalen Mute-Status auf die aktuelle Welt an.
+ * Applies the global mute state to the current world.
  */
 function applyMuteStateToWorld() {
   if (!world) {
     return;
   }
+
   if (isMutedGlobal) {
     muteMusic();
   } else {
@@ -98,9 +97,17 @@ function applyMuteStateToWorld() {
 }
 
 /**
- * Wrap für setInterval: IDs sammeln.
+ * Original setInterval reference for wrapping.
+ * @type {typeof window.setInterval}
  */
 const _originalSetInterval = window.setInterval;
+
+/**
+ * Wrapper for setInterval that stores interval IDs.
+ * @param {Function} fn
+ * @param {number} delay
+ * @returns {number}
+ */
 window.setInterval = function (fn, delay) {
   const id = _originalSetInterval(fn, delay);
   intervalIds.push(id);
@@ -108,7 +115,7 @@ window.setInterval = function (fn, delay) {
 };
 
 /**
- * Beendet alle laufenden Intervalle.
+ * Clears all running intervals created via wrapped setInterval.
  */
 function clearAllIntervals() {
   intervalIds.forEach((id) => clearInterval(id));
@@ -116,7 +123,7 @@ function clearAllIntervals() {
 }
 
 /**
- * Setzt Orc-Audio-Status zurück, falls verfügbar.
+ * Resets stored Orc audio state if available.
  */
 function resetOrcAudioState() {
   if (typeof Orc !== 'undefined' && typeof Orc.resetAudioState === 'function') {
@@ -125,13 +132,10 @@ function resetOrcAudioState() {
 }
 
 /**
- * Initialisiert Canvas, World und Mobile-Setup
- * und schaltet vom Menü ins Spiel.
+ * Hides the start overlay and shows the canvas.
+ * @returns {HTMLCanvasElement|null}
  */
-function init() {
-  // Spielzustand aktiv
-  enterGameMode(); // GEÄNDERT
-
+function showCanvasAndHideStartOverlay() {
   const startOverlay = document.getElementById('startoverlay');
   const canvasEl = document.getElementById('canvas');
 
@@ -142,15 +146,49 @@ function init() {
     canvasEl.style.display = 'block';
   }
 
+  return canvasEl;
+}
+
+/**
+ * Hides the canvas and shows the main menu overlay.
+ */
+function hideCanvasAndShowMenu() {
+  const canvasEl = document.getElementById('canvas');
+  const startOverlay = document.getElementById('startoverlay');
+
+  if (canvasEl) {
+    canvasEl.style.display = 'none';
+  }
+  if (startOverlay) {
+    startOverlay.style.display = 'flex';
+  }
+}
+
+/**
+ * Updates orientation-related UI and responsive controls.
+ */
+function refreshResponsiveLayout() {
+  handleOrientation();
+  updateFullscreenButtonVisibility();
+  handleScreenTooSmallOverlay();
+}
+
+/**
+ * Initializes canvas, world and touch controls
+ * and switches from menu into the game.
+ */
+function init() {
+  enterGameMode();
+
+  const canvasEl = showCanvasAndHideStartOverlay();
   canvas = canvasEl;
+
   resetOrcAudioState();
   world = new World(canvas, keyboard);
 
   applyMuteStateToWorld();
   setupTouchControls();
-  handleOrientation();
-  updateFullscreenButtonVisibility();
-  handleScreenTooSmallOverlay(); // NEU: beim Start prüfen
+  refreshResponsiveLayout();
 
   if (isMobileLike()) {
     enterFullscreenSafe();
@@ -158,7 +196,7 @@ function init() {
 }
 
 /**
- * Blendet Canvas/Startscreen um (für Story/Controls/Impressum).
+ * Toggles overlays (controls/story/impressum) against the start overlay.
  * @param {string} canvasId
  */
 function toggle(canvasId) {
@@ -172,7 +210,7 @@ function toggle(canvasId) {
 }
 
 /**
- * Stoppt Welt + Intervalle + Orc-Sounds.
+ * Stops world loop, clears intervals and resets Orc audio.
  */
 function stopWorldAndIntervals() {
   clearAllIntervals();
@@ -183,7 +221,7 @@ function stopWorldAndIntervals() {
 }
 
 /**
- * Blendet Game-Over- und Win-Overlay aus.
+ * Hides both game over and win overlays if present.
  */
 function hideEndOverlays() {
   const go = document.getElementById('game-over-overlay');
@@ -193,26 +231,20 @@ function hideEndOverlays() {
 }
 
 /**
- * Startet das Spiel neu, ohne Reload.
+ * Restarts the game without reloading the page.
  */
 function restartGame() {
   stopWorldAndIntervals();
   hideEndOverlays();
 
-  const canvasEl = document.getElementById('canvas');
-  if (canvasEl) {
-    canvasEl.style.display = 'block';
-  }
+  const canvasEl = showCanvasAndHideStartOverlay();
+  enterGameMode();
 
-  // Sicherstellen, dass wir im "Spiel läuft"-Zustand sind
-  enterGameMode(); // GEÄNDERT
+  canvas = canvasEl;
+  world = new World(canvas, keyboard);
 
-  world = new World(canvasEl, keyboard);
   applyMuteStateToWorld();
-
-  handleOrientation();
-  updateFullscreenButtonVisibility();
-  handleScreenTooSmallOverlay(); // NEU: auch beim Restart prüfen
+  refreshResponsiveLayout();
 
   if (isMobileLike()) {
     enterFullscreenSafe();
@@ -220,35 +252,21 @@ function restartGame() {
 }
 
 /**
- * Geht zurück ins Menü, ohne Reload.
+ * Returns back to the main menu without reloading.
  */
 function backToMenu() {
   stopWorldAndIntervals();
   hideEndOverlays();
-
-  const canvasEl = document.getElementById('canvas');
-  if (canvasEl) {
-    canvasEl.style.display = 'none';
-  }
-
-  const startOverlay = document.getElementById('startoverlay');
-  if (startOverlay) {
-    startOverlay.style.display = 'flex';
-  }
+  hideCanvasAndShowMenu();
 
   world = null;
-
-  // Spielzustand beenden → Header/Footer wieder sichtbar & Fullscreen verlassen
-  exitGameMode(); // GEÄNDERT
-
-  handleOrientation();
-  updateFullscreenButtonVisibility();
-  handleScreenTooSmallOverlay(); // NEU
+  exitGameMode();
+  refreshResponsiveLayout();
 }
 
 /**
- * Schaltet das Musik-Icon um.
- * @param {string} id - ID des Laut-Icons.
+ * Toggles the music icon (loud/mute).
+ * @param {string} id - ID of the loud icon.
  */
 function toggleMusic(id) {
   const loud = document.getElementById(id);
@@ -260,10 +278,10 @@ function toggleMusic(id) {
 }
 
 /**
- * Baut eine Liste aller relevanten Audios im Spiel.
+ * Collects base audio references from the world and character.
  * @returns {HTMLAudioElement[]}
  */
-function collectGameAudios() {
+function collectBaseAudios() {
   if (!world) {
     return [];
   }
@@ -282,24 +300,52 @@ function collectGameAudios() {
     world.endbossAlertSound
   ];
 
-  const list = baseAudios.filter((a) => a instanceof Audio);
+  return baseAudios.filter((audio) => audio instanceof Audio);
+}
 
-  if (world.endboss) {
-    const boss = world.endboss;
-    if (boss.attack_sound) list.push(boss.attack_sound);
-    if (boss.dying_sound) list.push(boss.dying_sound);
-    if (Array.isArray(boss.hurt_sounds)) {
-      boss.hurt_sounds.forEach((s) => {
-        if (s instanceof Audio) list.push(s);
-      });
-    }
+/**
+ * Adds boss-related audios to the given list.
+ * @param {HTMLAudioElement[]} list
+ */
+function addBossAudios(list) {
+  if (!world || !world.endboss) {
+    return;
   }
 
+  const boss = world.endboss;
+
+  if (boss.attack_sound) {
+    list.push(boss.attack_sound);
+  }
+  if (boss.dying_sound) {
+    list.push(boss.dying_sound);
+  }
+
+  if (Array.isArray(boss.hurt_sounds)) {
+    boss.hurt_sounds.forEach((sound) => {
+      if (sound instanceof Audio) {
+        list.push(sound);
+      }
+    });
+  }
+}
+
+/**
+ * Builds a list of all relevant game audio elements.
+ * @returns {HTMLAudioElement[]}
+ */
+function collectGameAudios() {
+  if (!world) {
+    return [];
+  }
+
+  const list = collectBaseAudios();
+  addBossAudios(list);
   return list;
 }
 
 /**
- * Aktualisiert Mute-Status für alle Orc-Sounds.
+ * Updates the muted state for all Orc sounds.
  * @param {boolean} muted
  */
 function updateOrcAudioMuted(muted) {
@@ -312,16 +358,16 @@ function updateOrcAudioMuted(muted) {
   }
 
   if (typeof Orc !== 'undefined' && Array.isArray(Orc.instances)) {
-    Orc.instances.forEach((o) => {
-      if (o && o.walking_sound instanceof Audio) {
-        o.walking_sound.muted = muted;
+    Orc.instances.forEach((orc) => {
+      if (orc && orc.walking_sound instanceof Audio) {
+        orc.walking_sound.muted = muted;
       }
     });
   }
 }
 
 /**
- * Setzt den Mute-Status auf alle Spiel-Sounds.
+ * Applies the mute state to all game sounds.
  * @param {boolean} muted
  */
 function setMuteOnAllAudios(muted) {
@@ -332,15 +378,15 @@ function setMuteOnAllAudios(muted) {
   world.isMuted = muted;
 
   const gameAudios = collectGameAudios();
-  gameAudios.forEach((a) => {
-    a.muted = muted;
+  gameAudios.forEach((audio) => {
+    audio.muted = muted;
   });
 
   updateOrcAudioMuted(muted);
 }
 
 /**
- * Alles stummschalten.
+ * Mutes all game audio.
  */
 function muteMusic() {
   isMutedGlobal = true;
@@ -351,7 +397,7 @@ function muteMusic() {
 }
 
 /**
- * Alle Sounds wieder aktivieren.
+ * Unmutes all game audio.
  */
 function turnOnMusic() {
   isMutedGlobal = false;
@@ -362,7 +408,7 @@ function turnOnMusic() {
 }
 
 /**
- * Prüft, ob gerade Fullscreen aktiv ist.
+ * Checks if fullscreen is currently active.
  * @returns {boolean}
  */
 function isFullscreenActive() {
@@ -374,7 +420,7 @@ function isFullscreenActive() {
 }
 
 /**
- * Toggle Fullscreen für das gesamte Dokument.
+ * Toggles fullscreen for the whole document.
  */
 function fullscreen() {
   if (isFullscreenActive()) {
@@ -385,7 +431,7 @@ function fullscreen() {
 }
 
 /**
- * Betritt den Fullscreen-Modus für ein Element.
+ * Enters fullscreen mode for a specific element.
  * @param {HTMLElement} element
  */
 function enterFullscreen(element) {
@@ -399,7 +445,7 @@ function enterFullscreen(element) {
 }
 
 /**
- * Verlässt den Fullscreen-Modus.
+ * Exits fullscreen mode if active.
  */
 function exitFullscreen() {
   if (document.exitFullscreen) {
@@ -412,7 +458,7 @@ function exitFullscreen() {
 }
 
 /**
- * Versucht Fullscreen zu aktivieren, ohne Fehler zu werfen.
+ * Tries to enter fullscreen without throwing errors.
  */
 function enterFullscreenSafe() {
   try {
@@ -420,12 +466,12 @@ function enterFullscreenSafe() {
       enterFullscreen(document.documentElement);
     }
   } catch (e) {
-    // bewusst ignoriert
+    // intentionally ignored
   }
 }
 
 /**
- * Prüft, ob Landscape-Orientierung aktiv ist.
+ * Checks if the current orientation is landscape.
  * @returns {boolean}
  */
 function isLandscapeOrientation() {
@@ -439,7 +485,7 @@ function isLandscapeOrientation() {
 }
 
 /**
- * Steuert Rotate-Hinweis und Touch-Controls nach Orientierung.
+ * Controls rotate overlay and touch controls based on orientation.
  */
 function handleOrientation() {
   const rotateOverlay = document.getElementById('rotate-overlay');
@@ -448,6 +494,7 @@ function handleOrientation() {
   if (!rotateOverlay && !touchControls) {
     return;
   }
+
   if (!isMobileLike()) {
     if (rotateOverlay) rotateOverlay.style.display = 'none';
     if (touchControls) touchControls.style.display = 'none';
@@ -469,10 +516,10 @@ function handleOrientation() {
 }
 
 /**
- * Steuert das "Screen too small"-Overlay
- * für Nicht-Touch-Geräte mit Breite <= 800px.
+ * Controls the "screen too small" overlay for
+ * non-touch devices with width <= 800px.
  */
-function handleScreenTooSmallOverlay() {          // NEU
+function handleScreenTooSmallOverlay() {
   const overlay = document.getElementById('screen-too-small-overlay');
   if (!overlay) return;
 
@@ -487,7 +534,7 @@ function handleScreenTooSmallOverlay() {          // NEU
 }
 
 /**
- * Ermittelt Pointer-Position aus verschiedenen Events.
+ * Returns the primary pointer position for touch/mouse/pointer events.
  * @param {TouchEvent|MouseEvent|PointerEvent} e
  * @returns {Touch|MouseEvent|PointerEvent}
  */
@@ -498,7 +545,7 @@ function getPointerPosition(e) {
 }
 
 /**
- * Berechnet Joystick-Offsets.
+ * Computes joystick deltas and derived values.
  * @param {TouchEvent|MouseEvent|PointerEvent} e
  * @returns {{dx:number,dy:number,dist:number,angle:number,maxRadius:number,deadZone:number}}
  */
@@ -514,7 +561,7 @@ function computeJoystickData(e) {
 }
 
 /**
- * Aktualisiert Position des Thumb im Joystick.
+ * Updates joystick thumb position based on distance and angle.
  * @param {number} dist
  * @param {number} angle
  * @param {number} maxRadius
@@ -530,7 +577,7 @@ function updateJoystickThumb(dist, angle, maxRadius) {
 }
 
 /**
- * Setzt horizontale Bewegung anhand Joystick.
+ * Updates horizontal movement flags based on joystick offset.
  * @param {number} dx
  * @param {number} deadZone
  */
@@ -548,7 +595,7 @@ function updateJoystickHorizontal(dx, deadZone) {
 }
 
 /**
- * Behandelt Sprung-Aktion im Joystick.
+ * Handles jump action based on joystick vertical offset.
  * @param {number} dy
  */
 function handleJoystickJump(dy) {
@@ -566,7 +613,7 @@ function handleJoystickJump(dy) {
 }
 
 /**
- * Verarbeitet Joystick-Bewegung.
+ * Processes joystick movement input.
  * @param {TouchEvent|MouseEvent|PointerEvent} e
  */
 function processJoystickMove(e) {
@@ -581,7 +628,7 @@ function processJoystickMove(e) {
 }
 
 /**
- * Startet Joystick-Interaktion.
+ * Starts a joystick interaction.
  * @param {Event} e
  */
 function onJoystickStart(e) {
@@ -599,7 +646,7 @@ function onJoystickStart(e) {
 }
 
 /**
- * Bewegt den Joystick während Interaktion.
+ * Moves the joystick while active.
  * @param {Event} e
  */
 function onJoystickMove(e) {
@@ -611,7 +658,7 @@ function onJoystickMove(e) {
 }
 
 /**
- * Beendet Joystick-Interaktion.
+ * Ends a joystick interaction and resets state.
  * @param {Event} e
  */
 function onJoystickEnd(e) {
@@ -629,7 +676,22 @@ function onJoystickEnd(e) {
 }
 
 /**
- * Verbindet Attack-Button mit Steuerung.
+ * Adds pointer/mouse press listeners to a button.
+ * @param {HTMLElement} button
+ * @param {(e: Event) => void} onStart
+ * @param {(e: Event) => void} onEnd
+ */
+function addButtonPressListeners(button, onStart, onEnd) {
+  ['touchstart', 'pointerdown', 'mousedown'].forEach((evt) =>
+    button.addEventListener(evt, onStart)
+  );
+  ['touchend', 'touchcancel', 'pointerup', 'pointercancel', 'mouseup', 'mouseleave'].forEach(
+    (evt) => button.addEventListener(evt, onEnd)
+  );
+}
+
+/**
+ * Wires the attack button to keyboard and character logic.
  */
 function setupAttackButton() {
   const attackBtn = document.getElementById('btn-attack');
@@ -640,7 +702,12 @@ function setupAttackButton() {
   const startAttack = (e) => {
     if (e && e.cancelable) e.preventDefault();
     keyboard.ATTACK = true;
-    if (world && world.character && typeof world.character.tryStartAttack === 'function') {
+
+    if (
+      world &&
+      world.character &&
+      typeof world.character.tryStartAttack === 'function'
+    ) {
       world.character.tryStartAttack();
     }
   };
@@ -650,16 +717,11 @@ function setupAttackButton() {
     keyboard.ATTACK = false;
   };
 
-  ['touchstart', 'pointerdown', 'mousedown'].forEach((evt) =>
-    attackBtn.addEventListener(evt, startAttack)
-  );
-  ['touchend', 'touchcancel', 'pointerup', 'pointercancel', 'mouseup', 'mouseleave'].forEach(
-    (evt) => attackBtn.addEventListener(evt, endAttack)
-  );
+  addButtonPressListeners(attackBtn, startAttack, endAttack);
 }
 
 /**
- * Verbindet Wurf-Button mit Steuerung.
+ * Wires the throw button to keyboard and character logic.
  */
 function setupThrowButton() {
   const throwBtn = document.getElementById('btn-throw');
@@ -670,7 +732,12 @@ function setupThrowButton() {
   const startThrow = (e) => {
     if (e && e.cancelable) e.preventDefault();
     keyboard.D = true;
-    if (world && world.character && typeof world.character.tryStartKunaiThrow === 'function') {
+
+    if (
+      world &&
+      world.character &&
+      typeof world.character.tryStartKunaiThrow === 'function'
+    ) {
       world.character.tryStartKunaiThrow();
     }
   };
@@ -680,16 +747,11 @@ function setupThrowButton() {
     keyboard.D = false;
   };
 
-  ['touchstart', 'pointerdown', 'mousedown'].forEach((evt) =>
-    throwBtn.addEventListener(evt, startThrow)
-  );
-  ['touchend', 'touchcancel', 'pointerup', 'pointercancel', 'mouseup', 'mouseleave'].forEach(
-    (evt) => throwBtn.addEventListener(evt, endThrow)
-  );
+  addButtonPressListeners(throwBtn, startThrow, endThrow);
 }
 
 /**
- * Initialisiert Joystick-Elemente und Events.
+ * Initializes joystick DOM elements and their events.
  */
 function setupJoystick() {
   joystickBase = document.getElementById('joystick-base');
@@ -711,7 +773,7 @@ function setupJoystick() {
 }
 
 /**
- * Initialisiert Touch-Controls (nur einmal auf Mobile).
+ * Initializes touch controls on mobile devices (once).
  */
 function setupTouchControls() {
   if (!isMobileLike() || touchControlsInitialized) {
@@ -726,12 +788,12 @@ function setupTouchControls() {
 }
 
 /**
- * Gemeinsamer Handler für Resize/Orientierungs-Änderungen.
+ * Handles layout changes (resize/orientation) in one place.
  */
 function handleLayoutChange() {
   handleOrientation();
   updateFullscreenButtonVisibility();
-  handleScreenTooSmallOverlay(); // NEU: bei jedem Layout-Change prüfen
+  handleScreenTooSmallOverlay();
 }
 
 window.addEventListener('resize', handleLayoutChange);
@@ -740,46 +802,90 @@ window.addEventListener('load', handleLayoutChange);
 document.addEventListener('DOMContentLoaded', handleLayoutChange);
 
 /**
- * Aktualisiert Keyboard-State + ggf. Aktionen.
+ * Updates directional keys based on keyboard input.
  * @param {string} key
  * @param {boolean} isDown
  */
-function updateKeyboardFromKey(key, isDown) {
+function updateDirectionalKeys(key, isDown) {
   const lower = key.toLowerCase();
 
   if (lower === 'w' || key === 'ArrowUp') keyboard.UP = isDown;
   if (lower === 'a' || key === 'ArrowLeft') keyboard.LEFT = isDown;
   if (lower === 's' || key === 'ArrowDown') keyboard.DOWN = isDown;
   if (lower === 'd' || key === 'ArrowRight') keyboard.RIGHT = isDown;
-  if (key === ' ') keyboard.SPACE = isDown;
+}
 
-  if (lower === 'b') {
-    keyboard.ATTACK = isDown;
-    if (
-      isDown &&
-      world &&
-      world.character &&
-      typeof world.character.tryStartAttack === 'function'
-    ) {
-      world.character.tryStartAttack();
-    }
-  }
-
-  if (lower === 'v') {
-    keyboard.D = isDown;
-    if (
-      isDown &&
-      world &&
-      world.character &&
-      typeof world.character.tryStartKunaiThrow === 'function'
-    ) {
-      world.character.tryStartKunaiThrow();
-    }
+/**
+ * Updates jump key based on keyboard input.
+ * @param {string} key
+ * @param {boolean} isDown
+ */
+function updateJumpKey(key, isDown) {
+  if (key === ' ') {
+    keyboard.SPACE = isDown;
   }
 }
 
 /**
- * Keydown-Handler für globale Tastatur.
+ * Updates attack key and triggers attack if necessary.
+ * @param {string} key
+ * @param {boolean} isDown
+ */
+function updateAttackKey(key, isDown) {
+  const lower = key.toLowerCase();
+  if (lower !== 'b') {
+    return;
+  }
+
+  keyboard.ATTACK = isDown;
+
+  if (
+    isDown &&
+    world &&
+    world.character &&
+    typeof world.character.tryStartAttack === 'function'
+  ) {
+    world.character.tryStartAttack();
+  }
+}
+
+/**
+ * Updates throw key and triggers kunai throw if necessary.
+ * @param {string} key
+ * @param {boolean} isDown
+ */
+function updateThrowKey(key, isDown) {
+  const lower = key.toLowerCase();
+  if (lower !== 'v') {
+    return;
+  }
+
+  keyboard.D = isDown;
+
+  if (
+    isDown &&
+    world &&
+    world.character &&
+    typeof world.character.tryStartKunaiThrow === 'function'
+  ) {
+    world.character.tryStartKunaiThrow();
+  }
+}
+
+/**
+ * Updates keyboard state from a given key and pressed state.
+ * @param {string} key
+ * @param {boolean} isDown
+ */
+function updateKeyboardFromKey(key, isDown) {
+  updateDirectionalKeys(key, isDown);
+  updateJumpKey(key, isDown);
+  updateAttackKey(key, isDown);
+  updateThrowKey(key, isDown);
+}
+
+/**
+ * Global keydown handler.
  * @param {KeyboardEvent} e
  */
 function onKeyDown(e) {
@@ -787,7 +893,7 @@ function onKeyDown(e) {
 }
 
 /**
- * Keyup-Handler für globale Tastatur.
+ * Global keyup handler.
  * @param {KeyboardEvent} e
  */
 function onKeyUp(e) {
