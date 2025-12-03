@@ -160,6 +160,7 @@ canvas {
     color: #fff;
     font-family: 'NinjaNaruto', sans-serif;
     z-index: 1000;
+    border: 1px solid #473631;
     display: none;
 }
 
@@ -296,6 +297,7 @@ canvas {
     height: 60%;
     background-color: #b7694dec;
     border-radius: 10px;
+    border: 1px solid #473631;
     color: #fff;
     font-family: 'Noto Sans', sans-serif;
     z-index: 1000;
