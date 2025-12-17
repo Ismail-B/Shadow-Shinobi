@@ -23,6 +23,14 @@ class World {
   win_sound = new Audio('audio/win.mp3');
   bossIntroSound = new Audio('audio/endboss-alert.mp3');
 
+  coinCollectSounds = [
+    new Audio('audio/coin-collect.mp3'),
+    new Audio('audio/coin-collect.mp3'),
+    new Audio('audio/coin-collect.mp3'),
+    new Audio('audio/coin-collect.mp3')
+  ];
+  nextCoinSoundIndex = 0;
+
   bossIntroActive = false;
   isMuted = false;
 
@@ -342,6 +350,10 @@ class World {
     }
 
     this.bossIntroSound.pause();
+
+    if (Array.isArray(this.coinCollectSounds)) {
+      this.coinCollectSounds.forEach((s) => s.pause());
+    }
   }
 
   /**
@@ -351,6 +363,31 @@ class World {
     this.win_sound.currentTime = 0;
     this.win_sound.volume = 0.8;
     this.win_sound.play();
+  }
+
+  /**
+   * Plays the coin collect sound once (respects mute).
+   */
+  playCoinCollectSound() {
+    if (this.isMuted) {
+      return;
+    }
+
+    const sounds = this.coinCollectSounds || [];
+    if (sounds.length === 0) {
+      return;
+    }
+
+    const sound = sounds[this.nextCoinSoundIndex % sounds.length];
+    this.nextCoinSoundIndex++;
+
+    try {
+      sound.currentTime = 0;
+      sound.volume = 0.35;
+      sound.play();
+    } catch (e) {
+      // intentionally ignored
+    }
   }
 
   /**
@@ -395,6 +432,10 @@ class World {
 
     if (this.character && this.character.walking_sound) {
       this.character.walking_sound.pause();
+    }
+
+    if (Array.isArray(this.coinCollectSounds)) {
+      this.coinCollectSounds.forEach((s) => s.pause());
     }
   }
 
@@ -780,6 +821,9 @@ class World {
       const coin = this.level.coins[i];
       if (this.character.isColliding(coin)) {
         this.level.coins.splice(i, 1);
+
+        this.playCoinCollectSound();
+
         this.ninjaCoinsCollected++;
         const percentage = Math.min(100, this.ninjaCoinsCollected * 20);
         this.statusBarCoin.setPercentage(percentage);
@@ -790,21 +834,24 @@ class World {
   /**
    * Handles picking up all kunai collectibles.
    */
-  collectKunaiCoins() {
-    for (let i = this.level.kunais.length - 1; i >= 0; i--) {
-      const kunaiCoin = this.level.kunais[i];
-      if (this.character.isColliding(kunaiCoin)) {
-        this.level.kunais.splice(i, 1);
-        this.kunaiCoinsCollected++;
-        this.kunaiAmmo += this.kunaiPerSegment;
+collectKunaiCoins() {
+  for (let i = this.level.kunais.length - 1; i >= 0; i--) {
+    const kunaiCoin = this.level.kunais[i];
+    if (this.character.isColliding(kunaiCoin)) {
+      this.level.kunais.splice(i, 1);
 
-        const maxAmmo = this.maxKunaiSegments * this.kunaiPerSegment;
-        if (this.kunaiAmmo > maxAmmo) {
-          this.kunaiAmmo = maxAmmo;
-        }
+      this.playCoinCollectSound();
 
-        this.updateKunaiBarFromAmmo();
+      this.kunaiCoinsCollected++;
+      this.kunaiAmmo += this.kunaiPerSegment;
+
+      const maxAmmo = this.maxKunaiSegments * this.kunaiPerSegment;
+      if (this.kunaiAmmo > maxAmmo) {
+        this.kunaiAmmo = maxAmmo;
       }
+
+      this.updateKunaiBarFromAmmo();
     }
   }
+}
 }

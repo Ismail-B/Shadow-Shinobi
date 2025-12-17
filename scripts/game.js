@@ -290,6 +290,9 @@ function collectBaseAudios() {
     world.music,
     world.background_sound,
     world.win_sound,
+
+    ...(Array.isArray(world.coinCollectSounds) ? world.coinCollectSounds : []),
+
     world.character && world.character.walking_sound,
     world.character && world.character.kunai_throw_sound,
     world.character && world.character.hit_sound,
