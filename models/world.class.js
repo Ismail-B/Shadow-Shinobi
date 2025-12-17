@@ -36,7 +36,14 @@ class World {
   throwCooldownMs = 150;
 
   animationFrameId = null;
+  gameLoopIntervalId = null;
+
   gameEnded = false;
+  gameEnding = false;
+  endSequenceStarted = false;
+
+  characterDeathFreezeDelayMs = 1300;
+  endbossDeathFreezeDelayMs = 1800;
 
   /**
    * Creates a new game world instance.
@@ -69,6 +76,10 @@ class World {
    */
   registerKeyListeners() {
     window.addEventListener('keydown', (event) => {
+      if (this.gameEnded || this.gameEnding) {
+        return;
+      }
+
       if (event.code === 'KeyV' && !event.repeat) {
         this.tryThrowKunai();
       }
@@ -118,7 +129,7 @@ class World {
    */
   run() {
     const intervalMs = 1000 / 60;
-    setInterval(() => {
+    this.gameLoopIntervalId = setInterval(() => {
       this.updateGameLoop();
     }, intervalMs);
   }
@@ -128,6 +139,10 @@ class World {
    */
   updateGameLoop() {
     if (this.gameEnded || this.bossIntroActive) {
+      return;
+    }
+
+    if (this.gameEnding) {
       return;
     }
 
@@ -171,19 +186,91 @@ class World {
   }
 
   /**
-   * Marks the game as finished and triggers game-over logic.
+   * Marks the game as finished and triggers end sequence (without immediate freeze).
    * @param {boolean} playerWon - True if the player has won.
    */
   finishGame(playerWon) {
+    if (this.endSequenceStarted) {
+      return;
+    }
+
+    this.endSequenceStarted = true;
+    this.startEndSequence(playerWon);
+  }
+
+  /**
+   * Starts the end sequence: stop inputs + stop sounds,
+   * but keep rendering alive until death animation is done.
+   * @param {boolean} playerWon
+   */
+  startEndSequence(playerWon) {
+    this.gameEnding = true;
+
+    this.resetKeyboardState();
+    this.pauseGameOverAudio();
+
+    if (playerWon) {
+      this.playWinSound();
+    }
+
+    this.showEndOverlayWithDelay(playerWon);
+
+    const freezeDelay = playerWon
+      ? this.endbossDeathFreezeDelayMs
+      : this.characterDeathFreezeDelayMs;
+
+    setTimeout(() => {
+      this.hardFreeze();
+    }, freezeDelay);
+  }
+
+  /**
+   * Resets all keyboard flags to prevent stuck inputs during end sequence.
+   */
+  resetKeyboardState() {
+    if (!this.keyboard) {
+      return;
+    }
+
+    this.keyboard.LEFT = false;
+    this.keyboard.RIGHT = false;
+    this.keyboard.UP = false;
+    this.keyboard.DOWN = false;
+    this.keyboard.SPACE = false;
+    this.keyboard.ATTACK = false;
+    this.keyboard.D = false;
+  }
+
+  /**
+   * Hard-freezes the game: stops RAF + world loop + all tracked intervals.
+   */
+  hardFreeze() {
+    if (this.gameEnded) {
+      return;
+    }
+
     this.gameEnded = true;
-    this.onGameOver(playerWon);
+
+    if (this.gameLoopIntervalId) {
+      clearInterval(this.gameLoopIntervalId);
+      this.gameLoopIntervalId = null;
+    }
+
+    if (this.animationFrameId) {
+      cancelAnimationFrame(this.animationFrameId);
+      this.animationFrameId = null;
+    }
+
+    if (typeof clearAllIntervals === 'function') {
+      clearAllIntervals();
+    }
   }
 
   /**
    * Starts the boss intro sequence (with or without sound).
    */
   startBossIntro() {
-    if (this.bossIntroActive || this.gameEnded) {
+    if (this.bossIntroActive || this.gameEnded || this.gameEnding) {
       return;
     }
 
@@ -248,6 +335,7 @@ class World {
    */
   pauseGameOverAudio() {
     this.background_sound.pause();
+    this.music.pause();
 
     if (this.character && this.character.walking_sound) {
       this.character.walking_sound.pause();
@@ -281,14 +369,24 @@ class World {
   }
 
   /**
-   * Completely stops the game.
+   * Completely stops the game (used for restart/menu).
    */
   stop() {
     this.gameEnded = true;
+    this.gameEnding = true;
+
+    if (this.gameLoopIntervalId) {
+      clearInterval(this.gameLoopIntervalId);
+      this.gameLoopIntervalId = null;
+    }
 
     if (this.animationFrameId) {
       cancelAnimationFrame(this.animationFrameId);
       this.animationFrameId = null;
+    }
+
+    if (typeof clearAllIntervals === 'function') {
+      clearAllIntervals();
     }
 
     this.background_sound.pause();
@@ -575,6 +673,10 @@ class World {
    * Schedules the next draw call via requestAnimationFrame.
    */
   scheduleNextFrame() {
+    if (this.gameEnded) {
+      return;
+    }
+
     this.animationFrameId = requestAnimationFrame(() => {
       this.draw();
     });
