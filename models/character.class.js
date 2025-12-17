@@ -799,25 +799,26 @@ class Character extends MovableObject {
     }
 
 
-    /**
-     * Schaltet zwischen Idle-, Jump- und Walk-Animation um.
-     * @returns {void}
-     */
-    handleMovementAnimation() {
-        if (this.isNotMoving()) {
-            this.playAnimation(this.IMAGES_IDLE);
-            return;
-        }
-
-        if (this.isAboveGround()) {
-            this.playAnimation(this.IMAGES_JUMPING);
-            return;
-        }
-
-        if (this.world?.keyboard.RIGHT || this.world?.keyboard.LEFT) {
-            this.playAnimation(this.IMAGES_WALKING);
-        }
+/**
+ * Schaltet zwischen Idle-, Jump- und Walk-Animation um.
+ * @returns {void}
+ */
+handleMovementAnimation() {
+    if (this.isAboveGround()) {
+        this.playAnimation(this.IMAGES_JUMPING);
+        return;
     }
+
+    if (this.world?.keyboard.RIGHT || this.world?.keyboard.LEFT) {
+        this.playAnimation(this.IMAGES_WALKING);
+        return;
+    }
+
+    if (this.isNotMoving()) {
+        this.playAnimation(this.IMAGES_IDLE);
+    }
+}
+
 
 
     /**
