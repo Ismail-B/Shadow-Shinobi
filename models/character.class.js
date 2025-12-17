@@ -762,22 +762,34 @@ class Character extends MovableObject {
     }
 
 
-    /**
-     * Aktualisiert Animation und Angriff innerhalb des Animation-Loops.
-     * @returns {void}
-     */
-    updateAnimation() {
-        if (this.isAttacking) {
-            this.updateAttack();
-            return;
-        }
-
-        if (this.handleDeathOrHurtAnimation()) {
-            return;
-        }
-
-        this.handleMovementAnimation();
+/**
+ * Aktualisiert Animation und Angriff innerhalb des Animation-Loops.
+ * @returns {void}
+ */
+updateAnimation() {
+    if (this.isDead()) {
+        this.playDeathOnce();
+        return;
     }
+
+    if (this.isHurt()) {
+        this.playAnimation(this.IMAGES_HURT);
+        return;
+    }
+
+    if (this.isAttacking) {
+        this.updateAttack();
+        return;
+    }
+
+    if (this.isMovementFrozen()) {
+        this.playAnimation(this.IMAGES_IDLE);
+        return;
+    }
+
+    this.handleMovementAnimation();
+}
+
 
 
     /**
