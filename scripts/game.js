@@ -17,6 +17,73 @@ let joystickJumpTriggered = false;
 // mute state is only for the current session
 let isMutedGlobal = false;
 
+const MUTE_STORAGE_KEY = 'shadow_shinobi_muted';
+
+/**
+ * Loads mute state from localStorage.
+ * @returns {boolean}
+ */
+function loadMuteFromStorage() {
+  try {
+    return localStorage.getItem(MUTE_STORAGE_KEY) === 'true';
+  } catch (e) {
+    return false;
+  }
+}
+
+/**
+ * Saves mute state to localStorage.
+ * @param {boolean} muted
+ */
+function saveMuteToStorage(muted) {
+  try {
+    localStorage.setItem(MUTE_STORAGE_KEY, muted ? 'true' : 'false');
+  } catch (e) {
+    // intentionally ignored
+  }
+}
+
+/**
+ * Sets the sound button UI based on mute state.
+ * @param {boolean} muted
+ */
+function applyMuteUi(muted) {
+  const soundBtn = document.getElementById('sound-btn'); // icon to enable sound
+  const muteBtn = document.getElementById('mute-btn');   // icon to mute sound
+  if (!soundBtn || !muteBtn) return;
+
+  soundBtn.style.display = muted ? 'block' : 'none';
+  muteBtn.style.display = muted ? 'none' : 'block';
+}
+
+/**
+ * Central mute state setter: updates global flag, UI, storage, and world audio.
+ * @param {boolean} muted
+ * @param {{persist?: boolean}} options
+ */
+function setMuteState(muted, options = {}) {
+  const { persist = true } = options;
+
+  isMutedGlobal = muted;
+  applyMuteUi(muted);
+
+  if (persist) {
+    saveMuteToStorage(muted);
+  }
+
+  if (world) {
+    setMuteOnAllAudios(muted);
+  }
+}
+
+/**
+ * Initializes mute state (storage -> UI + global flag).
+ */
+function initMuteState() {
+  const muted = loadMuteFromStorage();
+  setMuteState(muted, { persist: false });
+}
+
 /**
  * Checks if the current device/window should be treated as "mobile".
  * @returns {boolean}
@@ -88,12 +155,7 @@ function applyMuteStateToWorld() {
   if (!world) {
     return;
   }
-
-  if (isMutedGlobal) {
-    muteMusic();
-  } else {
-    world.isMuted = false;
-  }
+  setMuteOnAllAudios(isMutedGlobal);
 }
 
 /**
@@ -265,19 +327,6 @@ function backToMenu() {
 }
 
 /**
- * Toggles the music icon (loud/mute).
- * @param {string} id - ID of the loud icon.
- */
-function toggleMusic(id) {
-  const loud = document.getElementById(id);
-  const mute = document.getElementById('mute-btn');
-
-  const loudVisible = getComputedStyle(loud).display !== 'none';
-  loud.style.display = loudVisible ? 'none' : 'block';
-  mute.style.display = loudVisible ? 'block' : 'none';
-}
-
-/**
  * Collects base audio references from the world and character.
  * @returns {HTMLAudioElement[]}
  */
@@ -392,22 +441,14 @@ function setMuteOnAllAudios(muted) {
  * Mutes all game audio.
  */
 function muteMusic() {
-  isMutedGlobal = true;
-  if (!world) {
-    return;
-  }
-  setMuteOnAllAudios(true);
+  setMuteState(true);
 }
 
 /**
  * Unmutes all game audio.
  */
 function turnOnMusic() {
-  isMutedGlobal = false;
-  if (!world) {
-    return;
-  }
-  setMuteOnAllAudios(false);
+  setMuteState(false);
 }
 
 /**
@@ -803,6 +844,10 @@ window.addEventListener('resize', handleLayoutChange);
 window.addEventListener('orientationchange', handleLayoutChange);
 window.addEventListener('load', handleLayoutChange);
 document.addEventListener('DOMContentLoaded', handleLayoutChange);
+
+document.addEventListener('DOMContentLoaded', () => {
+  initMuteState();
+});
 
 /**
  * Updates directional keys based on keyboard input.

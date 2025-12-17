@@ -407,8 +407,9 @@ html:fullscreen body.game-running canvas {
     background-color: rgba(18,18,18,0.28);
 }
 
+#sound-btn,
 #mute-btn {
-    display: block;
+  display: none;
 }
 
 
