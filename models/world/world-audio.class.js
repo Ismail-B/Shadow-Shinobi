@@ -1,7 +1,10 @@
+/**
+ * World audio helpers and playback logic.
+ * Requires World class to be defined.
+ */
 (function () {
   /**
    * Plays an Audio element without unhandled promise rejections.
-   * (Autoplay policy, transient load issues, etc. are silently ignored.)
    * @param {HTMLAudioElement} audio
    */
   function playAudioSafe(audio) {
@@ -99,16 +102,40 @@
   };
 
   /**
-   * Plays the boss intro sound with safe play handling.
-   * Boss intro will always end after 2s (matching previous fallback intent).
+   * Plays the boss intro sound and ends intro when the sound ends.
+   * Includes a fallback timeout to avoid getting stuck if "ended" doesn't fire.
    */
   World.prototype.playBossIntroSound = function () {
-    resetAudioSafe(this.bossIntroSound);
-    playAudioSafe(this.bossIntroSound);
-
-    setTimeout(() => {
+    const sound = this.bossIntroSound;
+    if (!sound) {
       this.stopBossIntro();
-    }, 2000);
+      return;
+    }
+
+    // Clean previous listeners/timeouts if any
+    if (this._bossIntroFallbackTimer) {
+      clearTimeout(this._bossIntroFallbackTimer);
+      this._bossIntroFallbackTimer = null;
+    }
+    if (this._onBossIntroEnded) {
+      sound.removeEventListener('ended', this._onBossIntroEnded);
+      this._onBossIntroEnded = null;
+    }
+
+    resetAudioSafe(sound);
+
+    // End intro when audio ends
+    this._onBossIntroEnded = () => {
+      this.stopBossIntro();
+    };
+    sound.addEventListener('ended', this._onBossIntroEnded, { once: true });
+
+    // Fallback: never keep the game locked forever
+    this._bossIntroFallbackTimer = setTimeout(() => {
+      this.stopBossIntro();
+    }, 10000);
+
+    playAudioSafe(sound);
   };
 
   /**
@@ -116,6 +143,21 @@
    */
   World.prototype.stopBossIntro = function () {
     this.bossIntroActive = false;
+
+    // Cleanup
+    if (this._bossIntroFallbackTimer) {
+      clearTimeout(this._bossIntroFallbackTimer);
+      this._bossIntroFallbackTimer = null;
+    }
+
+    if (this.bossIntroSound && this._onBossIntroEnded) {
+      try {
+        this.bossIntroSound.removeEventListener('ended', this._onBossIntroEnded);
+      } catch (e) {
+        // intentionally ignored
+      }
+      this._onBossIntroEnded = null;
+    }
   };
 
   /**
