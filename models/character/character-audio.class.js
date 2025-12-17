@@ -3,6 +3,66 @@
  * Requires Character class to be defined.
  */
 (function () {
+  /**
+   * Plays an Audio element without unhandled promise rejections.
+   * @param {HTMLAudioElement} audio
+   */
+  function playAudioSafe(audio) {
+    if (!audio || !(audio instanceof Audio)) return;
+
+    try {
+      const p = audio.play();
+      if (p && typeof p.catch === 'function') {
+        p.catch(() => {
+          // intentionally ignored
+        });
+      }
+    } catch (e) {
+      // intentionally ignored
+    }
+  }
+
+  /**
+   * Resets an Audio element to start if possible.
+   * @param {HTMLAudioElement} audio
+   */
+  function resetAudioSafe(audio) {
+    if (!audio || !(audio instanceof Audio)) return;
+    try {
+      audio.currentTime = 0;
+    } catch (e) {
+      // intentionally ignored
+    }
+  }
+
+  /**
+   * Sets volume if possible.
+   * @param {HTMLAudioElement} audio
+   * @param {number} volume
+   */
+  function setVolumeSafe(audio, volume) {
+    if (!audio || !(audio instanceof Audio)) return;
+    try {
+      audio.volume = volume;
+    } catch (e) {
+      // intentionally ignored
+    }
+  }
+
+  /**
+   * Sets playbackRate if possible.
+   * @param {HTMLAudioElement} audio
+   * @param {number} rate
+   */
+  function setPlaybackRateSafe(audio, rate) {
+    if (!audio || !(audio instanceof Audio)) return;
+    try {
+      audio.playbackRate = rate;
+    } catch (e) {
+      // intentionally ignored
+    }
+  }
+
   Character.prototype.initSounds = function () {
     this.walking_sound = new Audio('audio/running.mp3');
     this.kunai_throw_sound = new Audio('audio/throw_kunai.mp3');
@@ -13,67 +73,70 @@
   };
 
   /**
-   * Spielt die Lauf-Soundeffekte ab.
-   * @param {number} volume - Lautstärke (0–1).
-   * @param {number} playbackRate - Abspielgeschwindigkeit.
+   * Plays the walking sound effect.
+   * @param {number} volume - Volume (0–1).
+   * @param {number} playbackRate - Playback speed.
    * @returns {void}
    */
-Character.prototype.soundEffects = function (volume, playbackRate) {
-  if (!this.walking_sound) return;
+  Character.prototype.soundEffects = function (volume, playbackRate) {
+    if (!this.walking_sound) return;
 
-  this.walking_sound.playbackRate = playbackRate;
-  this.walking_sound.volume = volume;
+    setPlaybackRateSafe(this.walking_sound, playbackRate);
+    setVolumeSafe(this.walking_sound, volume);
 
-  const p = this.walking_sound.play();
-  if (p && typeof p.catch === 'function') p.catch(() => {});
-};
+    playAudioSafe(this.walking_sound);
+  };
 
   /**
-   * Spielt den Kunai-Wurf-Sound ab.
+   * Plays the kunai throw sound.
    * @returns {void}
    */
   Character.prototype.playKunaiThrowSound = function () {
     if (!this.kunai_throw_sound) return;
-    this.kunai_throw_sound.currentTime = 0;
-    this.kunai_throw_sound.volume = 0.3;
-    this.kunai_throw_sound.play();
+
+    resetAudioSafe(this.kunai_throw_sound);
+    setVolumeSafe(this.kunai_throw_sound, 0.3);
+    playAudioSafe(this.kunai_throw_sound);
   };
 
   /**
-   * Spielt den Nahkampf-Sound ab.
+   * Plays the melee hit sound.
    * @returns {void}
    */
   Character.prototype.playHitSound = function () {
     if (!this.hit_sound) return;
-    this.hit_sound.currentTime = 0;
-    this.hit_sound.volume = 0.3;
-    this.hit_sound.play();
+
+    resetAudioSafe(this.hit_sound);
+    setVolumeSafe(this.hit_sound, 0.3);
+    playAudioSafe(this.hit_sound);
   };
 
   /**
-   * Spielt den Sprung-Sound ab.
+   * Plays the jump sound.
    * @returns {void}
    */
   Character.prototype.playJumpSound = function () {
     if (!this.jump_sound) return;
-    this.jump_sound.currentTime = 0;
-    this.jump_sound.volume = 0.35;
-    this.jump_sound.play();
+
+    resetAudioSafe(this.jump_sound);
+    setVolumeSafe(this.jump_sound, 0.35);
+    playAudioSafe(this.jump_sound);
   };
 
   /**
-   * Spielt den Hurt-Sound ab.
+   * Plays the hurt sound.
    * @returns {void}
    */
   Character.prototype.playHurtSound = function () {
     if (!this.hurt_sound) return;
-    this.hurt_sound.currentTime = 0;
-    this.hurt_sound.volume = 0.35;
-    this.hurt_sound.play();
+
+    resetAudioSafe(this.hurt_sound);
+    setVolumeSafe(this.hurt_sound, 0.35);
+    playAudioSafe(this.hurt_sound);
   };
 
   /**
-   * Spielt den Death-Sound einmalig ab.
+   * Plays the death sound once.
    * @returns {void}
    */
   Character.prototype.playDeathSound = function () {
@@ -81,8 +144,9 @@ Character.prototype.soundEffects = function (volume, playbackRate) {
     this._deathSoundPlayed = true;
 
     if (!this.death_sound) return;
-    this.death_sound.currentTime = 0;
-    this.death_sound.volume = 0.4;
-    this.death_sound.play();
+
+    resetAudioSafe(this.death_sound);
+    setVolumeSafe(this.death_sound, 0.4);
+    playAudioSafe(this.death_sound);
   };
 })();
