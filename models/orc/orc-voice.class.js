@@ -1,10 +1,10 @@
 /**
- * Orc global voice loop (static system).
- * Requires Orc class to be defined.
+ * Adds a global voice loop system to the Orc class.
  */
 (function () {
   /**
-   * Starts the global orc voice loop.
+   * Starts (or restarts) the global orc voice loop interval.
+   * @returns {void}
    */
   Orc.startVoiceLoop = function () {
     if (Orc.voiceLoopId) {
@@ -18,21 +18,22 @@
   };
 
   /**
-   * Decides whether a voice clip should be played.
+   * Evaluates whether an orc voice clip should be played at the current time.
+   * @returns {void}
    */
   Orc.checkAndPlayVoice = function () {
     const now = Date.now();
-    const visible = Orc.getVisibleOrcCount();
+    const visibleCount = Orc.getVisibleOrcCount();
 
-    if (!visible) return;
-    if (!Orc.shouldPlayVoice(now, visible)) return;
+    if (!visibleCount) return;
+    if (!Orc.shouldPlayVoice(now, visibleCount)) return;
 
     Orc.playNextVoiceClip(now);
   };
 
   /**
-   * Counts orcs that are visible and actively chasing.
-   * @returns {number}
+   * Counts orcs that are eligible for voice playback (visible, chasing, alive).
+   * @returns {number} Number of eligible orcs
    */
   Orc.getVisibleOrcCount = function () {
     let count = 0;
@@ -46,22 +47,25 @@
   };
 
   /**
-   * Checks whether enough time passed since the last voice clip.
-   * @param {number} now
-   * @param {number} visibleCount
-   * @returns {boolean}
+   * Determines whether enough time has passed since the last voice clip.
+   * Delay decreases with more visible orcs, but is capped by a minimum.
+   *
+   * @param {number} now - Current timestamp in milliseconds
+   * @param {number} visibleCount - Number of eligible orcs
+   * @returns {boolean} True if a voice clip may be played
    */
   Orc.shouldPlayVoice = function (now, visibleCount) {
-    const baseDelay = 4500;
-    const minDelay = 1200;
-    const neededDelay = Math.max(minDelay, baseDelay / visibleCount);
+    const baseDelayMs = 4500;
+    const minDelayMs = 1200;
+    const neededDelayMs = Math.max(minDelayMs, baseDelayMs / visibleCount);
 
-    return now - Orc.lastVoiceTime >= neededDelay;
+    return now - Orc.lastVoiceTime >= neededDelayMs;
   };
 
   /**
-   * Plays the next voice clip in a round-robin manner.
-   * @param {number} now
+   * Plays the next voice clip using round-robin selection and updates timestamps.
+   * @param {number} now - Current timestamp in milliseconds
+   * @returns {void}
    */
   Orc.playNextVoiceClip = function (now) {
     if (Orc.isGameMuted()) return;
@@ -78,13 +82,15 @@
   };
 
   /**
-   * Resets global audio state (e.g., on restart).
+   * Resets global voice loop and tracking state (e.g., on restart).
+   * @returns {void}
    */
   Orc.resetAudioState = function () {
     if (Orc.voiceLoopId) {
       clearInterval(Orc.voiceLoopId);
       Orc.voiceLoopId = null;
     }
+
     Orc.instances = [];
     Orc.lastVoiceTime = 0;
     Orc.lastVoiceIndex = -1;

@@ -1,12 +1,11 @@
 /**
- * =====================================================
- * Game Bootstrap / Flow
- * =====================================================
- * Entry points used by UI (onclick) and internal restart/menu logic.
+ * Game bootstrap and flow helpers.
+ * Provides entry points for starting, restarting, and leaving the game.
  */
 
 /**
- * Stops world loop, clears intervals and resets Orc audio.
+ * Stops the current world instance, clears tracked intervals, and resets orc audio state.
+ * @returns {void}
  */
 function stopWorldAndIntervals() {
   clearAllIntervals();
@@ -19,18 +18,20 @@ function stopWorldAndIntervals() {
 }
 
 /**
- * Hides both game over and win overlays if present.
+ * Hides the game-over and win overlays.
+ * @returns {void}
  */
 function hideEndOverlays() {
-  const go = document.getElementById('game-over-overlay');
-  const win = document.getElementById('win-overlay');
-  if (go) go.style.display = 'none';
-  if (win) win.style.display = 'none';
+  const gameOverOverlay = document.getElementById('game-over-overlay');
+  const winOverlay = document.getElementById('win-overlay');
+
+  if (gameOverOverlay) gameOverOverlay.style.display = 'none';
+  if (winOverlay) winOverlay.style.display = 'none';
 }
 
 /**
- * Initializes canvas, world and touch controls
- * and switches from menu into the game.
+ * Initializes the canvas and world and transitions from menu into gameplay.
+ * @returns {void}
  */
 function init() {
   enterGameMode();
@@ -52,6 +53,7 @@ function init() {
 
 /**
  * Restarts the game without reloading the page.
+ * @returns {void}
  */
 function restartGame() {
   stopWorldAndIntervals();
@@ -72,7 +74,8 @@ function restartGame() {
 }
 
 /**
- * Returns back to the main menu without reloading.
+ * Returns to the main menu without reloading the page.
+ * @returns {void}
  */
 function backToMenu() {
   stopWorldAndIntervals();
@@ -80,6 +83,7 @@ function backToMenu() {
   hideCanvasAndShowMenu();
 
   world = null;
+
   exitGameMode();
   refreshResponsiveLayout();
 }

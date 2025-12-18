@@ -1,17 +1,14 @@
 /**
- * Grüner Orc-Gegner (schnelle, kleine Variante).
- * Nutzt Orc-Basislogik mit eigenen Sprites.
+ * Green orc enemy (smaller, faster variant).
+ *
  * @extends Orc
  */
 class OrcGreen extends Orc {
-  /**
-   * Grund-Y-Position des Orcs.
-   * @type {number}
-   */
+  /** @type {number} */
   y = 260;
 
   /**
-   * Erstellt einen grünen Orc und lädt seine Animationen.
+   * Creates a green orc and loads its animation assets.
    */
   constructor() {
     super();
@@ -19,6 +16,7 @@ class OrcGreen extends Orc {
     this.height = 100;
     this.width = 70;
 
+    /** @type {string[]} */
     this.IMAGES_WALKING = [
       'img/3_enemies_orcs/orc_green/1_walk/Walk_1.png',
       'img/3_enemies_orcs/orc_green/1_walk/Walk_2.png',
@@ -26,14 +24,15 @@ class OrcGreen extends Orc {
       'img/3_enemies_orcs/orc_green/1_walk/Walk_4.png',
       'img/3_enemies_orcs/orc_green/1_walk/Walk_5.png',
       'img/3_enemies_orcs/orc_green/1_walk/Walk_6.png',
-      'img/3_enemies_orcs/orc_green/1_walk/Walk_7.png'
+      'img/3_enemies_orcs/orc_green/1_walk/Walk_7.png',
     ];
 
+    /** @type {string[]} */
     this.DEAD_IMAGES = [
       'img/3_enemies_orcs/orc_green/2_dead/Dead_1.png',
       'img/3_enemies_orcs/orc_green/2_dead/Dead_2.png',
       'img/3_enemies_orcs/orc_green/2_dead/Dead_3.png',
-      'img/3_enemies_orcs/orc_green/2_dead/Dead_4.png'
+      'img/3_enemies_orcs/orc_green/2_dead/Dead_4.png',
     ];
 
     this.loadImages(this.IMAGES_WALKING);

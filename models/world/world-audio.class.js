@@ -1,11 +1,12 @@
 /**
- * World audio helpers and playback logic.
- * Requires World class to be defined.
+ * Adds audio helper methods and playback logic to the World prototype.
  */
 (function () {
   /**
-   * Plays an Audio element without unhandled promise rejections.
-   * @param {HTMLAudioElement} audio
+   * Plays an audio element while suppressing autoplay-related promise rejections.
+   *
+   * @param {HTMLAudioElement} audio - Audio element to play
+   * @returns {void}
    */
   function playAudioSafe(audio) {
     if (!audio || !(audio instanceof Audio)) return;
@@ -13,57 +14,57 @@
     try {
       const p = audio.play();
       if (p && typeof p.catch === 'function') {
-        p.catch(() => {
-          // intentionally ignored
-        });
+        p.catch(() => {});
       }
-    } catch (e) {
-      // intentionally ignored
-    }
+    } catch (e) {}
   }
 
   /**
-   * Resets an audio element (currentTime=0) if possible.
-   * @param {HTMLAudioElement} audio
+   * Resets an audio element to the beginning if supported.
+   *
+   * @param {HTMLAudioElement} audio - Audio element to reset
+   * @returns {void}
    */
   function resetAudioSafe(audio) {
     if (!audio || !(audio instanceof Audio)) return;
+
     try {
       audio.currentTime = 0;
-    } catch (e) {
-      // intentionally ignored
-    }
+    } catch (e) {}
   }
 
   /**
-   * Sets volume if possible.
-   * @param {HTMLAudioElement} audio
-   * @param {number} volume
+   * Sets the volume on an audio element if supported.
+   *
+   * @param {HTMLAudioElement} audio - Audio element to update
+   * @param {number} volume - Volume in the range 0..1
+   * @returns {void}
    */
   function setVolumeSafe(audio, volume) {
     if (!audio || !(audio instanceof Audio)) return;
+
     try {
       audio.volume = volume;
-    } catch (e) {
-      // intentionally ignored
-    }
+    } catch (e) {}
   }
 
   /**
-   * Pauses audio if possible.
-   * @param {HTMLAudioElement} audio
+   * Pauses an audio element if supported.
+   *
+   * @param {HTMLAudioElement} audio - Audio element to pause
+   * @returns {void}
    */
   function pauseAudioSafe(audio) {
     if (!audio || !(audio instanceof Audio)) return;
+
     try {
       audio.pause();
-    } catch (e) {
-      // intentionally ignored
-    }
+    } catch (e) {}
   }
 
   /**
-   * Starts background sounds.
+   * Starts ambient background audio (looping tracks).
+   * @returns {void}
    */
   World.prototype.playBackgroundAudio = function () {
     setVolumeSafe(this.background_sound, 0.4);
@@ -74,7 +75,8 @@
   };
 
   /**
-   * Starts the boss intro sequence (with or without sound).
+   * Starts the boss intro sequence and blocks gameplay while it is active.
+   * @returns {void}
    */
   World.prototype.startBossIntro = function () {
     if (this.bossIntroActive || this.gameEnded || this.gameEnding) return;
@@ -90,7 +92,8 @@
   };
 
   /**
-   * Handles boss intro when game is muted (no sound, just delay).
+   * Runs the boss intro timing while muted (no audio playback).
+   * @returns {void}
    */
   World.prototype.handleMutedBossIntro = function () {
     pauseAudioSafe(this.bossIntroSound);
@@ -102,8 +105,10 @@
   };
 
   /**
-   * Plays the boss intro sound and ends intro when the sound ends.
-   * Includes a fallback timeout to avoid getting stuck if "ended" doesn't fire.
+   * Plays the boss intro sound and ends the intro when playback finishes.
+   * Uses a fallback timeout in case the audio "ended" event does not fire.
+   *
+   * @returns {void}
    */
   World.prototype.playBossIntroSound = function () {
     const sound = this.bossIntroSound;
@@ -112,11 +117,11 @@
       return;
     }
 
-    // Clean previous listeners/timeouts if any
     if (this._bossIntroFallbackTimer) {
       clearTimeout(this._bossIntroFallbackTimer);
       this._bossIntroFallbackTimer = null;
     }
+
     if (this._onBossIntroEnded) {
       sound.removeEventListener('ended', this._onBossIntroEnded);
       this._onBossIntroEnded = null;
@@ -124,13 +129,11 @@
 
     resetAudioSafe(sound);
 
-    // End intro when audio ends
     this._onBossIntroEnded = () => {
       this.stopBossIntro();
     };
     sound.addEventListener('ended', this._onBossIntroEnded, { once: true });
 
-    // Fallback: never keep the game locked forever
     this._bossIntroFallbackTimer = setTimeout(() => {
       this.stopBossIntro();
     }, 10000);
@@ -139,12 +142,12 @@
   };
 
   /**
-   * Stops the boss intro sequence.
+   * Ends the boss intro sequence and cleans up related listeners/timeouts.
+   * @returns {void}
    */
   World.prototype.stopBossIntro = function () {
     this.bossIntroActive = false;
 
-    // Cleanup
     if (this._bossIntroFallbackTimer) {
       clearTimeout(this._bossIntroFallbackTimer);
       this._bossIntroFallbackTimer = null;
@@ -153,15 +156,14 @@
     if (this.bossIntroSound && this._onBossIntroEnded) {
       try {
         this.bossIntroSound.removeEventListener('ended', this._onBossIntroEnded);
-      } catch (e) {
-        // intentionally ignored
-      }
+      } catch (e) {}
       this._onBossIntroEnded = null;
     }
   };
 
   /**
-   * Pauses relevant game sounds on game over.
+   * Pauses all relevant game audio sources used during gameplay.
+   * @returns {void}
    */
   World.prototype.pauseGameOverAudio = function () {
     pauseAudioSafe(this.background_sound);
@@ -179,7 +181,8 @@
   };
 
   /**
-   * Plays the win sound.
+   * Plays the win sound effect.
+   * @returns {void}
    */
   World.prototype.playWinSound = function () {
     resetAudioSafe(this.win_sound);
@@ -188,7 +191,8 @@
   };
 
   /**
-   * Plays the coin collect sound once (respects mute).
+   * Plays one coin-collect sound (round-robin) if audio is not muted.
+   * @returns {void}
    */
   World.prototype.playCoinCollectSound = function () {
     if (this.isMuted) return;

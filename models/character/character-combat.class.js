@@ -1,16 +1,17 @@
 /**
- * Combat + boss-block movement for Character.
- * Requires Character + audio methods to be loaded.
+ * Character combat logic and endboss movement blocking.
+ * This file patches methods onto Character.prototype and must be loaded after
+ * the Character class and its audio helpers.
+ *
+ * @global
  */
 (function () {
-  /* =========================================================
-     >>> HORIZONTALBEWEGUNG MIT BOSS-BLOCK <<<
-     ========================================================= */
-
   /**
-   * Prüft, ob der Charakter bei testX mit dem Endboss kollidiert.
-   * @param {number} testX - Testposition auf der X-Achse.
-   * @returns {boolean} true, wenn eine Kollision mit dem Endboss vorliegt.
+   * Checks whether the character would collide with the endboss at a given X position.
+   *
+   * @this {Character}
+   * @param {number} testX - Candidate X position.
+   * @returns {boolean} True if the character would collide with the endboss.
    */
   Character.prototype.collidesWithEndbossAtX = function (testX) {
     if (!this.world?.level?.enemies) return false;
@@ -20,7 +21,11 @@
     this.x = testX;
 
     const hit = enemies.some(
-      (enemy) => enemy && enemy.isEndboss && enemy.collidable && this.isColliding(enemy)
+      (enemy) =>
+        enemy &&
+        enemy.isEndboss &&
+        enemy.collidable &&
+        this.isColliding(enemy)
     );
 
     this.x = oldX;
@@ -28,7 +33,9 @@
   };
 
   /**
-   * Bewegt den Charakter nach rechts und stoppt vor dem Endboss.
+   * Moves the character to the right and stops before colliding with the endboss.
+   *
+   * @this {Character}
    * @returns {void}
    */
   Character.prototype.moveRight = function () {
@@ -38,15 +45,17 @@
   };
 
   /**
-   * Bestimmt die letzte freie X-Position nach rechts.
-   * @param {number} startX - Ausgangsposition.
-   * @returns {number} Letzte freie X-Position.
+   * Finds the last free X position to the right without colliding with the endboss.
+   *
+   * @this {Character}
+   * @param {number} startX - Starting X position.
+   * @returns {number} The last reachable X position.
    */
   Character.prototype.findLastFreeXToRight = function (startX) {
     let lastFreeX = startX;
 
-    for (let s = 1; s <= this.speed; s++) {
-      const testX = startX + s;
+    for (let step = 1; step <= this.speed; step++) {
+      const testX = startX + step;
       if (this.collidesWithEndbossAtX(testX)) break;
       lastFreeX = testX;
     }
@@ -55,7 +64,9 @@
   };
 
   /**
-   * Bewegt den Charakter nach links.
+   * Moves the character to the left.
+   *
+   * @this {Character}
    * @returns {void}
    */
   Character.prototype.moveLeft = function () {
@@ -63,10 +74,10 @@
     this.x -= this.speed;
   };
 
-  /* ===================== ANGRIFFS-LOGIK ===================== */
-
   /**
-   * Startet einen Nahkampfangriff (Taste B), falls möglich.
+   * Starts a melee attack if allowed.
+   *
+   * @this {Character}
    * @returns {void}
    */
   Character.prototype.tryStartAttack = function () {
@@ -85,9 +96,11 @@
   };
 
   /**
-   * Prüft, ob ein Angriff aktuell blockiert ist.
-   * @param {number} now - Aktuelle Zeit in ms.
-   * @returns {boolean} true, wenn Angriff blockiert ist.
+   * Returns whether initiating an attack is currently blocked.
+   *
+   * @this {Character}
+   * @param {number} now - Current timestamp in ms.
+   * @returns {boolean} True if an attack cannot be started.
    */
   Character.prototype.isAttackBlocked = function (now) {
     if (this.world && (this.world.gameEnded || this.world.bossIntroActive)) return true;
@@ -96,9 +109,11 @@
   };
 
   /**
-   * Startet einen Kunai-Wurf mit Attack-Animation.
-   * Nur möglich, wenn Charakter nach rechts schaut.
-   * @returns {boolean}
+   * Starts a kunai throw attack animation.
+   * Only allowed while facing right and if ammo is available.
+   *
+   * @this {Character}
+   * @returns {boolean} True if the throw was started.
    */
   Character.prototype.tryStartKunaiThrow = function () {
     const now = performance.now();
@@ -120,8 +135,10 @@
   };
 
   /**
-   * Prüft, ob Kunai-Wurf aktuell blockiert ist.
-   * @returns {boolean} true, wenn Kunai-Wurf blockiert ist.
+   * Returns whether a kunai throw is currently blocked.
+   *
+   * @this {Character}
+   * @returns {boolean} True if the character cannot start a kunai throw.
    */
   Character.prototype.isKunaiThrowBlocked = function () {
     if (this.world && (this.world.gameEnded || this.world.bossIntroActive)) return true;
@@ -130,7 +147,9 @@
   };
 
   /**
-   * Aktualisiert die aktuelle Angriffs-Animation.
+   * Advances the active attack animation and triggers frame-based effects.
+   *
+   * @this {Character}
    * @returns {void}
    */
   Character.prototype.updateAttack = function () {
@@ -140,6 +159,7 @@
     if (!this.isNextAttackFrameDue(now)) return;
 
     this.attackFrameIndex++;
+
     if (this.isAttackFinished()) {
       this.resetAttackState();
       return;
@@ -150,9 +170,11 @@
   };
 
   /**
-   * Prüft, ob das nächste Angriffs-Frame fällig ist.
-   * @param {number} now - Aktuelle Zeit in ms.
-   * @returns {boolean} true, wenn das nächste Frame angezeigt werden soll.
+   * Checks whether the next attack frame is due based on attackFrameMs.
+   *
+   * @this {Character}
+   * @param {number} now - Current timestamp in ms.
+   * @returns {boolean} True if the next frame should be applied.
    */
   Character.prototype.isNextAttackFrameDue = function (now) {
     if (now - this._lastAttackTick < this.attackFrameMs) return false;
@@ -161,15 +183,19 @@
   };
 
   /**
-   * Prüft, ob die Angriffs-Animation zu Ende ist.
-   * @returns {boolean} true, wenn Angriff fertig ist.
+   * Returns whether the current attack animation has finished.
+   *
+   * @this {Character}
+   * @returns {boolean} True if the animation has completed.
    */
   Character.prototype.isAttackFinished = function () {
     return this.attackFrameIndex >= this.IMAGES_ATTACK.length;
   };
 
   /**
-   * Setzt den Angriffsstatus nach Ende der Animation zurück.
+   * Resets attack state after the animation ends.
+   *
+   * @this {Character}
    * @returns {void}
    */
   Character.prototype.resetAttackState = function () {
@@ -180,7 +206,9 @@
   };
 
   /**
-   * Aktualisiert das aktuell angezeigte Angriffsbild.
+   * Updates the current attack frame image.
+   *
+   * @this {Character}
    * @returns {void}
    */
   Character.prototype.updateAttackFrameImage = function () {
@@ -189,7 +217,9 @@
   };
 
   /**
-   * Führt Effekte für Nahkampf oder Kunai beim passenden Frame aus.
+   * Triggers frame-based effects depending on the active attack type.
+   *
+   * @this {Character}
    * @returns {void}
    */
   Character.prototype.handleAttackEffects = function () {
@@ -198,27 +228,35 @@
   };
 
   /**
-   * Behandelt das Trefffenster beim Nahkampf.
+   * Handles the melee hit window frames.
+   *
+   * @this {Character}
    * @returns {void}
    */
   Character.prototype.handleMeleeAttackFrame = function () {
     if (this.attackFrameIndex !== 2 && this.attackFrameIndex !== 3) return;
+
     this.applyMeleeHit();
     this.playMeleeHitSoundOnce();
   };
 
   /**
-   * Spielt den Nahkampf-Sound genau einmal pro Angriff.
+   * Plays the melee hit sound exactly once per melee attack.
+   *
+   * @this {Character}
    * @returns {void}
    */
   Character.prototype.playMeleeHitSoundOnce = function () {
     if (this._hitSoundPlayed) return;
+
     this.playHitSound();
     this._hitSoundPlayed = true;
   };
 
   /**
-   * Behandelt das Wurf-Frame beim Kunai-Angriff.
+   * Handles the kunai release frame.
+   *
+   * @this {Character}
    * @returns {void}
    */
   Character.prototype.handleKunaiAttackFrame = function () {
@@ -232,8 +270,10 @@
   };
 
   /**
-   * Nahkampftreffer auf Gegner (Orcs & Endboss).
-   * Pro Attacke nur ein getroffener Gegner.
+   * Applies melee damage to the first valid enemy hit (orcs and endboss).
+   * Only one enemy can be hit per attack animation.
+   *
+   * @this {Character}
    * @returns {void}
    */
   Character.prototype.applyMeleeHit = function () {
@@ -254,23 +294,28 @@
   };
 
   /**
-   * Erzeugt die Nahkampf-Hitbox vor dem Charakter.
-   * @returns {{x:number,y:number,w:number,h:number}} Hitbox-Objekt.
+   * Creates a melee hitbox in front of the character.
+   *
+   * @this {Character}
+   * @returns {{x:number, y:number, w:number, h:number}} Hitbox rectangle.
    */
   Character.prototype.createMeleeHitbox = function () {
-    const range = 0;
+    const range = 45;
     const height = this.height * 0.6;
     const y = this.y + this.height * 0.2;
     const facingRight = !this.otherDirection;
     const x = facingRight ? this.x + this.width : this.x - range;
+
     return { x, y, w: range, h: height };
   };
 
   /**
-   * Prüft, ob ein Gegner für Nahkampftreffer ungeeignet ist.
-   * @param {Object} enemy - Der zu prüfende Gegner.
-   * @param {Object} hitbox - Hitbox des Angriffs.
-   * @returns {boolean} true, wenn kein gültiges Ziel.
+   * Returns whether an enemy is not a valid melee target.
+   *
+   * @this {Character}
+   * @param {*} enemy - Enemy candidate.
+   * @param {{x:number, y:number, w:number, h:number}} hitbox - Melee hitbox.
+   * @returns {boolean} True if the enemy cannot be hit.
    */
   Character.prototype.isInvalidMeleeTarget = function (enemy, hitbox) {
     if (!enemy || !enemy.collidable || enemy.isDying) return true;
@@ -279,8 +324,10 @@
   };
 
   /**
-   * Wendet Nahkampfschaden auf einen Gegner an.
-   * @param {Object} enemy - Getroffener Gegner.
+   * Applies melee damage to a valid enemy target.
+   *
+   * @this {Character}
+   * @param {*} enemy - Hit enemy.
    * @returns {void}
    */
   Character.prototype.applyMeleeDamageToEnemy = function (enemy) {

@@ -1,20 +1,27 @@
 /**
- * AI logic for Endboss.
- * Requires Endboss class + animation + damage methods.
+ * Endboss AI logic.
+ * This file patches methods onto Endboss.prototype and must be loaded after
+ * the Endboss class and its animation/damage helpers.
+ *
+ * @global
  */
 (function () {
   /**
-   * Startet die AI-/Bewegungs-Logik.
+   * Starts the AI loop (movement/decision updates).
+   *
+   * @this {Endboss}
    * @returns {void}
    */
   Endboss.prototype.startAiLoop = function () {
-    setInterval(() => {
+    this._aiIntervalId = setInterval(() => {
       this.updateBossAi();
     }, 1000 / 60);
   };
 
   /**
-   * Aktualisiert AI: Aktivierung, Intro, Bewegung, Angriff.
+   * Updates AI state: activation, intro blocking, movement and attack decisions.
+   *
+   * @this {Endboss}
    * @returns {void}
    */
   Endboss.prototype.updateBossAi = function () {
@@ -38,7 +45,10 @@
   };
 
   /**
-   * Versucht den Boss zu aktivieren, wenn der Spieler nah genug ist.
+   * Activates the boss once the player is within view distance.
+   * Also triggers the world boss intro hook if available.
+   *
+   * @this {Endboss}
    * @returns {void}
    */
   Endboss.prototype.tryActivateByPlayer = function () {
@@ -58,7 +68,9 @@
   };
 
   /**
-   * Prüft, ob sich der Boss im Intro befindet.
+   * Returns whether the boss is currently blocked by the intro phase.
+   *
+   * @this {Endboss}
    * @returns {boolean}
    */
   Endboss.prototype.isInIntroPhase = function () {
@@ -67,7 +79,9 @@
   };
 
   /**
-   * AI-Logik im aktiven Kampfzustand.
+   * AI logic while actively fighting the player.
+   *
+   * @this {Endboss}
    * @returns {void}
    */
   Endboss.prototype.updateActiveAi = function () {
@@ -85,13 +99,16 @@
 
     if (dx <= attackRange) {
       this.handleInRangeAttack();
-    } else {
-      this.handleOutOfRangeMovement();
+      return;
     }
+
+    this.handleOutOfRangeMovement();
   };
 
   /**
-   * Verhalten, wenn Spieler in Angriffsreichweite ist.
+   * Behavior when the player is in attack range.
+   *
+   * @this {Endboss}
    * @returns {void}
    */
   Endboss.prototype.handleInRangeAttack = function () {
@@ -100,7 +117,9 @@
   };
 
   /**
-   * Verhalten, wenn Spieler außerhalb der Reichweite ist.
+   * Behavior when the player is out of range.
+   *
+   * @this {Endboss}
    * @returns {void}
    */
   Endboss.prototype.handleOutOfRangeMovement = function () {

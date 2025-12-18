@@ -1,69 +1,46 @@
 /**
- * Repräsentiert ein Spiellevel mit Gegnern, Hintergrund
- * und sammelbaren Objekten.
+ * Represents a game level containing enemies, background layers,
+ * and collectible objects.
  */
 class Level {
-    /**
-     * Alle Gegner im Level (Orcs + Endboss).
-     * @type {MovableObject[]}
-     */
-    enemies;
+  /** @type {MovableObject[]} */
+  enemies;
 
-    /**
-     * Glühwürmchen-Hintergrundebenen.
-     * @type {Firefly[]}
-     */
-    fireflys;
+  /** @type {Firefly[]} */
+  fireflys;
 
-    /**
-     * Hintergrund-Objekte/Layer.
-     * @type {BackgroundObject[]}
-     */
-    backgroundObjects;
+  /** @type {BackgroundObject[]} */
+  backgroundObjects;
 
-    /**
-     * Ninja-Münzen im Level.
-     * @type {Coin[]}
-     */
-    coins;
+  /** @type {Coin[]} */
+  coins;
 
-    /**
-     * Kunai-Münzen im Level.
-     * @type {KunaiCoin[]}
-     */
-    kunais;
+  /** @type {KunaiCoin[]} */
+  kunais;
 
-    /**
-     * X-Position, ab der das Level endet.
-     * @type {number}
-     */
-    level_end_x = 3600;
+  /** @type {number} */
+  level_end_x = 3600;
 
-    /**
-     * Flag, ob der Endboss bereits gespawnt wurde.
-     * @type {boolean}
-     */
-    endbossLoaded = false;
+  /** @type {boolean} */
+  endbossLoaded = false;
 
-    /**
-     * Referenz auf den Endboss (nach dem Laden).
-     * @type {Endboss|undefined}
-     */
-    endboss;
+  /** @type {Endboss|undefined} */
+  endboss;
 
-    /**
-     * Erstellt ein neues Level.
-     * @param {MovableObject[]} enemies
-     * @param {Firefly[]} fireflys
-     * @param {BackgroundObject[]} backgroundObjects
-     * @param {Coin[]} [coins=[]]
-     * @param {KunaiCoin[]} [kunais=[]]
-     */
-    constructor(enemies, fireflys, backgroundObjects, coins, kunais) {
-        this.enemies = enemies;
-        this.fireflys = fireflys;
-        this.backgroundObjects = backgroundObjects;
-        this.coins = coins || [];
-        this.kunais = kunais || [];
-    }
+  /**
+   * Creates a new level instance.
+   *
+   * @param {MovableObject[]} enemies - All enemies in the level
+   * @param {Firefly[]} fireflys - Background firefly layers
+   * @param {BackgroundObject[]} backgroundObjects - Static background layers
+   * @param {Coin[]} [coins=[]] - Collectible coins
+   * @param {KunaiCoin[]} [kunais=[]] - Collectible kunai coins
+   */
+  constructor(enemies, fireflys, backgroundObjects, coins, kunais) {
+    this.enemies = enemies;
+    this.fireflys = fireflys;
+    this.backgroundObjects = backgroundObjects;
+    this.coins = coins || [];
+    this.kunais = kunais || [];
+  }
 }

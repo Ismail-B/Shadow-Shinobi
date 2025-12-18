@@ -1,6 +1,10 @@
+/**
+ * Adds input handling and world initialization helpers to the World prototype.
+ */
 (function () {
   /**
-   * Registers handler for when the boss intro sound ends.
+   * Registers a handler to end the boss intro when the intro sound finishes.
+   * @returns {void}
    */
   World.prototype.registerBossIntroEndHandler = function () {
     this.bossIntroSound.addEventListener('ended', () => {
@@ -9,7 +13,10 @@
   };
 
   /**
-   * Registers keyboard actions (kunai throw, melee attack).
+   * Registers keyboard listeners for player actions.
+   * Handles kunai throws and melee attacks.
+   *
+   * @returns {void}
    */
   World.prototype.registerKeyListeners = function () {
     window.addEventListener('keydown', (event) => {
@@ -18,6 +25,7 @@
       if (event.code === 'KeyV' && !event.repeat) {
         this.tryThrowKunai();
       }
+
       if (event.code === 'KeyB' && !event.repeat) {
         this.character.tryStartAttack();
       }
@@ -25,7 +33,8 @@
   };
 
   /**
-   * Initializes sounds and world references for character and enemies.
+   * Initializes world references and starts background audio.
+   * @returns {void}
    */
   World.prototype.setWorld = function () {
     this.playBackgroundAudio();
@@ -34,7 +43,8 @@
   };
 
   /**
-   * Sets world reference on all enemies.
+   * Assigns the world reference to all enemies in the current level.
+   * @returns {void}
    */
   World.prototype.setWorldOnEnemies = function () {
     const enemies = this.level && this.level.enemies;

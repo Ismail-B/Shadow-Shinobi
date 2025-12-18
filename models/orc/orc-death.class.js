@@ -1,10 +1,16 @@
 /**
  * Orc death sequence and death animation.
- * Requires Orc class to be defined.
+ * This file patches methods onto Orc.prototype and must be loaded after
+ * the Orc class definition.
+ *
+ * @global
  */
 (function () {
   /**
    * Triggers the death sequence once.
+   *
+   * @this {Orc}
+   * @returns {void}
    */
   Orc.prototype.die = function () {
     if (this.isDying) return;
@@ -19,7 +25,10 @@
   };
 
   /**
-   * Stops movement and animation intervals.
+   * Stops movement and animation intervals for this orc.
+   *
+   * @this {Orc}
+   * @returns {void}
    */
   Orc.prototype.stopOrcIntervals = function () {
     clearInterval(this.moveLeftInterval);
@@ -27,24 +36,31 @@
   };
 
   /**
-   * Scales the sprite and sets the first death frame.
+   * Adjusts sprite size/position and sets the first death frame.
+   *
+   * @this {Orc}
+   * @returns {void}
    */
   Orc.prototype.prepareDeathSprite = function () {
-    const ow = this.width;
-    const oh = this.height;
+    const oldWidth = this.width;
+    const oldHeight = this.height;
 
-    this.width = ow * 1.4;
-    this.height = oh * 0.8;
-    this.y += oh * 0.2;
+    this.width = oldWidth * 1.4;
+    this.height = oldHeight * 0.8;
+    this.y += oldHeight * 0.2;
 
     this._deadIndex = 0;
-    if (this.DEAD_IMAGES.length) {
+
+    if (this.DEAD_IMAGES.length > 0) {
       this.img = this.imageCache[this.DEAD_IMAGES[0]];
     }
   };
 
   /**
    * Starts the death frame animation timer.
+   *
+   * @this {Orc}
+   * @returns {void}
    */
   Orc.prototype.startDeathAnimation = function () {
     this._deadTimer = setInterval(() => {
@@ -53,7 +69,10 @@
   };
 
   /**
-   * Advances one death frame.
+   * Advances the death animation by one frame and disables collision on completion.
+   *
+   * @this {Orc}
+   * @returns {void}
    */
   Orc.prototype.updateDeathFrame = function () {
     const lastIndex = this.DEAD_IMAGES.length - 1;
@@ -65,6 +84,7 @@
       if (this._deadIndex === lastIndex) {
         this.collidable = false;
       }
+
       return;
     }
 

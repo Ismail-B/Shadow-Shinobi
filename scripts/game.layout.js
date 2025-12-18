@@ -1,20 +1,19 @@
 /**
- * =====================================================
- * Game Layout / Responsive / Overlays / Fullscreen
- * =====================================================
- * Handles UI layout changes for game mode, overlays,
- * fullscreen, orientation and screen-size constraints.
+ * Layout and overlay helpers for responsive gameplay UI.
+ * Manages game mode styles, overlays, fullscreen, and orientation constraints.
  */
 
 /**
- * Activates layout for a running game (hides header/footer via CSS).
+ * Enables game layout mode (e.g., hides header/footer via CSS).
+ * @returns {void}
  */
 function enterGameMode() {
   document.body.classList.add('game-running');
 }
 
 /**
- * Deactivates layout for a running game and leaves fullscreen if needed.
+ * Disables game layout mode and exits fullscreen if active.
+ * @returns {void}
  */
 function exitGameMode() {
   document.body.classList.remove('game-running');
@@ -23,9 +22,7 @@ function exitGameMode() {
     if (isFullscreenActive()) {
       exitFullscreen();
     }
-  } catch (e) {
-    // intentionally ignored
-  }
+  } catch (e) {}
 
   window.scrollTo(0, 0);
 }
@@ -38,47 +35,41 @@ function showCanvasAndHideStartOverlay() {
   const startOverlay = document.getElementById('startoverlay');
   const canvasEl = document.getElementById('canvas');
 
-  if (startOverlay) {
-    startOverlay.style.display = 'none';
-  }
-  if (canvasEl) {
-    canvasEl.style.display = 'block';
-  }
+  if (startOverlay) startOverlay.style.display = 'none';
+  if (canvasEl) canvasEl.style.display = 'block';
 
   return canvasEl;
 }
 
 /**
  * Hides the canvas and shows the main menu overlay.
+ * @returns {void}
  */
 function hideCanvasAndShowMenu() {
   const canvasEl = document.getElementById('canvas');
   const startOverlay = document.getElementById('startoverlay');
 
-  if (canvasEl) {
-    canvasEl.style.display = 'none';
-  }
-  if (startOverlay) {
-    startOverlay.style.display = 'flex';
-  }
+  if (canvasEl) canvasEl.style.display = 'none';
+  if (startOverlay) startOverlay.style.display = 'flex';
 }
 
 /**
- * Toggles overlays (controls/story/impressum) against the start overlay.
- * @param {string} canvasId
+ * Toggles a secondary overlay (controls/story/imprint) against the start overlay.
+ * @param {string} canvasId - Element id of the overlay to toggle
+ * @returns {void}
  */
 function toggle(canvasId) {
   const canvasEl = document.getElementById(canvasId);
   const startOverlay = document.getElementById('startoverlay');
 
-  const isHidden =
-    canvasEl.style.display === 'none' || canvasEl.style.display === '';
+  const isHidden = canvasEl.style.display === 'none' || canvasEl.style.display === '';
   canvasEl.style.display = isHidden ? 'flex' : 'none';
   startOverlay.style.display = isHidden ? 'none' : 'flex';
 }
 
 /**
- * Shows the fullscreen button only on non-mobile setups.
+ * Updates fullscreen button visibility based on device type.
+ * @returns {void}
  */
 function updateFullscreenButtonVisibility() {
   const fsBtn = document.querySelector('.fullscreen-button');
@@ -92,7 +83,7 @@ function updateFullscreenButtonVisibility() {
 }
 
 /**
- * Checks if fullscreen is currently active.
+ * Returns whether fullscreen is currently active.
  * @returns {boolean}
  */
 function isFullscreenActive() {
@@ -104,7 +95,8 @@ function isFullscreenActive() {
 }
 
 /**
- * Toggles fullscreen for the whole document.
+ * Toggles fullscreen for the document.
+ * @returns {void}
  */
 function fullscreen() {
   if (isFullscreenActive()) {
@@ -115,8 +107,9 @@ function fullscreen() {
 }
 
 /**
- * Enters fullscreen mode for a specific element.
- * @param {HTMLElement} element
+ * Requests fullscreen for a given element.
+ * @param {HTMLElement} element - Element to display in fullscreen
+ * @returns {void}
  */
 function enterFullscreen(element) {
   if (element.requestFullscreen) {
@@ -129,7 +122,8 @@ function enterFullscreen(element) {
 }
 
 /**
- * Exits fullscreen mode if active.
+ * Exits fullscreen mode if supported.
+ * @returns {void}
  */
 function exitFullscreen() {
   if (document.exitFullscreen) {
@@ -142,20 +136,19 @@ function exitFullscreen() {
 }
 
 /**
- * Tries to enter fullscreen without throwing errors.
+ * Attempts to enter fullscreen and suppresses errors.
+ * @returns {void}
  */
 function enterFullscreenSafe() {
   try {
     if (!isFullscreenActive()) {
       enterFullscreen(document.documentElement);
     }
-  } catch (e) {
-    // intentionally ignored
-  }
+  } catch (e) {}
 }
 
 /**
- * Checks if the current orientation is landscape.
+ * Returns whether the current orientation is landscape.
  * @returns {boolean}
  */
 function isLandscapeOrientation() {
@@ -169,15 +162,14 @@ function isLandscapeOrientation() {
 }
 
 /**
- * Controls rotate overlay and touch controls based on orientation.
+ * Updates rotate overlay and touch controls based on orientation and device type.
+ * @returns {void}
  */
 function handleOrientation() {
   const rotateOverlay = document.getElementById('rotate-overlay');
   const touchControls = document.getElementById('touch-controls');
 
-  if (!rotateOverlay && !touchControls) {
-    return;
-  }
+  if (!rotateOverlay && !touchControls) return;
 
   if (!(typeof isMobileLike === 'function' && isMobileLike())) {
     if (rotateOverlay) rotateOverlay.style.display = 'none';
@@ -200,8 +192,8 @@ function handleOrientation() {
 }
 
 /**
- * Controls the "screen too small" overlay for
- * non-touch devices with width <= 800px.
+ * Controls the "screen too small" overlay for non-touch devices.
+ * @returns {void}
  */
 function handleScreenTooSmallOverlay() {
   const overlay = document.getElementById('screen-too-small-overlay');
@@ -210,15 +202,12 @@ function handleScreenTooSmallOverlay() {
   const hasTouch = typeof isTouchDevice === 'function' ? isTouchDevice() : false;
   const tooSmall = window.innerWidth <= 800;
 
-  if (!hasTouch && tooSmall) {
-    overlay.style.display = 'flex';
-  } else {
-    overlay.style.display = 'none';
-  }
+  overlay.style.display = !hasTouch && tooSmall ? 'flex' : 'none';
 }
 
 /**
- * Updates orientation-related UI and responsive controls.
+ * Refreshes responsive UI state (orientation, overlays, fullscreen button).
+ * @returns {void}
  */
 function refreshResponsiveLayout() {
   handleOrientation();
@@ -227,7 +216,8 @@ function refreshResponsiveLayout() {
 }
 
 /**
- * Handles layout changes (resize/orientation) in one place.
+ * Unified handler for resize and orientation changes.
+ * @returns {void}
  */
 function handleLayoutChange() {
   handleOrientation();

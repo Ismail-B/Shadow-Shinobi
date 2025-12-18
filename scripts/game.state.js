@@ -1,36 +1,29 @@
 /**
- * =====================================================
- * Game State & Infrastructure
- * =====================================================
- * Holds global game state, interval tracking and
- * low-level helpers shared across all game modules.
+ * Global game state and infrastructure helpers.
+ * Stores shared references, tracks intervals, and provides low-level reset utilities.
  */
 
-// -----------------------------------------------------
-// Global game references
-// -----------------------------------------------------
-
+/** @type {HTMLCanvasElement|undefined} */
 let canvas;
+
+/** @type {World|null|undefined} */
 let world;
+
+/** @type {Keyboard} */
 let keyboard = new Keyboard();
 
-// -----------------------------------------------------
-// Interval tracking
-// -----------------------------------------------------
-
+/** @type {number[]} */
 let intervalIds = [];
 
-/**
- * Original setInterval reference.
- * @type {typeof window.setInterval}
- */
+/** @type {typeof window.setInterval} */
 const _originalSetInterval = window.setInterval;
 
 /**
- * Wrapped setInterval that tracks all created intervals.
- * @param {Function} fn
- * @param {number} delay
- * @returns {number}
+ * Wraps setInterval to track all created interval ids.
+ *
+ * @param {Function} fn - Callback to execute
+ * @param {number} delay - Interval delay in milliseconds
+ * @returns {number} Interval id
  */
 window.setInterval = function (fn, delay) {
   const id = _originalSetInterval(fn, delay);
@@ -39,19 +32,17 @@ window.setInterval = function (fn, delay) {
 };
 
 /**
- * Clears all tracked intervals.
+ * Clears all tracked intervals created via the wrapped setInterval.
+ * @returns {void}
  */
 function clearAllIntervals() {
   intervalIds.forEach((id) => clearInterval(id));
   intervalIds = [];
 }
 
-// -----------------------------------------------------
-// Audio state helpers
-// -----------------------------------------------------
-
 /**
- * Resets static Orc audio state if available.
+ * Resets static orc audio state if available.
+ * @returns {void}
  */
 function resetOrcAudioState() {
   if (typeof Orc !== 'undefined' && typeof Orc.resetAudioState === 'function') {

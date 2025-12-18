@@ -1,104 +1,129 @@
 /**
  * Orc audio helpers and sound playback.
- * Requires Orc class to be defined.
+ * This file patches helpers onto Orc and Orc.prototype and must be loaded after
+ * the Orc class definition.
+ *
+ * @global
  */
 (function () {
   /**
-   * Plays an Audio element without unhandled promise rejections.
-   * @param {HTMLAudioElement} audio
+   * Returns true if the given value looks like an HTMLAudioElement.
+   *
+   * @param {*} audio - Candidate object.
+   * @returns {audio is HTMLAudioElement}
+   */
+  function isAudioElement(audio) {
+    return (
+      !!audio &&
+      typeof audio.play === 'function' &&
+      typeof audio.pause === 'function' &&
+      'currentTime' in audio &&
+      'volume' in audio
+    );
+  }
+
+  /**
+   * Plays an audio element and safely ignores autoplay / playback rejections.
+   *
+   * @param {HTMLAudioElement} audio - Audio element to play.
+   * @returns {void}
    */
   Orc.playAudioSafe = function (audio) {
-    if (!audio || !(audio instanceof Audio)) return;
+    if (!isAudioElement(audio)) return;
 
     try {
-      const p = audio.play();
-      if (p && typeof p.catch === 'function') {
-        p.catch(() => {
-          // intentionally ignored
-        });
+      const promise = audio.play();
+      if (promise && typeof promise.catch === 'function') {
+        promise.catch(() => {});
       }
-    } catch (e) {
-      // intentionally ignored
-    }
+    } catch (_) {}
   };
 
   /**
-   * Resets an Audio element (currentTime=0) if possible.
-   * @param {HTMLAudioElement} audio
+   * Resets an audio element to the start position.
+   *
+   * @param {HTMLAudioElement} audio - Audio element to reset.
+   * @returns {void}
    */
   Orc.resetAudioSafe = function (audio) {
-    if (!audio || !(audio instanceof Audio)) return;
+    if (!isAudioElement(audio)) return;
+
     try {
       audio.currentTime = 0;
-    } catch (e) {
-      // intentionally ignored
-    }
+    } catch (_) {}
   };
 
   /**
-   * Sets volume if possible.
-   * @param {HTMLAudioElement} audio
-   * @param {number} volume
+   * Sets the volume of an audio element.
+   *
+   * @param {HTMLAudioElement} audio - Audio element to update.
+   * @param {number} volume - Volume in range [0..1].
+   * @returns {void}
    */
   Orc.setVolumeSafe = function (audio, volume) {
-    if (!audio || !(audio instanceof Audio)) return;
+    if (!isAudioElement(audio)) return;
+
     try {
       audio.volume = volume;
-    } catch (e) {
-      // intentionally ignored
-    }
+    } catch (_) {}
   };
 
   /**
-   * Sets playback rate if possible.
-   * @param {HTMLAudioElement} audio
-   * @param {number} rate
+   * Sets the playback rate of an audio element.
+   *
+   * @param {HTMLAudioElement} audio - Audio element to update.
+   * @param {number} rate - Playback rate multiplier.
+   * @returns {void}
    */
   Orc.setPlaybackRateSafe = function (audio, rate) {
-    if (!audio || !(audio instanceof Audio)) return;
+    if (!isAudioElement(audio)) return;
+
     try {
       audio.playbackRate = rate;
-    } catch (e) {
-      // intentionally ignored
-    }
+    } catch (_) {}
   };
 
   /**
-   * Pauses audio if possible.
-   * @param {HTMLAudioElement} audio
+   * Pauses an audio element.
+   *
+   * @param {HTMLAudioElement} audio - Audio element to pause.
+   * @returns {void}
    */
   Orc.pauseAudioSafe = function (audio) {
-    if (!audio || !(audio instanceof Audio)) return;
+    if (!isAudioElement(audio)) return;
+
     try {
       audio.pause();
-    } catch (e) {
-      // intentionally ignored
-    }
+    } catch (_) {}
   };
 
   /**
-   * Returns whether the game audio is currently muted (best effort).
+   * Returns whether game audio is currently muted.
+   * This checks the global `world` reference if present.
+   *
    * @returns {boolean}
    */
   Orc.isGameMuted = function () {
     if (typeof world === 'undefined' || !world) return false;
 
     if (typeof world.isMuted === 'boolean') return world.isMuted;
-    if (world.music instanceof Audio) return !!world.music.muted;
+    if (world.music && typeof world.music.muted === 'boolean') return !!world.music.muted;
 
     return false;
   };
 
   /**
-   * Plays the orc death sound (respects mute).
+   * Plays the orc death sound (respects mute state).
+   *
+   * @this {Orc}
    * @returns {void}
    */
   Orc.prototype.playDeathSound = function () {
     if (Orc.isGameMuted()) return;
 
-    const s = new Audio('audio/orc-dying.mp3');
-    Orc.setVolumeSafe(s, 0.35);
-    Orc.resetAudioSafe(s);
-    Orc.playAudioSafe(s);
+    const sound = new Audio('audio/orc-dying.mp3');
+    Orc.setVolumeSafe(sound, 0.35);
+    Orc.resetAudioSafe(sound);
+    Orc.playAudioSafe(sound);
   };
 })();

@@ -1,22 +1,16 @@
 /**
- * =====================================================
- * Game Audio & Mute Management
- * =====================================================
- * Handles global mute state (UI + storage) and applies
- * muting to all relevant game audio instances.
+ * Global mute state management.
+ * Persists mute preference, updates UI, and applies muting to all relevant audio instances.
  */
 
-// -----------------------------------------------------
-// Mute state (persisted)
-// -----------------------------------------------------
-
-// mute state is persisted across sessions
+/** @type {boolean} */
 let isMutedGlobal = false;
 
+/** @type {string} */
 const MUTE_STORAGE_KEY = 'shadow_shinobi_muted';
 
 /**
- * Loads mute state from localStorage.
+ * Loads the persisted mute state from localStorage.
  * @returns {boolean}
  */
 function loadMuteFromStorage() {
@@ -28,24 +22,24 @@ function loadMuteFromStorage() {
 }
 
 /**
- * Saves mute state to localStorage.
- * @param {boolean} muted
+ * Persists the mute state to localStorage.
+ * @param {boolean} muted - Whether audio should be muted
+ * @returns {void}
  */
 function saveMuteToStorage(muted) {
   try {
     localStorage.setItem(MUTE_STORAGE_KEY, muted ? 'true' : 'false');
-  } catch (e) {
-    // intentionally ignored
-  }
+  } catch (e) {}
 }
 
 /**
- * Sets the sound button UI based on mute state.
- * @param {boolean} muted
+ * Updates the mute button UI to reflect the current mute state.
+ * @param {boolean} muted - Whether audio is muted
+ * @returns {void}
  */
 function applyMuteUi(muted) {
-  const soundBtn = document.getElementById('sound-btn'); // icon to enable sound
-  const muteBtn = document.getElementById('mute-btn'); // icon to mute sound
+  const soundBtn = document.getElementById('sound-btn');
+  const muteBtn = document.getElementById('mute-btn');
   if (!soundBtn || !muteBtn) return;
 
   soundBtn.style.display = muted ? 'block' : 'none';
@@ -53,9 +47,11 @@ function applyMuteUi(muted) {
 }
 
 /**
- * Central mute state setter: updates global flag, UI, storage, and world audio.
- * @param {boolean} muted
- * @param {{persist?: boolean}} options
+ * Sets the mute state and applies it to UI, persistence, and the current world.
+ *
+ * @param {boolean} muted - Whether audio should be muted
+ * @param {{persist?: boolean}} [options] - Optional behavior flags
+ * @returns {void}
  */
 function setMuteState(muted, options = {}) {
   const { persist = true } = options;
@@ -73,7 +69,8 @@ function setMuteState(muted, options = {}) {
 }
 
 /**
- * Initializes mute state (storage -> UI + global flag).
+ * Initializes mute state from storage and updates UI without re-persisting.
+ * @returns {void}
  */
 function initMuteState() {
   const muted = loadMuteFromStorage();
@@ -81,33 +78,26 @@ function initMuteState() {
 }
 
 /**
- * Applies the global mute state to the current world.
+ * Applies the current global mute state to the active world instance.
+ * @returns {void}
  */
 function applyMuteStateToWorld() {
   if (!world) return;
   setMuteOnAllAudios(isMutedGlobal);
 }
 
-// -----------------------------------------------------
-// Audio collection & muting
-// -----------------------------------------------------
-
 /**
- * Collects base audio references from the world and character.
+ * Collects core audio elements from the world and character.
  * @returns {HTMLAudioElement[]}
  */
 function collectBaseAudios() {
-  if (!world) {
-    return [];
-  }
+  if (!world) return [];
 
   const baseAudios = [
     world.music,
     world.background_sound,
     world.win_sound,
-
     ...(Array.isArray(world.coinCollectSounds) ? world.coinCollectSounds : []),
-
     world.character && world.character.walking_sound,
     world.character && world.character.kunai_throw_sound,
     world.character && world.character.hit_sound,
@@ -122,22 +112,17 @@ function collectBaseAudios() {
 }
 
 /**
- * Adds boss-related audios to the given list.
- * @param {HTMLAudioElement[]} list
+ * Adds end boss audio elements to the provided list, if available.
+ * @param {HTMLAudioElement[]} list - Target list to append to
+ * @returns {void}
  */
 function addBossAudios(list) {
-  if (!world || !world.endboss) {
-    return;
-  }
+  if (!world || !world.endboss) return;
 
   const boss = world.endboss;
 
-  if (boss.attack_sound) {
-    list.push(boss.attack_sound);
-  }
-  if (boss.dying_sound) {
-    list.push(boss.dying_sound);
-  }
+  if (boss.attack_sound) list.push(boss.attack_sound);
+  if (boss.dying_sound) list.push(boss.dying_sound);
 
   if (Array.isArray(boss.hurt_sounds)) {
     boss.hurt_sounds.forEach((sound) => {
@@ -149,13 +134,11 @@ function addBossAudios(list) {
 }
 
 /**
- * Builds a list of all relevant game audio elements.
+ * Collects all relevant game audio elements.
  * @returns {HTMLAudioElement[]}
  */
 function collectGameAudios() {
-  if (!world) {
-    return [];
-  }
+  if (!world) return [];
 
   const list = collectBaseAudios();
   addBossAudios(list);
@@ -163,8 +146,9 @@ function collectGameAudios() {
 }
 
 /**
- * Updates the muted state for all Orc sounds.
- * @param {boolean} muted
+ * Applies muting to all orc-related audio sources.
+ * @param {boolean} muted - Whether audio should be muted
+ * @returns {void}
  */
 function updateOrcAudioMuted(muted) {
   if (typeof Orc !== 'undefined' && Array.isArray(Orc.voiceClips)) {
@@ -185,13 +169,12 @@ function updateOrcAudioMuted(muted) {
 }
 
 /**
- * Applies the mute state to all game sounds.
- * @param {boolean} muted
+ * Applies mute state to all known game audio elements.
+ * @param {boolean} muted - Whether audio should be muted
+ * @returns {void}
  */
 function setMuteOnAllAudios(muted) {
-  if (!world) {
-    return;
-  }
+  if (!world) return;
 
   world.isMuted = muted;
 
@@ -205,6 +188,7 @@ function setMuteOnAllAudios(muted) {
 
 /**
  * Mutes all game audio.
+ * @returns {void}
  */
 function muteMusic() {
   setMuteState(true);
@@ -212,14 +196,11 @@ function muteMusic() {
 
 /**
  * Unmutes all game audio.
+ * @returns {void}
  */
 function turnOnMusic() {
   setMuteState(false);
 }
-
-// -----------------------------------------------------
-// Init hook (mute state needs to be set early)
-// -----------------------------------------------------
 
 document.addEventListener('DOMContentLoaded', () => {
   initMuteState();

@@ -1,11 +1,16 @@
 /**
- * Animation + drawing + attack animation for Endboss.
- * Requires Endboss class + audio methods.
+ * Endboss rendering and animation logic (idle/walk, hurt, death, attack).
+ * This file patches methods onto Endboss.prototype and must be loaded after
+ * the Endboss class and its audio helpers.
+ *
+ * @global
  */
 (function () {
   /**
-   * Zeichnet den Boss skaliert (Idle/Hurt/Dead/Attack).
-   * @param {CanvasRenderingContext2D} ctx - Canvas-Kontext.
+   * Draws the boss with state-dependent scaling (idle/hurt/dead/attack).
+   *
+   * @this {Endboss}
+   * @param {CanvasRenderingContext2D} ctx - Canvas rendering context.
    * @returns {void}
    */
   Endboss.prototype.draw = function (ctx) {
@@ -20,7 +25,9 @@
   };
 
   /**
-   * Liefert den aktuellen Skalierungsfaktor je nach State.
+   * Returns the current scale factor depending on the active state.
+   *
+   * @this {Endboss}
    * @returns {number}
    */
   Endboss.prototype.getCurrentScale = function () {
@@ -31,7 +38,9 @@
   };
 
   /**
-   * Startet Animations- und AI-Schleifen.
+   * Starts the main animation loop and the AI loop.
+   *
+   * @this {Endboss}
    * @returns {void}
    */
   Endboss.prototype.animate = function () {
@@ -40,17 +49,21 @@
   };
 
   /**
-   * Steuert die reinen Grafik-Animationen.
+   * Starts the sprite animation loop (visuals only).
+   *
+   * @this {Endboss}
    * @returns {void}
    */
   Endboss.prototype.startMainAnimationLoop = function () {
-    setInterval(() => {
+    this._animationIntervalId = setInterval(() => {
       this.updateAnimation();
     }, 100);
   };
 
   /**
-   * Aktualisiert die Animation je nach State.
+   * Updates the animation depending on current state.
+   *
+   * @this {Endboss}
    * @returns {void}
    */
   Endboss.prototype.updateAnimation = function () {
@@ -73,20 +86,25 @@
   };
 
   /**
-   * Spielt Alert- oder Walk-Animation ab.
+   * Plays either the walking or alert animation depending on movement state.
+   *
+   * @this {Endboss}
    * @returns {void}
    */
   Endboss.prototype.updateIdleOrWalkAnimation = function () {
     if (this.isMoving) {
       this.playAnimation(this.IMAGES_WALKING);
-    } else {
-      this.playAnimation(this.IMAGES_ALERT);
+      return;
     }
+
+    this.playAnimation(this.IMAGES_ALERT);
   };
 
   /**
-   * Startet einen Angriff, falls Cooldown abgelaufen ist.
-   * @returns {boolean} true, wenn Angriff gestartet wurde.
+   * Starts an attack if the cooldown has elapsed.
+   *
+   * @this {Endboss}
+   * @returns {boolean} True if the attack was started.
    */
   Endboss.prototype.startAttack = function () {
     const now = performance.now();
@@ -97,8 +115,10 @@
   };
 
   /**
-   * Setzt die Attack-States und spielt Sound.
-   * @param {number} now - aktuelle Zeit.
+   * Initializes attack state and plays the attack sound.
+   *
+   * @this {Endboss}
+   * @param {number} now - Current timestamp in ms.
    * @returns {void}
    */
   Endboss.prototype.beginAttack = function (now) {
@@ -114,7 +134,9 @@
   };
 
   /**
-   * Spielt einmal die Hurt-Animation ab.
+   * Plays the hurt animation sequence once.
+   *
+   * @this {Endboss}
    * @returns {void}
    */
   Endboss.prototype.playHurtOnce = function () {
@@ -129,7 +151,9 @@
   };
 
   /**
-   * Setzt Hurt-State zurück.
+   * Resets hurt state back to normal.
+   *
+   * @this {Endboss}
    * @returns {void}
    */
   Endboss.prototype.resetHurtState = function () {
@@ -139,7 +163,9 @@
   };
 
   /**
-   * Spielt einmal die Death-Animation ab.
+   * Plays the death animation sequence once and freezes on the last frame.
+   *
+   * @this {Endboss}
    * @returns {void}
    */
   Endboss.prototype.playDeathOnce = function () {
@@ -155,7 +181,9 @@
   };
 
   /**
-   * Spielt einmal die Attack-Animation ab.
+   * Plays the attack animation once and updates the attack hitbox.
+   *
+   * @this {Endboss}
    * @returns {void}
    */
   Endboss.prototype.playAttackOnce = function () {
@@ -171,7 +199,9 @@
   };
 
   /**
-   * Setzt Attack-Status zurück.
+   * Resets attack state after the animation ends.
+   *
+   * @this {Endboss}
    * @returns {void}
    */
   Endboss.prototype.resetAttackState = function () {
@@ -181,8 +211,10 @@
   };
 
   /**
-   * Aktualisiert Bild und Frameindex der Attack-Animation.
-   * @param {number} frame - aktueller Frameindex.
+   * Updates the current attack frame image and advances frame counters.
+   *
+   * @this {Endboss}
+   * @param {number} frame - Current frame index.
    * @returns {void}
    */
   Endboss.prototype.updateAttackFrame = function (frame) {
@@ -194,7 +226,9 @@
   };
 
   /**
-   * Positioniert die Angriff-Hitbox.
+   * Positions the attack hitbox relative to the boss.
+   *
+   * @this {Endboss}
    * @returns {void}
    */
   Endboss.prototype.updateAttackHitbox = function () {

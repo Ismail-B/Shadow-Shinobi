@@ -1,10 +1,15 @@
 /**
- * Movement + animation loop logic for Character.
- * Requires Character + combat + damage + audio methods to be loaded.
+ * Character movement and animation loop logic.
+ * This file patches methods onto Character.prototype and must be loaded after
+ * the Character class, combat, damage, and audio helpers.
+ *
+ * @global
  */
 (function () {
   /**
-   * Startet die Bewegungs- und Animations-Loops.
+   * Starts movement and animation loops.
+   *
+   * @this {Character}
    * @returns {void}
    */
   Character.prototype.animateCharacter = function () {
@@ -13,27 +18,33 @@
   };
 
   /**
-   * Startet den Bewegungs-Loop (Physik, Input, Kamera).
+   * Starts the movement loop (physics, input, camera).
+   *
+   * @this {Character}
    * @returns {void}
    */
   Character.prototype.startMovementLoop = function () {
-    setInterval(() => {
+    this._movementIntervalId = setInterval(() => {
       this.updateMovement();
     }, 1000 / 60);
   };
 
   /**
-   * Startet den Animations-Loop (Sprites, Angriffe).
+   * Starts the animation loop (sprites, attack updates).
+   *
+   * @this {Character}
    * @returns {void}
    */
   Character.prototype.startAnimationLoop = function () {
-    setInterval(() => {
+    this._animationIntervalId = setInterval(() => {
       this.updateAnimation();
     }, 100);
   };
 
   /**
-   * Aktualisiert Bewegung und Eingaben innerhalb des Movement-Loops.
+   * Updates movement and input handling within the movement loop.
+   *
+   * @this {Character}
    * @returns {void}
    */
   Character.prototype.updateMovement = function () {
@@ -43,18 +54,19 @@
     }
 
     const onGround = !this.isAboveGround();
-
     const moved = this.handleHorizontalMovement();
+
     this.handleJump(onGround);
 
     if (!moved && this.walking_sound) this.walking_sound.pause();
-
     if (this.world) this.world.camera_x = -this.x + 50;
   };
 
   /**
-   * Prüft, ob der Charakter wegen Boss-Intro oder GameEnd eingefroren ist.
-   * @returns {boolean} true, wenn Bewegung gesperrt.
+   * Returns whether movement is currently blocked (boss intro or game end).
+   *
+   * @this {Character}
+   * @returns {boolean} True if movement should be frozen.
    */
   Character.prototype.isMovementFrozen = function () {
     if (!this.world) return false;
@@ -63,8 +75,10 @@
   };
 
   /**
-   * Verarbeitet horizontale Eingaben (Links/Rechts).
-   * @returns {boolean} true, wenn Bewegung stattgefunden hat.
+   * Handles horizontal movement input (left/right).
+   *
+   * @this {Character}
+   * @returns {boolean} True if movement occurred.
    */
   Character.prototype.handleHorizontalMovement = function () {
     let moved = false;
@@ -85,8 +99,10 @@
   };
 
   /**
-   * Prüft, ob eine Rechtsbewegung erlaubt ist.
-   * Während Hurt soll Bewegung auch dann möglich sein, wenn isAttacking=true.
+   * Returns whether moving right is currently allowed.
+   * While hurt, movement remains allowed even if isAttacking is true.
+   *
+   * @this {Character}
    * @returns {boolean}
    */
   Character.prototype.canMoveRight = function () {
@@ -99,8 +115,10 @@
   };
 
   /**
-   * Prüft, ob eine Linksbewegung erlaubt ist.
-   * Während Hurt soll Bewegung auch dann möglich sein, wenn isAttacking=true.
+   * Returns whether moving left is currently allowed.
+   * While hurt, movement remains allowed even if isAttacking is true.
+   *
+   * @this {Character}
    * @returns {boolean}
    */
   Character.prototype.canMoveLeft = function () {
@@ -113,8 +131,10 @@
   };
 
   /**
-   * Verarbeitet Sprung-Eingaben.
-   * @param {boolean} onGround
+   * Handles jump input.
+   *
+   * @this {Character}
+   * @param {boolean} onGround - True if the character is on the ground.
    * @returns {void}
    */
   Character.prototype.handleJump = function (onGround) {
@@ -129,9 +149,11 @@
   };
 
   /**
-   * Prüft, ob ein Sprung gestartet werden kann.
-   * Während Hurt soll Jump auch dann möglich sein, wenn isAttacking=true.
-   * @param {boolean} onGround
+   * Returns whether a jump can be started.
+   * While hurt, jumping remains allowed even if isAttacking is true.
+   *
+   * @this {Character}
+   * @param {boolean} onGround - True if the character is on the ground.
    * @returns {boolean}
    */
   Character.prototype.canStartJump = function (onGround) {
@@ -145,47 +167,52 @@
   };
 
   /**
-   * Spielt den Sprung-Sound genau einmal pro Sprung.
+   * Plays the jump sound exactly once per jump press.
+   *
+   * @this {Character}
    * @returns {void}
    */
   Character.prototype.playJumpSoundOnce = function () {
     if (this._jumpSoundPlayed) return;
+
     this.playJumpSound();
     this._jumpSoundPlayed = true;
   };
 
   /**
-   * Aktualisiert Animation und Angriff innerhalb des Animation-Loops.
+   * Updates the active animation state and attack frames within the animation loop.
+   *
+   * @this {Character}
    * @returns {void}
    */
-Character.prototype.updateAnimation = function () {
-  if (this.isDead()) {
-    this.playDeathOnce();
-    return;
-  }
+  Character.prototype.updateAnimation = function () {
+    if (this.isDead()) {
+      this.playDeathOnce();
+      return;
+    }
 
-  // WICHTIG: Attack/Kunai soll auch während Hurt sofort laufen
-  if (this.isAttacking) {
-    this.updateAttack();
-    return;
-  }
+    if (this.isAttacking) {
+      this.updateAttack();
+      return;
+    }
 
-  if (this.isHurt()) {
-    this.playAnimation(this.IMAGES_HURT);
-    return;
-  }
+    if (this.isHurt()) {
+      this.playAnimation(this.IMAGES_HURT);
+      return;
+    }
 
-  if (this.isMovementFrozen()) {
-    this.playAnimation(this.IMAGES_IDLE);
-    return;
-  }
+    if (this.isMovementFrozen()) {
+      this.playAnimation(this.IMAGES_IDLE);
+      return;
+    }
 
-  this.handleMovementAnimation();
-};
-
+    this.handleMovementAnimation();
+  };
 
   /**
-   * Schaltet zwischen Idle-, Jump- und Walk-Animation um.
+   * Switches between idle, jump, and walk animations.
+   *
+   * @this {Character}
    * @returns {void}
    */
   Character.prototype.handleMovementAnimation = function () {

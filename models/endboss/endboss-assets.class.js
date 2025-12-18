@@ -1,6 +1,16 @@
 /**
- * Asset registry for Endboss sprite paths.
- * Must be loaded BEFORE endboss.class.js.
+ * Global sprite path registry for the Endboss.
+ * Load this file before any module/class that consumes these assets.
+ *
+ * @global
+ * @type {{
+ *   initial: string,
+ *   walking: string[],
+ *   alert: string[],
+ *   dead: string[],
+ *   hurt: string[],
+ *   attack: string[]
+ * }}
  */
 window.ENDBOSS_ASSETS = {
   initial: 'img/4_enemie_boss_orc/2_alert/Idle_000.png',
@@ -15,7 +25,7 @@ window.ENDBOSS_ASSETS = {
     'img/4_enemie_boss_orc/1_walk/Walk_006.png',
     'img/4_enemie_boss_orc/1_walk/Walk_007.png',
     'img/4_enemie_boss_orc/1_walk/Walk_008.png',
-    'img/4_enemie_boss_orc/1_walk/Walk_009.png'
+    'img/4_enemie_boss_orc/1_walk/Walk_009.png',
   ],
 
   alert: [
@@ -28,7 +38,7 @@ window.ENDBOSS_ASSETS = {
     'img/4_enemie_boss_orc/2_alert/Idle_006.png',
     'img/4_enemie_boss_orc/2_alert/Idle_007.png',
     'img/4_enemie_boss_orc/2_alert/Idle_008.png',
-    'img/4_enemie_boss_orc/2_alert/Idle_009.png'
+    'img/4_enemie_boss_orc/2_alert/Idle_009.png',
   ],
 
   dead: [
@@ -41,7 +51,7 @@ window.ENDBOSS_ASSETS = {
     'img/4_enemie_boss_orc/5_dead/Dead_006.png',
     'img/4_enemie_boss_orc/5_dead/Dead_007.png',
     'img/4_enemie_boss_orc/5_dead/Dead_008.png',
-    'img/4_enemie_boss_orc/5_dead/Dead_009.png'
+    'img/4_enemie_boss_orc/5_dead/Dead_009.png',
   ],
 
   hurt: [
@@ -54,7 +64,7 @@ window.ENDBOSS_ASSETS = {
     'img/4_enemie_boss_orc/4_hurt/Hurt_006.png',
     'img/4_enemie_boss_orc/4_hurt/Hurt_007.png',
     'img/4_enemie_boss_orc/4_hurt/Hurt_008.png',
-    'img/4_enemie_boss_orc/4_hurt/Hurt_009.png'
+    'img/4_enemie_boss_orc/4_hurt/Hurt_009.png',
   ],
 
   attack: [
@@ -67,6 +77,6 @@ window.ENDBOSS_ASSETS = {
     'img/4_enemie_boss_orc/3_attack/Attack_006.png',
     'img/4_enemie_boss_orc/3_attack/Attack_007.png',
     'img/4_enemie_boss_orc/3_attack/Attack_008.png',
-    'img/4_enemie_boss_orc/3_attack/Attack_009.png'
-  ]
+    'img/4_enemie_boss_orc/3_attack/Attack_009.png',
+  ],
 };

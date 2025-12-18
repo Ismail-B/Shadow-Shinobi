@@ -1,25 +1,37 @@
 /**
- * =====================================================
- * Game Touch Controls (Mobile + Joystick + Buttons)
- * =====================================================
- * Provides mobile detection, touch controls initialization
- * and joystick/button mappings to the global keyboard state.
+ * Touch controls for mobile devices (joystick + action buttons).
+ * Maps touch/pointer input to the shared Keyboard instance.
  */
 
+/** @type {number} */
 const MOBILE_MAX_SIDE = 1100;
 
+/** @type {boolean} */
 let touchControlsInitialized = false;
 
+/** @type {HTMLElement|null} */
 let joystickBase = null;
+
+/** @type {HTMLElement|null} */
 let joystickThumb = null;
+
+/** @type {boolean} */
 let joystickActive = false;
+
+/** @type {DOMRect|null} */
 let joystickRect = null;
+
+/** @type {number} */
 let joystickCenterX = 0;
+
+/** @type {number} */
 let joystickCenterY = 0;
+
+/** @type {boolean} */
 let joystickJumpTriggered = false;
 
 /**
- * Checks if the current device supports touch input.
+ * Returns whether the current device supports touch input.
  * @returns {boolean}
  */
 function isTouchDevice() {
@@ -31,7 +43,7 @@ function isTouchDevice() {
 }
 
 /**
- * Checks if the current device/window should be treated as "mobile".
+ * Returns whether the current setup should be treated as mobile-like.
  * @returns {boolean}
  */
 function isMobileLike() {
@@ -46,7 +58,7 @@ function isMobileLike() {
 
 /**
  * Returns the primary pointer position for touch/mouse/pointer events.
- * @param {TouchEvent|MouseEvent|PointerEvent} e
+ * @param {TouchEvent|MouseEvent|PointerEvent} e - Input event
  * @returns {Touch|MouseEvent|PointerEvent}
  */
 function getPointerPosition(e) {
@@ -57,8 +69,9 @@ function getPointerPosition(e) {
 
 /**
  * Computes joystick deltas and derived values.
- * @param {TouchEvent|MouseEvent|PointerEvent} e
- * @returns {{dx:number,dy:number,dist:number,angle:number,maxRadius:number,deadZone:number}}
+ *
+ * @param {TouchEvent|MouseEvent|PointerEvent} e - Input event
+ * @returns {{dx:number, dy:number, dist:number, angle:number, maxRadius:number, deadZone:number}}
  */
 function computeJoystickData(e) {
   const p = getPointerPosition(e);
@@ -73,24 +86,30 @@ function computeJoystickData(e) {
 
 /**
  * Updates joystick thumb position based on distance and angle.
- * @param {number} dist
- * @param {number} angle
- * @param {number} maxRadius
+ *
+ * @param {number} dist - Distance from joystick center
+ * @param {number} angle - Angle in radians
+ * @param {number} maxRadius - Maximum thumb radius
+ * @returns {void}
  */
 function updateJoystickThumb(dist, angle, maxRadius) {
   const clamped = Math.min(maxRadius, dist);
   const offsetX = Math.cos(angle) * clamped;
   const offsetY = Math.sin(angle) * clamped;
+
   const localX = joystickRect.width / 2 + offsetX;
   const localY = joystickRect.height / 2 + offsetY;
+
   joystickThumb.style.left = `${localX}px`;
   joystickThumb.style.top = `${localY}px`;
 }
 
 /**
  * Updates horizontal movement flags based on joystick offset.
- * @param {number} dx
- * @param {number} deadZone
+ *
+ * @param {number} dx - Horizontal delta from joystick center
+ * @param {number} deadZone - Dead zone threshold
+ * @returns {void}
  */
 function updateJoystickHorizontal(dx, deadZone) {
   if (dx < -deadZone) {
@@ -106,8 +125,10 @@ function updateJoystickHorizontal(dx, deadZone) {
 }
 
 /**
- * Handles jump action based on joystick vertical offset.
- * @param {number} dy
+ * Triggers a jump when joystick input crosses the jump threshold.
+ *
+ * @param {number} dy - Vertical delta from joystick center
+ * @returns {void}
  */
 function handleJoystickJump(dy) {
   const jumpThreshold = -20;
@@ -115,6 +136,7 @@ function handleJoystickJump(dy) {
   if (dy < jumpThreshold && !joystickJumpTriggered) {
     joystickJumpTriggered = true;
     keyboard.SPACE = true;
+
     setTimeout(() => {
       keyboard.SPACE = false;
     }, 80);
@@ -125,12 +147,11 @@ function handleJoystickJump(dy) {
 
 /**
  * Processes joystick movement input.
- * @param {TouchEvent|MouseEvent|PointerEvent} e
+ * @param {TouchEvent|MouseEvent|PointerEvent} e - Input event
+ * @returns {void}
  */
 function processJoystickMove(e) {
-  if (!joystickRect) {
-    return;
-  }
+  if (!joystickRect) return;
 
   const { dx, dy, dist, angle, maxRadius, deadZone } = computeJoystickData(e);
   updateJoystickThumb(dist, angle, maxRadius);
@@ -140,12 +161,11 @@ function processJoystickMove(e) {
 
 /**
  * Starts a joystick interaction.
- * @param {Event} e
+ * @param {Event} e - Input event
+ * @returns {void}
  */
 function onJoystickStart(e) {
-  if (!joystickBase || !joystickThumb) {
-    return;
-  }
+  if (!joystickBase || !joystickThumb) return;
 
   joystickActive = true;
   joystickRect = joystickBase.getBoundingClientRect();
@@ -157,20 +177,21 @@ function onJoystickStart(e) {
 }
 
 /**
- * Moves the joystick while active.
- * @param {Event} e
+ * Updates the joystick while active.
+ * @param {Event} e - Input event
+ * @returns {void}
  */
 function onJoystickMove(e) {
-  if (!joystickActive) {
-    return;
-  }
+  if (!joystickActive) return;
+
   if (e.cancelable) e.preventDefault();
   processJoystickMove(e);
 }
 
 /**
- * Ends a joystick interaction and resets state.
- * @param {Event} e
+ * Ends a joystick interaction and resets movement state.
+ * @param {Event} e - Input event
+ * @returns {void}
  */
 function onJoystickEnd(e) {
   joystickActive = false;
@@ -187,31 +208,34 @@ function onJoystickEnd(e) {
 }
 
 /**
- * Adds pointer/mouse press listeners to a button.
- * @param {HTMLElement} button
- * @param {(e: Event) => void} onStart
- * @param {(e: Event) => void} onEnd
+ * Registers press/release listeners for a button element.
+ *
+ * @param {HTMLElement} button - Button element
+ * @param {(e: Event) => void} onStart - Press handler
+ * @param {(e: Event) => void} onEnd - Release handler
+ * @returns {void}
  */
 function addButtonPressListeners(button, onStart, onEnd) {
-  ['touchstart', 'pointerdown', 'mousedown'].forEach((evt) =>
-    button.addEventListener(evt, onStart)
-  );
+  ['touchstart', 'pointerdown', 'mousedown'].forEach((evt) => {
+    button.addEventListener(evt, onStart);
+  });
+
   ['touchend', 'touchcancel', 'pointerup', 'pointercancel', 'mouseup', 'mouseleave'].forEach(
     (evt) => button.addEventListener(evt, onEnd)
   );
 }
 
 /**
- * Wires the attack button to keyboard and character logic.
+ * Registers the attack button and maps it to keyboard/character logic.
+ * @returns {void}
  */
 function setupAttackButton() {
   const attackBtn = document.getElementById('btn-attack');
-  if (!attackBtn) {
-    return;
-  }
+  if (!attackBtn) return;
 
   const startAttack = (e) => {
     if (e && e.cancelable) e.preventDefault();
+
     keyboard.ATTACK = true;
 
     if (
@@ -232,16 +256,16 @@ function setupAttackButton() {
 }
 
 /**
- * Wires the throw button to keyboard and character logic.
+ * Registers the throw button and maps it to keyboard/character logic.
+ * @returns {void}
  */
 function setupThrowButton() {
   const throwBtn = document.getElementById('btn-throw');
-  if (!throwBtn) {
-    return;
-  }
+  if (!throwBtn) return;
 
   const startThrow = (e) => {
     if (e && e.cancelable) e.preventDefault();
+
     keyboard.D = true;
 
     if (
@@ -262,34 +286,34 @@ function setupThrowButton() {
 }
 
 /**
- * Initializes joystick DOM elements and their events.
+ * Initializes joystick DOM references and registers joystick event handlers.
+ * @returns {void}
  */
 function setupJoystick() {
   joystickBase = document.getElementById('joystick-base');
   joystickThumb = document.getElementById('joystick-thumb');
 
-  if (!joystickBase || !joystickThumb) {
-    return;
-  }
+  if (!joystickBase || !joystickThumb) return;
 
-  ['touchstart', 'pointerdown', 'mousedown'].forEach((evt) =>
-    joystickBase.addEventListener(evt, onJoystickStart)
-  );
-  ['touchmove', 'pointermove', 'mousemove'].forEach((evt) =>
-    joystickBase.addEventListener(evt, onJoystickMove)
-  );
+  ['touchstart', 'pointerdown', 'mousedown'].forEach((evt) => {
+    joystickBase.addEventListener(evt, onJoystickStart);
+  });
+
+  ['touchmove', 'pointermove', 'mousemove'].forEach((evt) => {
+    joystickBase.addEventListener(evt, onJoystickMove);
+  });
+
   ['touchend', 'touchcancel', 'pointerup', 'pointercancel', 'mouseup', 'mouseleave'].forEach(
     (evt) => joystickBase.addEventListener(evt, onJoystickEnd)
   );
 }
 
 /**
- * Initializes touch controls on mobile devices (once).
+ * Initializes touch controls once on mobile-like devices.
+ * @returns {void}
  */
 function setupTouchControls() {
-  if (!isMobileLike() || touchControlsInitialized) {
-    return;
-  }
+  if (!isMobileLike() || touchControlsInitialized) return;
 
   setupAttackButton();
   setupThrowButton();

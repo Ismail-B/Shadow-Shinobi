@@ -1,12 +1,20 @@
+/**
+ * Adds collision, projectile, collectible, and end boss spawn logic to the World prototype.
+ */
 (function () {
   /**
-   * Checks collisions between character, enemies and kunai projectiles.
+   * Checks collisions between the character, enemies, and kunai projectiles.
+   * @returns {void}
    */
   World.prototype.checkCollisions = function () {
     this.checkCharacterEnemyCollisions();
     this.checkKunaiEnemyCollisions();
   };
 
+  /**
+   * Checks collisions between the character and enemies and applies damage if applicable.
+   * @returns {void}
+   */
   World.prototype.checkCharacterEnemyCollisions = function () {
     const enemies = this.level && this.level.enemies;
     if (!enemies) return;
@@ -26,22 +34,39 @@
     });
   };
 
+  /**
+   * Handles character collision with the end boss.
+   * @param {Object} enemy - End boss instance
+   * @returns {void}
+   */
   World.prototype.handleEndbossCollision = function (enemy) {
     if (this.character.isHurt()) return;
     if (!enemy.canDamagePlayer()) return;
     this.applyCharacterHit();
   };
 
+  /**
+   * Handles character collision with a regular enemy.
+   * @returns {void}
+   */
   World.prototype.handleRegularEnemyCollision = function () {
     if (this.character.isHurt()) return;
     this.applyCharacterHit();
   };
 
+  /**
+   * Applies damage to the character and refreshes the life status bar.
+   * @returns {void}
+   */
   World.prototype.applyCharacterHit = function () {
     this.character.hit();
     this.statusBarLife.setPercentage(this.character.energy);
   };
 
+  /**
+   * Checks collisions between active kunai projectiles and enemies.
+   * @returns {void}
+   */
   World.prototype.checkKunaiEnemyCollisions = function () {
     for (let i = this.throwableObjects.length - 1; i >= 0; i--) {
       const kunai = this.throwableObjects[i];
@@ -50,6 +75,14 @@
     }
   };
 
+  /**
+   * Resolves kunai collisions against enemies and applies hit effects.
+   * Removes the kunai on the first successful hit.
+   *
+   * @param {Object} kunai - Kunai projectile
+   * @param {number} kunaiIndex - Index of the kunai in throwableObjects
+   * @returns {void}
+   */
   World.prototype.handleKunaiHitsEnemies = function (kunai, kunaiIndex) {
     const enemies = this.level && this.level.enemies;
     if (!enemies) return;
@@ -66,6 +99,11 @@
     }
   };
 
+  /**
+   * Applies a kunai hit to an enemy (end boss takes damage, regular enemies die).
+   * @param {Object} enemy - Enemy instance
+   * @returns {void}
+   */
   World.prototype.applyKunaiHitOnEnemy = function (enemy) {
     if (enemy.isEndboss && typeof enemy.hit === 'function') {
       enemy.hit(15);
@@ -79,7 +117,8 @@
   };
 
   /**
-   * Tries to throw a kunai if all conditions are met.
+   * Attempts to start a kunai throw if all conditions are met.
+   * @returns {void}
    */
   World.prototype.tryThrowKunai = function () {
     const now = performance.now();
@@ -95,7 +134,10 @@
   };
 
   /**
-   * Called by the character when the kunai actually gets thrown.
+   * Spawns a kunai projectile and updates ammo/cooldown state.
+   * Intended to be called when the character releases the throw.
+   *
+   * @returns {void}
    */
   World.prototype.onCharacterKunaiRelease = function () {
     if (this.kunaiAmmo <= 0) return;
@@ -106,6 +148,10 @@
     this.nextThrowAt = performance.now() + this.throwCooldownMs;
   };
 
+  /**
+   * Creates and registers a new kunai projectile.
+   * @returns {void}
+   */
   World.prototype.throwKunai = function () {
     const kunaiY = this.character.y + 60;
     const throwLeft = !!this.character.otherDirection;
@@ -114,6 +160,10 @@
     this.throwableObjects.push(kunai);
   };
 
+  /**
+   * Updates the kunai status bar based on current ammo.
+   * @returns {void}
+   */
   World.prototype.updateKunaiBarFromAmmo = function () {
     const segments = Math.ceil(this.kunaiAmmo / this.kunaiPerSegment);
     const clamped = Math.min(this.maxKunaiSegments, Math.max(0, segments));
@@ -122,16 +172,22 @@
   };
 
   /**
-   * Checks collectible pickups (coins + kunai collectibles).
+   * Checks character collisions with collectibles (coins and kunai pickups).
+   * @returns {void}
    */
   World.prototype.checkCollectibles = function () {
     this.collectCoins();
     this.collectKunaiCoins();
   };
 
+  /**
+   * Collects standard coins, updates counters and the coin status bar.
+   * @returns {void}
+   */
   World.prototype.collectCoins = function () {
     for (let i = this.level.coins.length - 1; i >= 0; i--) {
       const coin = this.level.coins[i];
+
       if (this.character.isColliding(coin)) {
         this.level.coins.splice(i, 1);
 
@@ -144,9 +200,14 @@
     }
   };
 
+  /**
+   * Collects kunai pickups, increases ammo and updates the kunai status bar.
+   * @returns {void}
+   */
   World.prototype.collectKunaiCoins = function () {
     for (let i = this.level.kunais.length - 1; i >= 0; i--) {
       const kunaiCoin = this.level.kunais[i];
+
       if (this.character.isColliding(kunaiCoin)) {
         this.level.kunais.splice(i, 1);
 
@@ -166,7 +227,8 @@
   };
 
   /**
-   * Updates bobbing animation of coins and kunai collectibles.
+   * Updates bobbing animations for all collectibles.
+   * @returns {void}
    */
   World.prototype.updateCollectibleBobbing = function () {
     const timeSeconds = performance.now() / 1000;
@@ -185,7 +247,8 @@
   };
 
   /**
-   * Checks if the endboss should be spawned and spawns it if needed.
+   * Spawns the end boss if the spawn conditions are met.
+   * @returns {void}
    */
   World.prototype.checkForEndboss = function () {
     if (!this.shouldSpawnEndboss()) return;
@@ -202,8 +265,8 @@
   };
 
   /**
-   * Conditions for loading/spawning the endboss.
-   * @returns {boolean}
+   * Determines whether the end boss should be spawned.
+   * @returns {boolean} True if the end boss should be spawned
    */
   World.prototype.shouldSpawnEndboss = function () {
     if (this.character.x <= 3500) return false;

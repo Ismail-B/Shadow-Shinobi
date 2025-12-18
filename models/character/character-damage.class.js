@@ -1,77 +1,88 @@
 /**
- * Damage / death handling for Character.
- * Requires Character + audio methods to be loaded.
+ * Character damage, hurt state, and death animation handling.
+ * This file patches methods onto Character.prototype and must be loaded after
+ * the Character class and its audio helpers.
+ *
+ * @global
  */
 (function () {
   /**
-   * Verarbeitet Schaden am Charakter.
-   * @param {number} [dmg=this.DAMAGE_PER_HIT] - Schaden je Treffer.
+   * Applies damage to the character.
+   *
+   * @this {Character}
+   * @param {number} [dmg=this.DAMAGE_PER_HIT] - Damage per hit.
    * @returns {void}
    */
   Character.prototype.hit = function (dmg = this.DAMAGE_PER_HIT) {
     if (this.isDead()) return;
 
-    const wasDeadBefore = this.isDead();
     const oldEnergy = this.energy;
 
     this.energy -= dmg;
     if (this.energy < 0) this.energy = 0;
 
     this.updateLastHitTime(oldEnergy);
-    this.handleHitSounds(wasDeadBefore, oldEnergy);
+    this.handleHitSounds(oldEnergy);
   };
 
   /**
-   * Aktualisiert den Zeitpunkt des letzten Treffers.
-   * @param {number} oldEnergy - Energie vor dem Treffer.
+   * Updates the last hit timestamp if damage was taken and the character survived.
+   *
+   * @this {Character}
+   * @param {number} oldEnergy - Energy before the hit.
    * @returns {void}
    */
   Character.prototype.updateLastHitTime = function (oldEnergy) {
     if (this.energy < oldEnergy && this.energy > 0) {
-      this.lastHit = new Date().getTime();
+      this.lastHit = Date.now();
     }
   };
 
   /**
-   * Spielt bei Bedarf Hurt- oder Death-Sounds ab.
-   * @param {boolean} wasDeadBefore - War der Charakter vorher schon tot?
-   * @param {number} oldEnergy - Energie vor dem Treffer.
+   * Plays hurt or death sounds depending on the new energy value.
+   *
+   * @this {Character}
+   * @param {number} oldEnergy - Energy before the hit.
    * @returns {void}
    */
-  Character.prototype.handleHitSounds = function (wasDeadBefore, oldEnergy) {
+  Character.prototype.handleHitSounds = function (oldEnergy) {
     const deadNow = this.isDead();
-    if (wasDeadBefore) return;
 
-    if (!wasDeadBefore && deadNow) {
+    if (deadNow) {
       this.playDeathSound();
       return;
     }
 
-    if (!deadNow && this.energy < oldEnergy) {
+    if (this.energy < oldEnergy) {
       this.playHurtSound();
     }
   };
 
   /**
-   * Prüft, ob der Charakter tot ist.
-   * @returns {boolean} true, wenn Energie <= 0.
+   * Returns whether the character is dead.
+   *
+   * @this {Character}
+   * @returns {boolean} True if energy is 0 or below.
    */
   Character.prototype.isDead = function () {
     return this.energy <= 0;
   };
 
   /**
-   * Prüft, ob der Charakter vor kurzem Schaden erlitten hat.
-   * @returns {boolean} true, wenn kürzlich getroffen.
+   * Returns whether the character was hit recently (hurt window).
+   *
+   * @this {Character}
+   * @returns {boolean} True if hit within the last second and still alive.
    */
   Character.prototype.isHurt = function () {
-    let timepassed = new Date().getTime() - this.lastHit;
-    timepassed = timepassed / 1000;
-    return this.energy > 0 && timepassed < 1;
+    const secondsSinceHit = (Date.now() - this.lastHit) / 1000;
+    return this.energy > 0 && secondsSinceHit < 1;
   };
 
   /**
-   * Spielt die Death-Animation genau einmal ab.
+   * Starts the death animation once and freezes on the last frame.
+   *
+   * @this {Character}
    * @returns {void}
    */
   Character.prototype.playDeathOnce = function () {
@@ -83,8 +94,10 @@
   };
 
   /**
-   * Startet den Death-Animation-Interval.
-   * @param {string[]} seq - Death-Frames.
+   * Starts the interval that advances the death animation frames.
+   *
+   * @this {Character}
+   * @param {string[]} seq - Death animation frame keys.
    * @returns {void}
    */
   Character.prototype.startDeathInterval = function (seq) {
@@ -94,8 +107,10 @@
   };
 
   /**
-   * Schaltet auf das nächste Death-Frame um.
-   * @param {string[]} seq - Death-Frames.
+   * Advances the death animation by one frame and freezes on the last frame.
+   *
+   * @this {Character}
+   * @param {string[]} seq - Death animation frame keys.
    * @returns {void}
    */
   Character.prototype.advanceDeathFrame = function (seq) {
@@ -110,7 +125,9 @@
   };
 
   /**
-   * Setzt die Death-Animation zurück (z.B. bei Restart).
+   * Resets death animation state (e.g., on game restart).
+   *
+   * @this {Character}
    * @returns {void}
    */
   Character.prototype.resetDeathAnim = function () {

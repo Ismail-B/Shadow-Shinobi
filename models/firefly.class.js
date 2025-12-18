@@ -1,30 +1,35 @@
 /**
- * Repräsentiert eine Glühwürmchen-Hintergrundebene,
- * die sich kontinuierlich nach links bewegt.
+ * Background firefly layer that continuously moves to the left.
  * @extends MovableObject
  */
 class Firefly extends MovableObject {
-    y = 0;
-    height = 480;
-    width = 720;
+  /** @type {number} */
+  y = 0;
 
-    /**
-     * Erstellt eine neue Firefly-Ebene an der gegebenen X-Position.
-     * @param {number} x - Startposition auf der X-Achse.
-     */
-    constructor(x) {
-        super().loadImage('img/5_background/layers/4_fireflys/fireflys.png');
-        this.x = x;
-        this.animate();
-    }
+  /** @type {number} */
+  height = 480;
 
-    /**
-     * Startet die Bewegung der Glühwürmchen nach links.
-     * @returns {void}
-     */
-    animate() {
-        setInterval(() => {
-            this.moveLeft();
-        }, 1000 / 60);
-    }
+  /** @type {number} */
+  width = 720;
+
+  /**
+   * Creates a firefly background layer at the given X position.
+   *
+   * @param {number} x - Initial X position
+   */
+  constructor(x) {
+    super().loadImage('img/5_background/layers/4_fireflys/fireflys.png');
+    this.x = x;
+    this.animate();
+  }
+
+  /**
+   * Starts the continuous leftward movement.
+   * @returns {void}
+   */
+  animate() {
+    setInterval(() => {
+      this.moveLeft();
+    }, 1000 / 60);
+  }
 }

@@ -1,14 +1,13 @@
 /**
- * =====================================================
- * Game Keyboard Input
- * =====================================================
- * Maps global keyboard events to the shared Keyboard instance.
+ * Global keyboard event mapping to the shared Keyboard instance.
  */
 
 /**
- * Updates directional keys based on keyboard input.
- * @param {string} key
- * @param {boolean} isDown
+ * Updates directional movement flags based on a key event.
+ *
+ * @param {string} key - Event key value
+ * @param {boolean} isDown - Whether the key is pressed
+ * @returns {void}
  */
 function updateDirectionalKeys(key, isDown) {
   const lower = key.toLowerCase();
@@ -20,9 +19,11 @@ function updateDirectionalKeys(key, isDown) {
 }
 
 /**
- * Updates jump key based on keyboard input.
- * @param {string} key
- * @param {boolean} isDown
+ * Updates jump flag based on a key event.
+ *
+ * @param {string} key - Event key value
+ * @param {boolean} isDown - Whether the key is pressed
+ * @returns {void}
  */
 function updateJumpKey(key, isDown) {
   if (key === ' ') {
@@ -31,15 +32,15 @@ function updateJumpKey(key, isDown) {
 }
 
 /**
- * Updates attack key and triggers attack if necessary.
- * @param {string} key
- * @param {boolean} isDown
+ * Updates attack flag and triggers an attack on key press.
+ *
+ * @param {string} key - Event key value
+ * @param {boolean} isDown - Whether the key is pressed
+ * @returns {void}
  */
 function updateAttackKey(key, isDown) {
   const lower = key.toLowerCase();
-  if (lower !== 'b') {
-    return;
-  }
+  if (lower !== 'b') return;
 
   keyboard.ATTACK = isDown;
 
@@ -54,15 +55,15 @@ function updateAttackKey(key, isDown) {
 }
 
 /**
- * Updates throw key and triggers kunai throw if necessary.
- * @param {string} key
- * @param {boolean} isDown
+ * Updates throw flag and triggers a kunai throw on key press.
+ *
+ * @param {string} key - Event key value
+ * @param {boolean} isDown - Whether the key is pressed
+ * @returns {void}
  */
 function updateThrowKey(key, isDown) {
   const lower = key.toLowerCase();
-  if (lower !== 'v') {
-    return;
-  }
+  if (lower !== 'v') return;
 
   keyboard.D = isDown;
 
@@ -77,9 +78,11 @@ function updateThrowKey(key, isDown) {
 }
 
 /**
- * Updates keyboard state from a given key and pressed state.
- * @param {string} key
- * @param {boolean} isDown
+ * Applies a key event to the Keyboard state.
+ *
+ * @param {string} key - Event key value
+ * @param {boolean} isDown - Whether the key is pressed
+ * @returns {void}
  */
 function updateKeyboardFromKey(key, isDown) {
   updateDirectionalKeys(key, isDown);
@@ -89,16 +92,18 @@ function updateKeyboardFromKey(key, isDown) {
 }
 
 /**
- * Global keydown handler.
- * @param {KeyboardEvent} e
+ * Handles global keydown events.
+ * @param {KeyboardEvent} e - Keyboard event
+ * @returns {void}
  */
 function onKeyDown(e) {
   updateKeyboardFromKey(e.key, true);
 }
 
 /**
- * Global keyup handler.
- * @param {KeyboardEvent} e
+ * Handles global keyup events.
+ * @param {KeyboardEvent} e - Keyboard event
+ * @returns {void}
  */
 function onKeyUp(e) {
   updateKeyboardFromKey(e.key, false);

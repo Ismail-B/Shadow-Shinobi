@@ -1,11 +1,17 @@
 /**
- * Damage + attack window logic for Endboss.
- * Requires Endboss class + audio methods.
+ * Endboss damage handling and player damage window logic.
+ * This file patches methods onto Endboss.prototype and must be loaded after
+ * the Endboss class and its audio helpers.
+ *
+ * @global
  */
 (function () {
   /**
-   * Boss bekommt Schaden vom Spieler (Nahkampf/Kunai).
-   * @param {number} [damage=10] - ungenutzt, Logik zieht feste 20 ab.
+   * Applies a hit to the boss (melee/kunai).
+   * Note: The current implementation uses a fixed damage value internally.
+   *
+   * @this {Endboss}
+   * @param {number} [damage=10] - Currently unused (kept for API compatibility).
    * @returns {void}
    */
   Endboss.prototype.hit = function (damage = 10) {
@@ -19,7 +25,9 @@
   };
 
   /**
-   * Wendet Schaden auf den Boss an und setzt States.
+   * Applies damage to the boss and updates related states.
+   *
+   * @this {Endboss}
    * @returns {void}
    */
   Endboss.prototype.applyBossDamage = function () {
@@ -36,7 +44,9 @@
   };
 
   /**
-   * Aktualisiert die Lebensleiste des Bosses.
+   * Updates the boss life bar UI.
+   *
+   * @this {Endboss}
    * @returns {void}
    */
   Endboss.prototype.updateBossLifebar = function () {
@@ -45,7 +55,9 @@
   };
 
   /**
-   * Versetzt den Boss in den Hurt-State.
+   * Enters the hurt state and resets hurt animation playback.
+   *
+   * @this {Endboss}
    * @returns {void}
    */
   Endboss.prototype.setHurtState = function () {
@@ -56,7 +68,9 @@
   };
 
   /**
-   * Behandelt den Übergang in den Death-State.
+   * Transitions the boss into the death state.
+   *
+   * @this {Endboss}
    * @returns {void}
    */
   Endboss.prototype.handleBossDeath = function () {
@@ -74,7 +88,9 @@
   };
 
   /**
-   * Prüft, ob der Boss tot ist.
+   * Returns whether the boss is dead.
+   *
+   * @this {Endboss}
    * @returns {boolean}
    */
   Endboss.prototype.isDead = function () {
@@ -82,7 +98,10 @@
   };
 
   /**
-   * Prüft, ob der Boss den Spieler aktuell schädigen darf.
+   * Returns whether the boss can deal damage to the player right now.
+   * This includes a general damage interval gate.
+   *
+   * @this {Endboss}
    * @returns {boolean}
    */
   Endboss.prototype.canDamagePlayer = function () {
@@ -96,7 +115,9 @@
   };
 
   /**
-   * Prüft Blocker für Boss → Player-Schaden.
+   * Returns whether boss-to-player damage is blocked by state or frame window.
+   *
+   * @this {Endboss}
    * @returns {boolean}
    */
   Endboss.prototype.isDamageBlocked = function () {
